@@ -1,0 +1,5 @@
+-r ../requirements-common.txt
+
+# Category 1 — Avanade AI Wellbeing (BalanceIQ)
+# Additional deps specific to this challenge
+altair>=5.2.0          # For manager heatmap visualizations

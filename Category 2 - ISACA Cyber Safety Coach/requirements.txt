@@ -1,0 +1,4 @@
+-r ../requirements-common.txt
+
+# Category 2 — ISACA Cyber Safety Coach
+nltk>=3.8.0

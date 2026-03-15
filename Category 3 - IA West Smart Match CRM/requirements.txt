@@ -1,0 +1,6 @@
+-r ../requirements-common.txt
+
+# Category 3 — IA West Smart Match CRM
+scipy>=1.12.0          # For matching algorithms / statistical scoring
+fuzzywuzzy>=0.18.0     # Fuzzy string matching for name deduplication
+python-Levenshtein>=0.25.0

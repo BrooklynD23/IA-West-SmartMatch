@@ -1,0 +1,7 @@
+-r ../requirements-common.txt
+
+# Category 4 — Aytm x Neo Smart Living
+# (Existing prototype deps)
+scipy>=1.12.0
+nltk>=3.8.0
+gensim>=4.3.0          # Topic modelling for interview analysis

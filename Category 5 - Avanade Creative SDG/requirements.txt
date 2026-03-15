@@ -1,0 +1,4 @@
+-r ../requirements-common.txt
+
+# Category 5 — Avanade Creative SDG
+Pillow>=10.2.0         # Image processing for creative assets
