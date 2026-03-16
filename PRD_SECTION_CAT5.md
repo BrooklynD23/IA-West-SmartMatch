@@ -1,5 +1,7 @@
 ## Category 5: CropSense AI — Precision Agriculture for Smallholder Farmers
-**Sponsor:** Avanade (Creative SDG Track) | **CTO Tier:** 2 (Strong Contender) | **Verdict:** Approved with Revisions
+**Sponsor:** Avanade (Creative SDG Track) | **CTO Tier:** 1.5 (conditional on Day 4 gate) | **Verdict:** Approved with Revisions
+
+**Planning Note (2026-03-15):** For implementation sequencing and canonical scope, treat `STRATEGIC_REVIEW.md`, `MASTER_SPRINT_PLAN.md`, and `Category 5 - Avanade Creative SDG/SPRINT_PLAN.md` as the source of truth. Canonical MVP scope is a 3-system Streamlit build: Azure Custom Vision + Azure OpenAI + Open-Meteo.
 
 ### Problem Statement
 
@@ -16,9 +18,9 @@ CropSense AI is a mobile-first agricultural intelligence platform that enables s
 | Computer Vision | Azure Custom Vision (S0) | Crop disease classification from leaf images (PlantVillage: 54K images, 14 crops, 26 diseases) | F0: 2 projects, 5K images, 10K predictions/mo | $0 with Azure for Students credits ($100 budget); S0 training ~$10/hr, predictions ~$2/1K |
 | LLM Advisory | Azure OpenAI GPT-4o-mini | Multilingual plain-language treatment recommendations, contextual farming advice | No free tier; pay-per-token | ~$2-5 total (est. 5M input + 2M output tokens over 2 weeks at $0.15/$0.60 per 1M tokens) |
 | Weather Intelligence | Open-Meteo API | 14-day hyperlocal weather forecast, historical climate data for sub-Saharan Africa | Yes -- free for non-commercial use, no API key required | $0 |
-| Frontend | Next.js + Tailwind CSS (Vercel) | PWA with image upload, diagnosis display, SDG impact dashboard, SMS output preview | Vercel hobby tier free | $0 |
+| Frontend/App Shell | Streamlit | Farmer Mode, Extension Officer Mode, SDG dashboard, SMS output preview, confidence-aware UI | Yes — open source, local-first demo flow | $0 |
 | SMS Output Mode | UI-simulated SMS view (no Twilio) | Renders advisory in SMS-format (<=160 chars) within the web UI; demonstrates SMS-readiness without requiring Twilio integration | N/A (UI only) | $0 |
-| Hosting/Backend | Azure App Service (B1) | API layer for CV + LLM orchestration | Free with Azure for Students | $0 with credits |
+| Hosting/Backup | Local Streamlit runtime + Streamlit Community Cloud backup | Local demo as primary; cloud backup if local environment fails | Yes | $0 |
 | Data | PlantVillage Dataset (GitHub) | 54,306 labeled leaf images for Custom Vision training | Open access (GitHub/Kaggle) | $0 |
 
 ### API & Service Pricing Breakdown
@@ -49,7 +51,7 @@ CropSense AI is a mobile-first agricultural intelligence platform that enables s
 
 **Azure for Students Credits:**
 - $100 in Azure credits valid for 12 months, no credit card required
-- Covers all Azure services needed for this project (Custom Vision, OpenAI, App Service)
+- Covers the Azure services needed for this project (Custom Vision and OpenAI)
 - Eligibility: Full-time students at accredited degree-granting institutions
 - Source: [Azure for Students](https://azure.microsoft.com/en-us/free/students)
 
@@ -73,21 +75,21 @@ CropSense AI is a mobile-first agricultural intelligence platform that enables s
 | M1: Azure CV Setup + Data | 1-3 | Azure Custom Vision project created; PlantVillage dataset downloaded, curated (top 10 crops/diseases for demo relevance), and uploaded; initial model trained and validated; baseline accuracy metrics documented (target: >85% on test set) |
 | M2: LLM Advisory System (40% dev time) | 4-6 | GPT-4o-mini prompt engineering for agricultural advisory; system prompt with disease-specific treatment templates; multilingual output (English + Swahili + French); confidence-aware responses ("consult local extension officer if confidence < 70%"); SMS-length output formatter (<=160 chars) |
 | M3: Weather Integration | 7-8 | Open-Meteo API integration for 14-day forecast by GPS coordinates; weather context injected into LLM advisory prompts ("rain expected in 48 hours -- delay fungicide application"); weather widget in dashboard UI |
-| M4: Frontend + SDG Dashboard | 9-10 | Next.js PWA with image upload flow, diagnosis results page, treatment advisory card, weather panel, SDG impact counter (crops analyzed, farmers helped, estimated yield improvement), SMS output preview mode; responsive design for mobile demo |
+| M4: Frontend + SDG Dashboard | 9-10 | Streamlit app with Farmer Mode, diagnosis results page, treatment advisory card, weather panel, confidence gradient UI, SDG impact counter (crops analyzed, farmers helped, estimated yield improvement), SMS output preview mode; responsive design for mobile demo |
 | M5: Narrative + Demo Prep | 11-14 | "Amina's Story" narrative video/walkthrough scripted and rehearsed; end-to-end demo flow polished (upload leaf photo -> disease detected -> advisory generated -> weather context shown -> SMS output rendered); SDG alignment slide deck; edge case handling (healthy leaf, unclear image, low confidence); responsible AI disclaimers integrated into UI |
 
 ### Team Allocation
 
 **3-Person Team:**
-- **Person 1 (ML/Backend Lead):** Azure Custom Vision setup, PlantVillage data curation and upload, model training and iteration, API orchestration layer connecting CV -> LLM -> Weather pipeline, backend deployment on Azure App Service
+- **Person 1 (ML/Backend Lead):** Azure Custom Vision setup, PlantVillage data curation and upload, model training and iteration, service orchestration connecting CV -> LLM -> Weather, and backup caching for demo reliability
 - **Person 2 (LLM/Integration Specialist):** GPT-4o-mini prompt engineering and advisory system (40% of total dev effort), Open-Meteo weather API integration, multilingual output tuning, SMS-format output logic, responsible AI guardrails in prompts
-- **Person 3 (Frontend/Narrative Lead):** Next.js PWA development, image upload UX, diagnosis results display, SDG impact dashboard, SMS preview mode, "Amina" narrative development, demo script and presentation preparation, slide deck
+- **Person 3 (Frontend/Narrative Lead):** Streamlit page development, image upload UX, diagnosis results display, SDG impact dashboard, SMS preview mode, "Amina" narrative development, demo script and presentation preparation, slide deck
 
 **5-Person Team:**
 - **Person 1 (ML Engineer):** Azure Custom Vision setup, PlantVillage data curation/upload, model training iterations, accuracy benchmarking, confidence calibration
-- **Person 2 (Backend/API Developer):** Orchestration API (CV -> LLM -> Weather pipeline), Azure App Service deployment, error handling, API response caching, request validation
+- **Person 2 (Backend/API Developer):** Service integration layer (CV -> LLM -> Weather pipeline), error handling, API response caching, request validation, and demo fallback logic
 - **Person 3 (LLM Specialist):** GPT-4o-mini prompt engineering (primary focus), multilingual advisory quality, SMS-format output, confidence-aware response templates, responsible AI guardrails
-- **Person 4 (Frontend Developer):** Next.js PWA, image upload flow, diagnosis UI, weather widget, SDG dashboard, SMS preview mode, mobile-responsive design
+- **Person 4 (Frontend Developer):** Streamlit frontend, image upload flow, diagnosis UI, weather widget, SDG dashboard, SMS preview mode, mobile-responsive design
 - **Person 5 (Narrative/Demo Lead):** "Amina" persona development, demo script and rehearsal, SDG alignment storytelling, presentation materials, user journey video, edge case scenarios for demo, competition research on other teams
 
 ### Risk Analysis
@@ -102,10 +104,10 @@ CropSense AI is a mobile-first agricultural intelligence platform that enables s
 | Scope creep into price prediction, IoT sensors, or Twilio SMS (features explicitly excluded by CTO) | Medium | Medium | Print CTO red lines on team workspace: "Max 3 AI systems (CV + LLM + Weather). No price prediction. No Twilio unless core is done." Review scope at each milestone boundary. |
 
 ### Win Probability Assessment
-- **CTO Tier:** 2 (Strong Contender)
+- **CTO Tier:** 1.5 (conditional on Day 4 vertical slice gate)
 - **Independent Analysis:** This category rewards storytelling and genuine passion as much as technical depth. CropSense AI has the strongest possible SDG alignment (Zero Hunger, Climate Action, Reduced Inequalities) with quantifiable impact claims backed by FAO data. The 3-system AI architecture (CV + LLM + Weather) demonstrates meaningful AI application without overengineering. The "Amina" narrative -- a named persona with a specific 2-acre maize plot in Kenya -- is exactly the kind of emotionally anchored storytelling that wins creative categories. The primary weakness is the from-scratch build: no existing prototype, no pre-trained model, no provided dataset. Everything must be assembled in 2 weeks. However, Azure Custom Vision dramatically reduces ML complexity, and PlantVillage provides ready-to-use labeled data. The real risk is not technical failure but insufficient demo polish.
 - **Demo Moment:** The demo climax is the live "Amina Moment": upload a real photo of a diseased maize leaf, watch Azure Custom Vision identify gray leaf spot with 92% confidence, then see GPT-4o-mini generate a Swahili-language advisory that reads: "Majani yako ya mahindi yanaonyesha ugonjwa wa madoa ya kijivu. Punguza umwagiliaji kwa 30% na weka dawa ya shaba ndani ya saa 48." Below it, the same advice rendered in SMS format under 160 characters. On the side panel, Open-Meteo shows rain forecast in 3 days with an automatic note: "Delay fungicide -- rain expected Thursday." This sequence -- image to multilingual actionable advice in under 10 seconds -- is the moment judges remember.
-- **Overall Win Probability:** **Medium-High (45-55%)**. The SDG alignment and narrative potential are best-in-class for this category. The Avanade/Microsoft ecosystem alignment (Azure Custom Vision + Azure OpenAI) is a strong sponsor signal. The limiting factor is execution quality: the team must deliver a polished, emotionally resonant demo with working AI in 2 weeks from a standing start. If the demo is technically functional but narratively flat, probability drops to 30%. If the "Amina Moment" lands with judges, probability rises to 55-60%.
+- **Overall Win Probability:** Execution-dependent: 25-70% with a realistic midpoint around 50%. The newer planning docs are right to widen the range because this category can swing from non-functional to standout based on whether the Day 4 vertical slice lands. A narrow single-point confidence band would be too optimistic for portfolio planning.
 
 ### Existing Assets Inventory
 
@@ -122,7 +124,7 @@ This project starts entirely from scratch. The team has no existing prototype, p
 - Custom Vision model trained on curated PlantVillage subset
 - LLM advisory prompt system with multilingual output
 - Weather integration pipeline
-- Full frontend application (PWA)
+- Full Streamlit application
 - Demo narrative and presentation materials
 
 ### Responsible AI Considerations

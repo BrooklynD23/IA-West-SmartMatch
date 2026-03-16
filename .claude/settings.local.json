@@ -3,7 +3,16 @@
     "allow": [
       "WebSearch",
       "Bash(wc:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "mcp__sequential-thinking__sequentialthinking",
+      "Bash(which codex:*)",
+      "Bash(find:*)",
+      "Bash(file:*)",
+      "Bash(strings:*)",
+      "Bash(timeout:*)",
+      "Bash(echo:*)"
     ]
-  }
+  },
+  "outputStyle": "Explanatory",
+  "prefersReducedMotion": true
 }

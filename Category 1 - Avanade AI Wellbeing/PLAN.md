@@ -1,6 +1,8 @@
 # Category 1 — Avanade Challenge: AI for Wellbeing (Option B)
 **Sponsor:** Avanade | **Event:** CPP AI Hackathon "AI for a Better Future" | April 16, 2026
 
+> **Status update (2026-03-15):** This file is now background ideation only. Canonical planning decisions live in `SPRINT_PLAN.md`, `../MASTER_SPRINT_PLAN.md`, and `../STRATEGIC_REVIEW.md`. Corrected pricing is `$6/user/month` for Viva Insights as an add-on, and the current positioning is "teams outside the Microsoft ecosystem," not "Viva for non-E5."
+
 ---
 
 ## 🎯 Challenge Prompt

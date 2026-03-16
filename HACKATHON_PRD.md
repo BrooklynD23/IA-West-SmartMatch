@@ -9,21 +9,23 @@
 **Document Generated:** March 14, 2026
 **Inputs:** CTO Review Output, 5 Category PLAN.md files, web-researched pricing (March 2026)
 
+**Planning Note (2026-03-15):** The canonical source set is `STRATEGIC_REVIEW.md`, `MASTER_SPRINT_PLAN.md`, and the category `SPRINT_PLAN.md` files. This PRD has been reconciled to that set for portfolio rankings plus Cat 1 and Cat 5 implementation decisions.
+
 ---
 
 ## Executive Summary
 
-Five sponsor-led categories are available for the CPP AI Hackathon. The CTO review has tiered them by win probability, and this PRD provides researched details on each to inform the team's vote.
+Five sponsor-led categories are available for the CPP AI Hackathon. The March 15 strategic review revised the original single-point win probabilities into conditional planning ranges, which are reflected below.
 
-**Category 1 — BalanceIQ (Avanade AI Wellbeing) | Tier 3:** An AI-powered wellbeing dashboard for tech workers using rules-based scoring and LLM-generated nudges. Technically simple but competing in the most crowded hackathon category. The manager heatmap is a genuine differentiator, but "AI wellbeing coach" fatigue is real. Win probability: 15-25%.
+**Category 1 — BalanceIQ (Avanade AI Wellbeing) | Tier 3/Optional:** An AI-powered wellbeing dashboard for tech workers using rules-based scoring and LLM-generated nudges. The manager heatmap remains the best demo moment, but the category stays parked in the portfolio unless a 5th person is confirmed. Win probability: 25-35% ceiling only with that extra staffing.
 
-**Category 2 — PhishGuard AI (ISACA Cyber Safety Coach) | Tier 1:** A multi-layer phishing detection and education platform combining LLM classification, rule-based pre-filters, and URL reputation APIs. Perfect sponsor alignment with ISACA's cyber literacy mission. All stretch goals promoted to MVP. The lowest technical risk and strongest demo narrative. Win probability: 70-80%.
+**Category 2 — PhishGuard AI (ISACA Cyber Safety Coach) | Tier 1:** A multi-layer phishing detection and education platform combining LLM classification, rule-based pre-filters, and URL reputation APIs. Strong sponsor alignment and the best balance of feasibility and demo strength. Win probability: 55-85%, midpoint 70%.
 
-**Category 3 — IA SmartMatch (IA West Smart Match CRM) | Tier 1:** An AI-orchestrated CRM that matches volunteer speakers to university events using vector embeddings, with automated web scraping for opportunity discovery. Benefits from 77 rows of pre-provided real data. Written deliverables (Growth Strategy + Measurement Plan) worth 40% of judging. Win probability: 65-75%.
+**Category 3 — IA SmartMatch (IA West Smart Match CRM) | Tier 1:** An AI-orchestrated CRM that matches volunteer speakers to university events using vector embeddings, with automated web scraping for opportunity discovery. Real data and rubric-heavy written deliverables keep it in the top tier. Win probability: 55-75%, midpoint 65%.
 
-**Category 4 — Simulated Market Research (Aytm x Neo Smart Living) | Tier 2:** An improved synthetic research pipeline using dual-LLM cross-validation. Massive head start with an existing ~2,500-line working codebase (~49.5 hours saved). The $0.08 vs. $24K cost story is memorable. Must frame improvements as ownership, not just iteration. Win probability: 45-60%.
+**Category 4 — Simulated Market Research (Aytm x Neo Smart Living) | Tier 2:** An improved synthetic research pipeline using dual-LLM cross-validation. The existing prototype remains a major head start, but the outcome depends on proving real methodological improvement. Win probability: 25-65%, midpoint 50%.
 
-**Category 5 — CropSense AI (Avanade Creative SDG) | Tier 2:** A 3-system AI platform (computer vision + LLM advisory + weather) for smallholder crop disease diagnosis. Strongest narrative and SDG alignment in the portfolio. Built entirely from scratch — highest execution risk but highest emotional impact if landed. Win probability: 45-55%.
+**Category 5 — CropSense AI (Avanade Creative SDG) | Tier 1.5:** A 3-system Streamlit build (computer vision + LLM advisory + weather) for smallholder crop disease diagnosis. Strongest narrative and SDG alignment in the portfolio, but highly execution-dependent. Win probability: 25-70%, midpoint 50%, contingent on a Day 4 working vertical slice.
 
 ---
 
@@ -33,7 +35,7 @@ This is the voting centerpiece. All data is researched and populated — no plac
 
 | Dimension | Cat 1: BalanceIQ | Cat 2: PhishGuard AI | Cat 3: IA SmartMatch | Cat 4: Sim Research | Cat 5: CropSense AI |
 |-----------|-----------------|---------------------|---------------------|--------------------|--------------------|
-| **CTO Tier** | 3 (Lower Priority) | 1 (Highest) | 1 (Highest) | 2 (Strong) | 2 (Strong) |
+| **CTO Tier** | 3/Optional | 1 (Highest) | 1 (Highest) | 2 (Strong) | 1.5 (Conditional) |
 | **CTO Verdict** | Approved w/ Revisions | Approved | Approved w/ Revisions | Approved w/ Revisions | Approved w/ Revisions |
 | **Sponsor** | Avanade | ISACA Orange County | IA West | Aytm x Neo Smart Living | Avanade (Creative SDG) |
 | **AI Type** | Rules engine + LLM nudges | LLM classifier + rule-based + URL APIs | Vector embeddings + LLM extraction | Dual-LLM synthetic respondents | Computer Vision + LLM + Weather API |
@@ -43,7 +45,7 @@ This is the voting centerpiece. All data is researched and populated — no plac
 | **Complexity (avg)** | 2.4/5 | 2.4/5 | 3.0/5 | 2.8/5 | 3.0/5 |
 | **Demo Moment** | Manager burnout heatmap (14-day x 20-employee grid) | "Maria Moment" — live phishing analysis in 8 sec with PII redaction + Spanish toggle | Live UCLA event scrape → speaker match → email draft in 60 sec | "$0.08 vs. $24K" + ground truth validation side-by-side | "Amina Moment" — leaf photo → Swahili diagnosis + weather-aware advice in 10 sec |
 | **Top Risk** | Crowded category, "just another wellness dashboard" | LLM hallucination on classification (mitigated by URL hard-override) | University pages change structure; written deliverables underinvested | Improvements feel incremental, not transformative | From-scratch build + Azure credits dependency |
-| **Win Probability** | Low-Medium (15-25%) | High (70-80%) | High (65-75%) | Medium-High (45-60%) | Medium-High (45-55%) |
+| **Win Probability** | 25-35% ceiling with 5th person | 55-85% (midpoint 70%) | 55-75% (midpoint 65%) | 25-65% (midpoint 50%) | 25-70% (midpoint 50%) |
 | **Judging Weight Advantage** | None specific | Rubric rewards UX + clarity + impact | 40% on written deliverables (Growth Strategy + Measurement Plan) | Ground truth comparison differentiator | Storytelling + SDG narrative rewarded |
 
 ---
@@ -65,8 +67,7 @@ All services across all categories, with March 2026 verified pricing.
 | **Google Safe Browsing API** | Free (non-commercial) | Cat 2 | $0 |
 | **PhishTank API** | Free (rate-limited) | Cat 2 | $0 |
 | **Open-Meteo API** | Free (non-commercial, no key needed) | Cat 5 | $0 |
-| **Streamlit Community Cloud** | Free (1GB RAM, public repo) | Cat 1, 2, 3, 4 | $0 |
-| **Vercel Hobby** | Free | Cat 5 | $0 |
+| **Streamlit Community Cloud** | Free (1GB RAM, public repo) | Cat 1, 2, 3, 4, 5 | $0 |
 | **Azure for Students** | $100 credits / 12 months | Cat 5 | $100 credit available |
 | **Twilio SMS** | $0.0083/msg US, $0.0085-$0.24/msg Kenya | Cat 5 (reference only) | Not in MVP |
 | **spaCy NER** | Free (open source) | Cat 2 | $0 |
@@ -78,15 +79,15 @@ All services across all categories, with March 2026 verified pricing.
 ---
 
 ## Category 1: BalanceIQ — AI Wellbeing Advisor for Tech Workers
-**Sponsor:** Avanade | **CTO Tier:** 3 (Lower Priority) | **Verdict:** Approved with Revisions
+**Sponsor:** Avanade | **CTO Tier:** 3/Optional | **Verdict:** Approved with Revisions
 
 ### Problem Statement
 
-Tech worker burnout has reached critical levels. According to the 2024-2025 State of Engineering Management Report, 65% of engineers experienced burnout in the past year. LeadDev's 2025 Engineering Leadership Report found 22% of developers face critical burnout levels, with another 24% moderately burned out. A broader industry survey shows 68% of tech workers report burnout symptoms, up from 49% three years prior. The root causes are structural: 65% of developers report expanded responsibilities, 40% manage more direct reports than before, and the push to adopt AI tools while maintaining output has added a new pressure layer. Meanwhile, enterprise wellbeing tools like Microsoft Viva Insights require E5 licensing ($57/user/month), pricing out mid-market companies and smaller tech firms. There is a gap between expensive enterprise solutions and generic consumer wellness apps (Calm, Headspace) that do not understand the specific rhythms of engineering work — on-call rotations, sprint cycles, meeting overload, and after-hours Slack culture.
+Tech worker burnout has reached critical levels. According to the 2024-2025 State of Engineering Management Report, 65% of engineers experienced burnout in the past year. LeadDev's 2025 Engineering Leadership Report found 22% of developers face critical burnout levels, with another 24% moderately burned out. A broader industry survey shows 68% of tech workers report burnout symptoms, up from 49% three years prior. The root causes are structural: 65% of developers report expanded responsibilities, 40% manage more direct reports than before, and the push to adopt AI tools while maintaining output has added a new pressure layer. Meanwhile, Microsoft Viva Insights is a $6/user/month add-on within the Microsoft ecosystem, which makes it a poor fit for teams that do not use Microsoft 365 at all. There is a gap between Microsoft-native workplace analytics and generic consumer wellness apps (Calm, Headspace) that do not understand the specific rhythms of engineering work — on-call rotations, sprint cycles, meeting overload, and after-hours Slack culture.
 
 ### Proposed Solution
 
-BalanceIQ is a lightweight, AI-powered wellbeing dashboard for tech workers that analyzes work pattern data (calendar density, after-hours activity, focus time ratios, meeting load) and generates actionable micro-nudges to prevent burnout. Rather than using ML-based anomaly detection (which would require training data and time the hackathon does not afford), it uses a configurable rules engine with evidence-based thresholds (e.g., >6 meetings/day = high meeting load, <2 hours focus time = low deep work). The centerpiece demo moment is a manager-level anonymized heatmap showing team-wide burnout risk patterns across a two-week period — visually striking and immediately actionable. GPT-4o-mini generates personalized, context-aware nudge text that goes beyond generic advice. The system is explicitly positioned as "Viva Insights for non-E5 companies" — bringing enterprise-grade work pattern analytics to teams that cannot afford Microsoft's premium licensing.
+BalanceIQ is a lightweight, AI-powered wellbeing dashboard for tech workers that analyzes work pattern data (calendar density, after-hours activity, focus time ratios, meeting load) and generates actionable micro-nudges to prevent burnout. Rather than using ML-based anomaly detection (which would require training data and time the hackathon does not afford), it uses a configurable rules engine with evidence-based thresholds (e.g., >6 meetings/day = high meeting load, <2 hours focus time = low deep work). The centerpiece demo moment is a manager-level anonymized heatmap showing team-wide burnout risk patterns across a two-week period — visually striking and immediately actionable. GPT-4o-mini generates personalized, context-aware nudge text that goes beyond generic advice. The system is positioned for teams outside the Microsoft ecosystem rather than as a cheaper Viva tier, which keeps the story accurate and avoids sounding like a licensing workaround.
 
 ### Tech Stack
 
@@ -169,10 +170,10 @@ BalanceIQ is a lightweight, AI-powered wellbeing dashboard for tech workers that
 | Team deprioritizes due to Tier 3 status | Medium | Medium | Acknowledge Tier 3 honestly. Frame as low-risk, high-learning project. |
 
 ### Win Probability Assessment
-- **CTO Tier:** 3 (Lower Priority)
-- **Independent Analysis:** Crowded category where "AI wellbeing coach" is among the most common hackathon submissions. The "Viva Insights for non-E5" positioning is smart but risks sounding like a feature gap rather than innovation. The manager heatmap is genuinely strong but may not overcome category fatigue. Competitive landscape is brutal: BetterUp ($300-500/user/month), Calm Business (~$64/employee/year), and Viva Insights (free personal insights in M365).
+- **CTO Tier:** 3/Optional
+- **Independent Analysis:** Crowded category where "AI wellbeing coach" is among the most common hackathon submissions. The more defensible story is "opt-in wellbeing analytics for engineering teams outside the Microsoft ecosystem," not a cheaper Viva tier. That makes the positioning cleaner, but the category is still crowded and hard to win without exceptional polish.
 - **Demo Moment:** Split-screen showing "Sarah's individual dashboard" next to "Engineering Team Heatmap" — a red-yellow-green gradient over a 14-day x 20-employee grid with visible crunch-week patterns.
-- **Overall Win Probability:** **Low-Medium (15-25%)**
+- **Overall Win Probability:** **Conditional.** Treat 25-35% as the upside case only if a 5th person is confirmed and the team protects polish time; otherwise keep this category parked.
 
 ### Existing Assets Inventory
 - Stack Overflow Developer Survey data (public) for threshold calibration
@@ -527,7 +528,7 @@ Build an improved open-source simulated market research pipeline that generates 
 ---
 
 ## Category 5: CropSense AI — Precision Agriculture for Smallholder Farmers
-**Sponsor:** Avanade (Creative SDG Track) | **CTO Tier:** 2 (Strong Contender) | **Verdict:** Approved with Revisions
+**Sponsor:** Avanade (Creative SDG Track) | **CTO Tier:** 1.5 (conditional on Day 4 gate) | **Verdict:** Approved with Revisions
 
 ### Problem Statement
 
@@ -544,9 +545,9 @@ CropSense AI is a mobile-first agricultural intelligence platform that enables s
 | Computer Vision | Azure Custom Vision (S0) | Crop disease classification from leaf images (PlantVillage: 54K images, 14 crops, 26 diseases) | F0: 2 projects, 5K images, 10K predictions/mo | $0 with Azure for Students credits |
 | LLM Advisory | Azure OpenAI GPT-4o-mini | Multilingual treatment recommendations, contextual farming advice | Pay-per-token | ~$2-5 |
 | Weather Intelligence | Open-Meteo API | 14-day hyperlocal weather forecast, global 1km resolution | Yes — free, no key needed | $0 |
-| Frontend | Next.js + Tailwind CSS (Vercel) | PWA with image upload, diagnosis display, SDG dashboard, SMS preview | Vercel hobby free | $0 |
+| Frontend/App Shell | Streamlit | Farmer Mode, Extension Officer Mode, SDG dashboard, SMS preview, confidence-aware UI | Yes — open source, local-first demo flow | $0 |
 | SMS Output Mode | UI-simulated SMS view | Renders advisory in <=160 chars within web UI | N/A (UI only) | $0 |
-| Hosting/Backend | Azure App Service (B1) | API layer for CV + LLM orchestration | Free with credits | $0 |
+| Hosting/Backup | Local Streamlit runtime + Streamlit Community Cloud backup | Local demo as primary; cloud backup if local environment fails | Yes | $0 |
 | Data | PlantVillage Dataset (GitHub) | 54,306 labeled leaf images | Open access | $0 |
 
 ### API & Service Pricing Breakdown
@@ -563,7 +564,7 @@ CropSense AI is a mobile-first agricultural intelligence platform that enables s
 
 **Twilio SMS (reference only — NOT in MVP):** $0.0083/msg US, $0.0085-$0.24/msg Kenya.
 
-**Azure for Students:** $100 credits for 12 months, no credit card, requires .edu verification. Covers all Azure services needed.
+**Azure for Students:** $100 credits for 12 months, no credit card, requires .edu verification. Covers the Azure services needed for this project (Custom Vision and OpenAI).
 
 **Total: $0-$15** within Azure for Students $100 budget.
 
@@ -585,21 +586,21 @@ CropSense AI is a mobile-first agricultural intelligence platform that enables s
 | M1: Azure CV Setup + Data | 1-3 | Custom Vision project created. PlantVillage curated (top 10 crops/diseases). Model trained and validated (target >85% accuracy). |
 | M2: LLM Advisory System (40% dev time) | 4-6 | GPT-4o-mini prompt engineering. Disease-specific templates. Multilingual output (English + Swahili + French). Confidence-aware responses. SMS-length formatter. |
 | M3: Weather Integration | 7-8 | Open-Meteo API integration. Weather→advisory urgency logic ("rain expected — delay fungicide"). Weather widget. |
-| M4: Frontend + SDG Dashboard | 9-10 | Next.js PWA. Image upload flow. Diagnosis results page. SDG impact counter. SMS preview mode. Responsive mobile design. |
+| M4: Frontend + SDG Dashboard | 9-10 | Streamlit app. Farmer Mode. Diagnosis results page. SDG impact counter. SMS preview mode. Confidence gradient UI. Responsive mobile design. |
 | M5: Narrative + Demo Prep | 11-14 | "Amina's Story" scripted and rehearsed. End-to-end demo flow polished. SDG alignment deck. Edge case handling. Responsible AI disclaimers. |
 
 ### Team Allocation
 
 **3-Person Team:**
-- **Person 1 (ML/Backend Lead):** Azure Custom Vision setup, PlantVillage data curation, model training, API orchestration (CV→LLM→Weather), Azure App Service.
+- **Person 1 (ML/Backend Lead):** Azure Custom Vision setup, PlantVillage data curation, model training, service orchestration (CV→LLM→Weather), and demo cache reliability.
 - **Person 2 (LLM/Integration):** GPT-4o-mini advisory system (40% dev effort), Open-Meteo integration, multilingual output, SMS-format logic, responsible AI guardrails.
-- **Person 3 (Frontend/Narrative Lead):** Next.js PWA, image upload UX, SDG dashboard, SMS preview, "Amina" narrative, demo script, presentation.
+- **Person 3 (Frontend/Narrative Lead):** Streamlit frontend, image upload UX, SDG dashboard, SMS preview, "Amina" narrative, demo script, presentation.
 
 **5-Person Team:**
 - **Person 1 (ML Engineer):** Azure Custom Vision, PlantVillage curation/upload, training iterations, accuracy benchmarking.
-- **Person 2 (Backend/API):** Orchestration API, Azure App Service, error handling, caching, request validation.
+- **Person 2 (Backend/API):** Service integration layer, error handling, caching, request validation, and fallback logic.
 - **Person 3 (LLM Specialist):** GPT-4o-mini prompt engineering (primary focus), multilingual advisory, confidence-aware templates, responsible AI guardrails.
-- **Person 4 (Frontend):** Next.js PWA, image upload, diagnosis UI, weather widget, SDG dashboard, SMS preview, mobile-responsive.
+- **Person 4 (Frontend):** Streamlit frontend, image upload, diagnosis UI, weather widget, SDG dashboard, SMS preview, mobile-responsive.
 - **Person 5 (Narrative/Demo Lead):** "Amina" persona, demo script, SDG storytelling, presentation materials, user journey video, competition research.
 
 ### Risk Analysis
@@ -614,10 +615,10 @@ CropSense AI is a mobile-first agricultural intelligence platform that enables s
 | Scope creep (price prediction, IoT, Twilio) | Medium | Medium | CTO red lines posted on team workspace. Scope review at each milestone. |
 
 ### Win Probability Assessment
-- **CTO Tier:** 2 (Strong Contender)
+- **CTO Tier:** 1.5 (conditional on Day 4 vertical slice gate)
 - **Independent Analysis:** Strongest SDG alignment (Zero Hunger, Climate Action, Reduced Inequalities) with quantifiable FAO-backed impact claims. 3-system AI architecture demonstrates meaningful application without overengineering. "Amina" narrative is exactly the emotionally anchored storytelling that wins creative categories. Weakness: entirely from-scratch build with no prototype.
 - **Demo Moment:** The "Amina Moment" — upload a real maize leaf photo, watch Azure Custom Vision identify gray leaf spot at 92% confidence, then see GPT-4o-mini generate a Swahili-language advisory. Below it, SMS-format under 160 characters. Open-Meteo shows rain in 3 days: "Delay fungicide — rain expected Thursday." Image to multilingual actionable advice in under 10 seconds.
-- **Overall Win Probability:** **Medium-High (45-55%)**. If the demo lands emotionally, rises to 55-60%. If narratively flat, drops to 30%.
+- **Overall Win Probability:** **Execution-dependent: 25-70%, midpoint 50%.** A narrow single-point confidence band would be too optimistic here; the real swing factor is whether the Day 4 vertical slice actually works.
 
 ### Existing Assets Inventory
 
@@ -648,23 +649,34 @@ This project starts entirely from scratch. No existing prototype or team-owned a
 
 | Person | Primary Category | Secondary Support | Timeline |
 |--------|-----------------|-------------------|----------|
-| Person A | Cat 2 (PhishGuard AI) Lead | Cat 1 support (Week 2) | Full 2 weeks on Cat 2 primary |
-| Person B | Cat 3 (SmartMatch) Lead | Written deliverables | Full 2 weeks (largest deliverable set) |
-| Person C | Cat 4 (Sim Research) Lead | — | Full 2 weeks (leverages existing codebase) |
+| Person A | Cat 2 (PhishGuard AI) Lead | Shared infra Days 1-2 | Full 2 weeks on Cat 2 primary |
+| Person B | Cat 3 (SmartMatch) Lead | Written deliverables full-time | Full 2 weeks |
+| Person D | Cat 5 (CropSense AI) Lead | — | Full 2 weeks |
 
-With 3 people, focus on the 3 strongest categories (Cat 2, 3, 4). Cat 1 and Cat 5 would require deprioritizing a stronger category. The team should vote on ONE category to pursue.
+With 3 people, the canonical portfolio staffing is Cat 2 + Cat 3 + Cat 5. Cat 1 and Cat 4 are parked in this model.
 
-### Scenario B: 5-Person Team
+### Scenario B: 4-Person Team (Recommended Portfolio Staffing)
 
 | Person | Primary Category | Secondary Support | Timeline |
 |--------|-----------------|-------------------|----------|
-| Person A | Cat 2 (PhishGuard AI) Lead | Cat 5 support (Week 2) | Week 1 Cat 2, Week 2 Cat 5 UI |
-| Person B | Cat 3 (SmartMatch) Lead | Written deliverables full-time | Full 2 weeks |
-| Person C | Cat 4 (Sim Research) Lead | Cat 1 Lead (Week 2) | Week 1 Cat 4, Week 2 Cat 1 |
-| Person D | Cat 5 (CropSense AI) Lead | — | Full 2 weeks (most from-scratch) |
-| Person E | Shared: Demo scripts, presentations, Responsible AI docs | QA for all | Final 3-4 days |
+| Person A | Cat 2 (PhishGuard AI) Lead | Shared infra Days 1-2 | Full 2 weeks |
+| Person B | Cat 3 (SmartMatch) Lead | — | Full 2 weeks |
+| Person C | Cat 4 (Sim Research) Lead | Cat 3 written deliverables after Day 5 | Split across Cat 4 then Cat 3 |
+| Person D | Cat 5 (CropSense AI) Lead | — | Full 2 weeks |
 
-With 5 people, the team could potentially pursue 2-3 categories. But concentrating all 5 on a single category produces the highest-quality submission.
+Cat 1 remains parked unless a 5th person is confirmed.
+
+### Scenario C: 5-Person Team
+
+| Person | Primary Category | Secondary Support | Timeline |
+|--------|-----------------|-------------------|----------|
+| Person A | Cat 2 (PhishGuard AI) Lead | Shared infra Days 1-2 | Full 2 weeks |
+| Person B | Cat 3 (SmartMatch) Lead | — | Full 2 weeks |
+| Person C | Cat 4 (Sim Research) Lead | Cat 3 written deliverables after Day 5 | Split across Cat 4 then Cat 3 |
+| Person D | Cat 5 (CropSense AI) Lead | — | Full 2 weeks |
+| Person E | Cat 1 (BalanceIQ) Lead | — | Full 2 weeks |
+
+With 5 people, the team can staff Cat 1 without weakening the other core bets. Even then, concentrating all 5 on a single submission is still the highest-upside execution choice.
 
 ### Recommended Strategy
 
@@ -762,7 +774,7 @@ For calibration — team members should adjust based on personal expertise and p
 ### Competitor References
 - BetterUp (~$300-500/user/month enterprise coaching)
 - Calm Business (~$64/employee/year)
-- Microsoft Viva Insights (free personal; $4/user/month advanced)
+- Microsoft Viva Insights ($6/user/month add-on in current planning docs)
 - Norton Genie (mobile phishing detection, now ChatGPT-integrated)
 - ScamAdviser (website trust scoring)
 - Plantix (800 symptoms, 60 crops, 18+ languages)
