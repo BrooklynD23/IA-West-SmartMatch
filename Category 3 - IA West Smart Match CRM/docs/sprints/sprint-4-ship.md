@@ -235,7 +235,7 @@ Systematically test failure modes that could occur during the live demo and impl
 | # | Scenario | Trigger Method | Expected Behavior | Error Message / Fallback |
 |---|----------|---------------|-------------------|--------------------------|
 | 1 | Scraping failure mid-demo | Disconnect WiFi, then click "Discover Events" | App detects network failure, loads cached results with status "Using cached data (scraped {date})" | `"Live scrape unavailable. Showing cached results from {timestamp}."` |
-| 2 | OpenAI API timeout | Set API key to invalid value or block `api.openai.com` | App shows cached explanation card with status indicator "(cached)" | `"AI explanation temporarily unavailable. Showing previously generated explanation."` |
+| 2 | Gemini API timeout | Set API key to invalid value or block `generativelanguage.googleapis.com` | App shows cached explanation card with status indicator "(cached)" | `"AI explanation temporarily unavailable. Showing previously generated explanation."` |
 | 3 | All weights set to 0 | Move all 6 weight sliders to 0.00 | App shows error message in sidebar, does not compute scores | `"At least one weight must be greater than 0. Please adjust weights."` |
 | 4 | Custom URL with garbage HTML | Enter `https://example.com` in custom URL field, click Discover | App attempts extraction, returns empty results with error status | `"Could not extract events from this page. The page may not contain recognizable event listings."` |
 | 5 | Empty CSV file | Replace a data CSV with headers-only file, restart app | App detects empty data, shows informative error on relevant tab | `"No {speakers/events/courses} found in data file. Please check {filename}."` |
@@ -270,7 +270,7 @@ def handle_api_timeout(
     cache_key: str,
     timeout_seconds: float = 10.0
 ) -> dict:
-    """Handle OpenAI API timeout by returning cached explanation.
+    """Handle Gemini API timeout by returning cached explanation.
 
     Args:
         speaker_id: ID of the speaker being explained.
@@ -539,7 +539,7 @@ Deploy the application to Streamlit Community Cloud for public access and judge 
 2. **`requirements.txt` verification:**
    ```
    streamlit>=1.32.0
-   openai>=1.12.0
+   # Gemini API helper in src/gemini_client.py (no separate SDK required)
    pandas>=2.0.0
    plotly>=5.18.0
    beautifulsoup4>=4.12.0
@@ -560,21 +560,21 @@ Deploy the application to Streamlit Community Cloud for public access and judge 
 
 4. **Secrets configuration:**
    - [ ] In Streamlit Cloud dashboard: Settings > Secrets
-   - [ ] Add `OPENAI_API_KEY = "sk-..."` (from `.env`)
-   - [ ] Verify in code: `st.secrets["OPENAI_API_KEY"]` is used, NOT `os.environ`
+   - [ ] Add `GEMINI_API_KEY = "AIza..."` (from `.env`)
+   - [ ] Verify in code: `st.secrets["GEMINI_API_KEY"]` is used, NOT `os.environ`
    - [ ] Code handles both methods for local vs. cloud:
      ```python
      import os
      import streamlit as st
 
      def get_api_key() -> str:
-         """Get OpenAI API key from Streamlit secrets (cloud) or env var (local)."""
+         """Get Gemini API key from Streamlit secrets (cloud) or env var (local)."""
          try:
-             return st.secrets["OPENAI_API_KEY"]
+             return st.secrets["GEMINI_API_KEY"]
          except (FileNotFoundError, KeyError):
-             key = os.environ.get("OPENAI_API_KEY")
+             key = os.environ.get("GEMINI_API_KEY")
              if not key:
-                 st.error("OPENAI_API_KEY not found. Set it in .env or Streamlit Cloud secrets.")
+                 st.error("GEMINI_API_KEY not found. Set it in .env or Streamlit Cloud secrets.")
                  st.stop()
              return key
      ```
@@ -629,7 +629,7 @@ If Streamlit Cloud deployment fails after 1 hour of troubleshooting:
 #### Acceptance Criteria
 
 - [ ] App deployed to Streamlit Community Cloud
-- [ ] Secrets configured (OPENAI_API_KEY accessible)
+- [ ] Secrets configured (GEMINI_API_KEY accessible)
 - [ ] All tabs load without errors on cloud
 - [ ] Memory usage stays below 1 GB
 - [ ] Playwright is gracefully disabled on cloud (no import errors)
@@ -977,7 +977,7 @@ For every `.py` file in `src/` including `src/app.py`:
 - [ ] Remove all unused imports (use `pylint` or manual review)
 - [ ] Organize imports in this order (separated by blank lines):
   1. Standard library (`os`, `json`, `pathlib`, `pickle`, etc.)
-  2. Third-party (`streamlit`, `pandas`, `plotly`, `openai`, `bs4`, etc.)
+  2. Third-party (`streamlit`, `pandas`, `plotly`, `gemini`, `bs4`, etc.)
   3. Local imports (`from src.matching import ...`, etc.)
 - [ ] Remove any `import *` statements
 - [ ] Remove any commented-out imports
@@ -1170,8 +1170,8 @@ ls cache/emails/
 python -c "import pandas as pd; print(pd.read_csv('data/data_speaker_profiles.csv').shape)"
 # Expected: (18, N)
 
-# 4. Verify OpenAI key
-python -c "import os; print('OPENAI_API_KEY' if os.environ.get('OPENAI_API_KEY') else 'MISSING')"
+# 4. Verify Gemini key
+python -c "import os; print('GEMINI_API_KEY' if os.environ.get('GEMINI_API_KEY') else 'MISSING')"
 
 # 5. Kill test instance
 pkill -f streamlit
@@ -1473,7 +1473,7 @@ Final editing pass on the Responsible AI Note. Replace all vague commitments wit
 |-------|--------------|-------------------|
 | **Privacy** | "We will address privacy concerns" | "SmartMatch uses only publicly available speaker profile data from the IA West website and publicly listed university event pages. No student PII is collected — pipeline metrics are tracked at the aggregate level only (e.g., '12 students attended' not 'Student Jane Doe attended'). Speaker profiles are updated only with explicit board member consent." |
 | **Bias** | "We are aware of potential bias" | "We conducted a bias audit across all 18 speakers: Speaker match frequency ranged from {min} to {max} matches per speaker. Geographic distribution analysis showed {X}% of matches went to LA-metro speakers. To mitigate over-matching, we implemented a diversity-of-speaker rotation flag that penalizes recommending the same speaker more than {N} times per quarter." |
-| **Transparency** | "Our algorithm is transparent" | "Every match recommendation displays: (a) a 6-factor score breakdown showing the numeric contribution of topic relevance, role fit, geographic proximity, calendar fit, historical conversion, and student interest; (b) a GPT-4o-mini generated natural language explanation card; and (c) interactive weight sliders allowing chapter leadership to adjust priorities and see rankings change in real time." |
+| **Transparency** | "Our algorithm is transparent" | "Every match recommendation displays: (a) a 6-factor score breakdown showing the numeric contribution of topic relevance, role fit, geographic proximity, calendar fit, historical conversion, and student interest; (b) a Gemini generated natural language explanation card; and (c) interactive weight sliders allowing chapter leadership to adjust priorities and see rankings change in real time." |
 | **Data Handling** | "We handle data responsibly" | "Scraped university event pages are cached locally with a 24-hour TTL and deleted after processing. No login-gated content is accessed. Scraping respects robots.txt and rate-limits to 1 request per 5 seconds. Speaker profile data is stored as CSV files — no cloud database, no external data sharing." |
 
 **Bias Audit Results to Include:**
@@ -1543,7 +1543,7 @@ entire engagement pipeline. Let me show you."
 
 [1:15] "First, discovery. Let's say UCLA just posted new events. I'll click
 'Discover Events' — SmartMatch scrapes the UCLA career center page, extracts
-structured event data using GPT-4o-mini, and shows us what it found."
+structured event data using Gemini, and shows us what it found."
 [Wait for results to populate]
 "We found {N} events. Let's add this one to our matching pool."
 
@@ -1764,7 +1764,7 @@ Prepare data-backed answers for anticipated judge questions. Each answer must be
 
 **Q1: "How does this scale beyond 5 universities?"**
 
-> **Answer:** "SmartMatch is designed for extensibility. Adding a new university takes three steps: enter the events page URL, click 'Discover,' and our GPT-4o-mini extraction pipeline handles the rest. We tested with 5 universities across the West Coast — UCLA, SDSU, UC Davis, USC, and Portland State — and the extraction pipeline successfully parsed {N}% of event pages. The modular scraping architecture supports both static HTML pages via BeautifulSoup and JavaScript-rendered pages via Playwright. To scale to 20+ universities, we'd add a scheduled scraping job that runs weekly and auto-discovers new events, feeding them directly into the matching pipeline. The matching engine already handles dynamic event sets — no code changes needed per university."
+> **Answer:** "SmartMatch is designed for extensibility. Adding a new university takes three steps: enter the events page URL, click 'Discover,' and our Gemini extraction pipeline handles the rest. We tested with 5 universities across the West Coast — UCLA, SDSU, UC Davis, USC, and Portland State — and the extraction pipeline successfully parsed {N}% of event pages. The modular scraping architecture supports both static HTML pages via BeautifulSoup and JavaScript-rendered pages via Playwright. To scale to 20+ universities, we'd add a scheduled scraping job that runs weekly and auto-discovers new events, feeding them directly into the matching pipeline. The matching engine already handles dynamic event sets — no code changes needed per university."
 
 **Key data points to cite:** {N}% extraction success rate, 5 universities tested, 3 steps to add a new one
 
@@ -1772,7 +1772,7 @@ Prepare data-backed answers for anticipated judge questions. Each answer must be
 
 **Q2: "What happens when event pages change their structure?"**
 
-> **Answer:** "Great question — this is a real-world concern. We handle it at two levels. First, our LLM extraction pipeline uses GPT-4o-mini with few-shot prompting, which is inherently flexible to HTML structure changes — it extracts semantic meaning, not CSS selectors. We tested this by feeding it pages with different structures and achieved {N}% extraction accuracy. Second, we cache every successful scrape with a 24-hour TTL, so even if a live scrape fails, we have recent data to fall back on. In production, we'd add a monitoring layer that alerts chapter leadership when extraction confidence drops below a threshold."
+> **Answer:** "Great question — this is a real-world concern. We handle it at two levels. First, our LLM extraction pipeline uses Gemini `gemini-2.5-flash-lite` with few-shot prompting, which is inherently flexible to HTML structure changes — it extracts semantic meaning, not CSS selectors. We tested this by feeding it pages with different structures and achieved {N}% extraction accuracy. Second, we cache every successful scrape with a 24-hour TTL, so even if a live scrape fails, we have recent data to fall back on. In production, we'd add a monitoring layer that alerts chapter leadership when extraction confidence drops below a threshold."
 
 **Key data points to cite:** LLM-based extraction (not CSS-dependent), 24h cache TTL, {N}% accuracy across varied page structures
 
@@ -1805,7 +1805,7 @@ Prepare data-backed answers for anticipated judge questions. Each answer must be
 **Additional Questions to Prepare (brief answers):**
 
 **Q6: "What's the cost to run this?"**
-> "Under $0.50 per month for API costs. OpenAI text-embedding-3-small costs $0.02 per million tokens — our 77 records use about 50,000 tokens total. GPT-4o-mini for extraction and email generation costs about $0.09 for 100 calls. Streamlit Community Cloud hosting is free."
+> "Under $0.50 per month for API costs. Gemini `gemini-embedding-001` costs $0.02 per million tokens — our 77 records use about 50,000 tokens total. Gemini `gemini-2.5-flash-lite` for extraction and email generation costs about $0.09 for 100 calls. Streamlit Community Cloud hosting is free."
 
 **Q7: "Why Streamlit instead of a full web app?"**
 > "Speed of prototyping. Streamlit gave us an interactive dashboard in days instead of weeks. For production, we'd migrate to a full web framework with a database backend, but for validating the matching algorithm and pipeline concept, Streamlit is the right tool."

@@ -463,14 +463,14 @@ def scrape_all_universities(
 LLM-based structured data extraction from scraped HTML.
 
 Module: src/extraction/llm_extractor.py
-Dependencies: openai, beautifulsoup4
+Dependencies: Gemini API helper in `src/gemini_client.py`, beautifulsoup4
 """
 
 from typing import Any
 import json
 import logging
 
-from openai import OpenAI
+from gemini import Gemini
 from bs4 import BeautifulSoup
 
 
@@ -638,7 +638,7 @@ def preprocess_html(raw_html: str, max_chars: int = 12_000) -> str:
     raw_html : str
         Full HTML page content.
     max_chars : int
-        Maximum character count for the extracted text.  GPT-4o-mini
+        Maximum character count for the extracted text.  Gemini
         has a 128k context window, but we keep input small for cost
         and speed.  12,000 chars ~ 3,000 tokens.
 
@@ -675,11 +675,11 @@ def extract_events(
     raw_html: str,
     university: str,
     url: str,
-    model: str = "gpt-4o-mini",
+    model: str = "gemini-2.5-flash-lite",
     temperature: float = 0.1,
 ) -> list[dict[str, Any]]:
     """
-    Extract structured event data from raw HTML using GPT-4o-mini.
+    Extract structured event data from raw HTML using Gemini.
 
     Parameters
     ----------
@@ -690,7 +690,7 @@ def extract_events(
     url : str
         Source URL of the scraped page.
     model : str
-        OpenAI model identifier.
+        Gemini model identifier.
     temperature : float
         Sampling temperature.  Low (0.1) for deterministic extraction.
 
@@ -714,7 +714,7 @@ def extract_events(
         content=content,
     )
 
-    client = OpenAI()  # reads OPENAI_API_KEY from env
+    client = Gemini()  # reads GEMINI_API_KEY from env
 
     try:
         response = client.chat.completions.create(
@@ -864,13 +864,13 @@ def _parse_and_validate(
 
 - Place extraction code in `src/extraction/llm_extractor.py`
 - Create `src/extraction/__init__.py` with public exports: `extract_events`, `preprocess_html`, `EXTRACTED_EVENT_SCHEMA`
-- Unit tests in `tests/test_llm_extractor.py` -- mock OpenAI API responses
+- Unit tests in `tests/test_llm_extractor.py` -- mock Gemini API responses
 - Include a fixture file `tests/fixtures/sample_university_html.html` with a realistic university event page for testing
-- Integration test (marked `@pytest.mark.integration`) that calls the real OpenAI API with a small HTML sample
+- Integration test (marked `@pytest.mark.integration`) that calls the real Gemini API with a small HTML sample
 
 #### Steer Guidelines
 
-- Use `response_format={"type": "json_object"}` to force JSON output from GPT-4o-mini; this avoids markdown fencing issues
+- Use `response_format={"type": "json_object"}` to force JSON output from Gemini; this avoids markdown fencing issues
 - Pre-process HTML aggressively: remove nav, footer, scripts, styles -- these waste tokens and confuse extraction
 - 12,000 character limit for preprocessed text keeps API costs low (~3,000 tokens input per call)
 - If the model returns a wrapped object like `{"events": [...]}`, unwrap it before validation
@@ -1170,10 +1170,10 @@ def _add_to_matching(event: dict) -> None:
 
 ```python
 """
-Outreach email generation using GPT-4o-mini.
+Outreach email generation using Gemini.
 
 Module: src/outreach/email_gen.py
-Dependencies: openai
+Dependencies: Gemini API helper in `src/gemini_client.py`
 """
 
 from typing import Any
@@ -1182,7 +1182,7 @@ import json
 import logging
 from pathlib import Path
 
-from openai import OpenAI
+from gemini import Gemini
 
 
 logger = logging.getLogger(__name__)
@@ -1341,7 +1341,7 @@ def generate_outreach_email(
     speaker: dict[str, Any],
     event: dict[str, Any],
     match_scores: dict[str, float],
-    model: str = "gpt-4o-mini",
+    model: str = "gemini-2.5-flash-lite",
     temperature: float = 0.7,
 ) -> dict[str, str]:
     """
@@ -1367,7 +1367,7 @@ def generate_outreach_email(
         student_interest}. Legacy shorthand keys are tolerated only for
         backward-compatible demo fixtures.
     model : str
-        OpenAI model identifier.
+        Gemini model identifier.
     temperature : float
         Sampling temperature.  0.7 for creative but professional emails.
 
@@ -1428,7 +1428,7 @@ def generate_outreach_email(
         geo_score=geo_score,
     )
 
-    client = OpenAI()
+    client = Gemini()
 
     try:
         response = client.chat.completions.create(
@@ -1570,7 +1570,7 @@ def render_email_preview(
 - Email preview UI component can live in `src/ui/matches_tab.py` alongside match cards
 - Create `src/outreach/__init__.py` with public export: `generate_outreach_email`
 - Cache generated emails in `cache/emails/` so Sprint 4 demo pre-warm uses the same artifacts as runtime
-- Unit tests in `tests/test_email_gen.py` -- mock OpenAI responses
+- Unit tests in `tests/test_email_gen.py` -- mock Gemini responses
 - Test `_fallback_email()` with various combinations of missing fields
 
 #### Steer Guidelines
@@ -2728,8 +2728,8 @@ regions, and expertise tags.  All data is provided directly by IA West
 chapter leadership with volunteer consent.  No data is collected from
 social media, scraped from personal websites, or inferred from
 third-party sources.  Profiles are stored locally in CSV files and
-are not transmitted to third parties beyond the OpenAI API for
-embedding generation (subject to OpenAI's data usage policy -- API
+are not transmitted to third parties beyond the Gemini API for
+embedding generation (subject to Gemini's data usage policy -- API
 inputs are not used for model training).
 
 **University event data** (publicly available): Event names, dates,
@@ -2770,7 +2770,7 @@ Score normalization across speakers to prevent tag-count inflation.
 Every match recommendation includes:
 - **Composite score** (0-100%) with 6-factor breakdown
 - **Radar chart** showing per-factor scores visually
-- **Natural language explanation** generated by GPT-4o-mini
+- **Natural language explanation** generated by Gemini
   (e.g., "Travis Miller is recommended for the UCLA Hackathon
   because his MR technology expertise closely aligns with the
   event's data science focus")
@@ -2788,8 +2788,8 @@ speaker was recommended and can override the algorithm's ranking.
   accessible event pages.  robots.txt compliance is enforced.
 - **Cache-and-delete:** Scraped HTML is cached for 24 hours and
   automatically purged.  No long-term storage of raw HTML.
-- **API data:** Text sent to OpenAI API for embeddings and generation
-  is subject to OpenAI's API data usage policy (not used for training).
+- **API data:** Text sent to Gemini API for embeddings and generation
+  is subject to Gemini's API data usage policy (not used for training).
 - **No student PII:** The system never collects, stores, or processes
   individual student information.
 ```
@@ -2814,7 +2814,7 @@ speaker was recommended and can override the algorithm's ranking.
 
 - Responsible AI is worth 10 points (20% of judging) -- this is not a throwaway section
 - Judges will look for concrete mitigations, not vague promises; "we will address bias" scores poorly vs. "we implemented a utilization cap and conducted a bias audit showing..."
-- The OpenAI API data usage policy note is important -- mention that API inputs are not used for training
+- The Gemini API data usage policy note is important -- mention that API inputs are not used for training
 - robots.txt compliance is a specific, demonstrable privacy practice
 
 ---
@@ -2919,8 +2919,8 @@ The following events should trigger updates to `.memory/context/`:
 
 | Dependency | Notes | Fallback |
 |-----------|-------|----------|
-| OpenAI API (text-embedding-3-small) | For embedding discovered events | Use cached embeddings; flag as "cached-only" |
-| OpenAI API (GPT-4o-mini) | For LLM extraction and email generation | Use pre-generated fixtures; `_fallback_email()` template |
+| Gemini API (gemini-embedding-001) | For embedding discovered events | Use cached embeddings; flag as "cached-only" |
+| Gemini API (gemini-2.5-flash-lite) | For LLM extraction and email generation | Use pre-generated fixtures; `_fallback_email()` template |
 | University websites (5 targets) | Must be accessible for live scraping | Use 24h cached HTML; mark as "Cached" in UI |
 | `icalendar` Python package | For .ics generation | Pure Python; no external service dependency |
 | Internet connectivity | For live scraping demo | Demo mode with cached data |

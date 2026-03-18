@@ -129,7 +129,7 @@ IA West is a **market research** organization. Use language and tools that reson
 ### Key Questions to Investigate
 1. What are the best approaches for LLM-assisted structured data extraction from university event pages? (few-shot prompting, HTML → JSON extraction)
 2. What open-source CRM tools integrate well with Python/Streamlit for rapid prototyping? (Airtable API, Notion API, Google Sheets as backend)
-3. How can vector embeddings (OpenAI text-embedding-3-small) be used to match expertise tags to event descriptions?
+3. How can vector embeddings (Gemini `gemini-embedding-001`) be used to match expertise tags to event descriptions?
 4. What universities in the IA West region (Portland to San Diego) have well-structured public event calendars? (UCLA, USC, SDSU, UC Davis, UO, PSU)
 5. What are the best approaches for generating personalized outreach email templates via LLM?
 
@@ -227,7 +227,7 @@ Return JSON array with:
 | Component | Recommended Tool |
 |---|---|
 | Frontend/Dashboard | Streamlit (fast, Python-native) |
-| Vector matching | OpenAI text-embedding-3-small + cosine similarity |
+| Vector matching | Gemini `gemini-embedding-001` + cosine similarity |
 | LLM for email gen + extraction | GPT-4o-mini (fast, cheap) or Claude Haiku |
 | Web scraping | BeautifulSoup + requests / Playwright for JS pages |
 | Data storage | CSV files → Pandas (hackathon scope) or Airtable |

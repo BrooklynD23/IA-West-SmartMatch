@@ -23,7 +23,7 @@ managed_by: planning-agent
 
 ## Overview
 
-Sprint 0 establishes the full data pipeline from raw CSV ingestion through vector embedding generation to cosine similarity validation, while standing up the Streamlit application skeleton. By end of Day 2, all 77 structured records across 4 data files will be loaded and validated, 68 of those rows will be embedded as 1536-dimensional vectors via OpenAI text-embedding-3-small (18 speakers + 15 events + 35 courses), and the 9 calendar rows will remain tabular inputs for `calendar_fit`. A working Streamlit shell will display raw data tables in a 3-tab layout. This sprint produces the foundation that Sprint 1's matching engine will build upon.
+Sprint 0 establishes the full data pipeline from raw CSV ingestion through vector embedding generation to cosine similarity validation, while standing up the Streamlit application skeleton. By end of Day 2, all 77 structured records across 4 data files will be loaded and validated, 68 of those rows will be embedded as 1536-dimensional vectors via Gemini gemini-embedding-001 (18 speakers + 15 events + 35 courses), and the 9 calendar rows will remain tabular inputs for `calendar_fit`. A working Streamlit shell will display raw data tables in a 3-tab layout. This sprint produces the foundation that Sprint 1's matching engine will build upon.
 
 ---
 
@@ -54,7 +54,7 @@ Category 3 - IA West Smart Match CRM/
 │   ├── app.py                          # Streamlit entry point
 │   ├── config.py                       # Environment and constants
 │   ├── data_loader.py                  # CSV ingestion + validation
-│   ├── embeddings.py                   # OpenAI embedding pipeline
+│   ├── embeddings.py                   # Gemini embedding pipeline
 │   ├── similarity.py                   # Cosine similarity functions
 │   └── utils.py                        # Shared helpers (retry, logging)
 ├── tests/
@@ -101,7 +101,7 @@ streamlit==1.42.2
 python-dotenv==1.0.1
 
 # ── LLM APIs ────────────────────────────────────────────
-openai==1.66.3
+# Gemini API helper in src/gemini_client.py (no separate SDK required)
 
 # ── Data Processing ──────────────────────────────────────
 pandas==2.2.3
@@ -127,10 +127,10 @@ pytest-cov==6.0.0
 **3. `.env` file structure**
 
 ```env
-# === OpenAI Configuration ===
-OPENAI_API_KEY=sk-...
-OPENAI_EMBEDDING_MODEL=text-embedding-3-small
-OPENAI_CHAT_MODEL=gpt-4o-mini
+# === Gemini Configuration ===
+GEMINI_API_KEY=AIza...
+GEMINI_EMBEDDING_MODEL=gemini-embedding-001
+GEMINI_TEXT_MODEL=gemini-2.5-flash-lite
 
 # === Application Configuration ===
 APP_ENV=development
@@ -166,10 +166,10 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = PROJECT_ROOT / os.getenv("DATA_DIR", "data")
 CACHE_DIR = PROJECT_ROOT / os.getenv("CACHE_DIR", "cache")
 
-# --- OpenAI ---
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-OPENAI_EMBEDDING_MODEL = os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small")
-OPENAI_CHAT_MODEL = os.getenv("OPENAI_CHAT_MODEL", "gpt-4o-mini")
+# --- Gemini ---
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_EMBEDDING_MODEL = os.getenv("GEMINI_EMBEDDING_MODEL", "gemini-embedding-001")
+GEMINI_TEXT_MODEL = os.getenv("GEMINI_TEXT_MODEL", "gemini-2.5-flash-lite")
 
 # --- Embedding ---
 EMBEDDING_DIMENSION = int(os.getenv("EMBEDDING_DIMENSION", "1536"))
@@ -189,8 +189,8 @@ PAGE_TITLE = os.getenv("STREAMLIT_PAGE_TITLE", "IA SmartMatch CRM")
 def validate_config() -> list[str]:
     """Return list of configuration errors. Empty list means all good."""
     errors = []
-    if not OPENAI_API_KEY or OPENAI_API_KEY == "sk-...":
-        errors.append("OPENAI_API_KEY is not set or is still the placeholder value")
+    if not GEMINI_API_KEY or GEMINI_API_KEY == "AIza...":
+        errors.append("GEMINI_API_KEY is not set or is still the placeholder value")
     if not DATA_DIR.exists():
         errors.append(f"DATA_DIR does not exist: {DATA_DIR}")
     for csv_name in [SPEAKER_PROFILES_CSV, CPP_EVENTS_CSV, CPP_COURSES_CSV, EVENT_CALENDAR_CSV]:
@@ -222,9 +222,9 @@ touch src/__init__.py tests/__init__.py
 
 #### Acceptance Criteria
 
-- [ ] `python -c "import streamlit, openai, pandas, numpy, plotly, bs4, scipy, sklearn; print('OK')"` exits 0
+- [ ] `python -c "import streamlit, pandas, numpy, plotly, bs4, scipy, sklearn; print('OK')"` exits 0
 - [ ] `src/config.py` loads without errors when `.env` is present
-- [ ] `config.validate_config()` returns an empty list when all CSVs are in `data/` and `OPENAI_API_KEY` is set
+- [ ] `config.validate_config()` returns an empty list when all CSVs are in `data/` and `GEMINI_API_KEY` is set
 - [ ] `config.validate_config()` returns a descriptive error list when any required item is missing
 - [ ] All directories in the project structure tree exist
 - [ ] `.env` is git-ignored (verify with `git status` — `.env` must NOT appear as untracked)
@@ -723,7 +723,7 @@ The report must include:
 **1. `src/embeddings.py` — speaker embedding functions**
 
 ```python
-"""OpenAI embedding generation with caching and retry logic."""
+"""Gemini embedding generation with caching and retry logic."""
 
 import json
 import time
@@ -732,11 +732,11 @@ from pathlib import Path
 from typing import Optional
 
 import numpy as np
-from openai import OpenAI, APIError, RateLimitError, APITimeoutError
+from gemini import Gemini, APIError, RateLimitError, APITimeoutError
 
 from src.config import (
-    OPENAI_API_KEY,
-    OPENAI_EMBEDDING_MODEL,
+    GEMINI_API_KEY,
+    GEMINI_EMBEDDING_MODEL,
     EMBEDDING_DIMENSION,
     EMBEDDING_BATCH_SIZE,
     EMBEDDING_MAX_RETRIES,
@@ -744,9 +744,9 @@ from src.config import (
 )
 
 
-def _get_client() -> OpenAI:
-    """Create and return an OpenAI client."""
-    return OpenAI(api_key=OPENAI_API_KEY)
+def _get_client() -> Gemini:
+    """Create and return an Gemini client."""
+    return Gemini(api_key=GEMINI_API_KEY)
 
 
 def _retry_with_backoff(
@@ -762,7 +762,7 @@ def _retry_with_backoff(
     Does NOT retry on: AuthenticationError, BadRequestError, etc.
 
     Args:
-        func: Callable that may raise OpenAI API errors.
+        func: Callable that may raise Gemini API errors.
         max_retries: Maximum number of retry attempts (default: 3).
         base_delay: Initial delay in seconds (default: 1.0).
         max_delay: Maximum delay cap in seconds (default: 60.0).
@@ -826,15 +826,15 @@ def compose_speaker_text(row: dict) -> str:
 
 def generate_embeddings(
     texts: list[str],
-    model: str = OPENAI_EMBEDDING_MODEL,
+    model: str = GEMINI_EMBEDDING_MODEL,
     batch_size: int = EMBEDDING_BATCH_SIZE,
 ) -> np.ndarray:
     """
-    Generate embeddings for a list of texts using OpenAI API.
+    Generate embeddings for a list of texts using Gemini API.
 
     Args:
         texts: List of strings to embed.
-        model: OpenAI embedding model name.
+        model: Gemini embedding model name.
         batch_size: Number of texts per API call.
 
     Returns:
@@ -842,7 +842,7 @@ def generate_embeddings(
 
     Raises:
         ValueError: If any text is empty after stripping.
-        openai.AuthenticationError: If API key is invalid.
+        gemini.AuthenticationError: If API key is invalid.
     """
     if not texts:
         return np.empty((0, EMBEDDING_DIMENSION), dtype=np.float32)
@@ -948,7 +948,7 @@ def embed_speakers(
     manifest["speaker_embeddings"] = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "row_count": len(speakers_df),
-        "model": OPENAI_EMBEDDING_MODEL,
+        "model": GEMINI_EMBEDDING_MODEL,
         "dimension": EMBEDDING_DIMENSION,
     }
     with open(manifest_path, "w") as f:
@@ -990,7 +990,7 @@ Example for Katrina Noelle:
   "speaker_embeddings": {
     "generated_at": "2026-03-17T10:00:00+00:00",
     "row_count": 18,
-    "model": "text-embedding-3-small",
+    "model": "gemini-embedding-001",
     "dimension": 1536
   }
 }
@@ -1013,14 +1013,14 @@ Example for Katrina Noelle:
 - All embedding logic resides in `src/embeddings.py`
 - Use `np.float32` for all embedding storage (halves memory vs float64)
 - Cache directory is created automatically via `mkdir(parents=True, exist_ok=True)`
-- The `_retry_with_backoff` function is generic and reusable for all OpenAI API calls in later sprints
+- The `_retry_with_backoff` function is generic and reusable for all Gemini API calls in later sprints
 
 #### Steer Guidelines
 
-- If `OPENAI_API_KEY` is missing or invalid, raise a clear error message immediately — do not attempt API calls
+- If `GEMINI_API_KEY` is missing or invalid, raise a clear error message immediately — do not attempt API calls
 - If any speaker has empty `Expertise Tags`, fall back to `f"{title} {company} {board_role}"` — log a warning but do not skip the speaker
-- Verify the returned embedding dimension is exactly 1536. If OpenAI changes the default dimension, this will catch it immediately via the assertion
-- The `text-embedding-3-small` model has a token limit of 8191. None of our composed texts will approach this limit (longest is ~30 tokens), but log a warning if any text exceeds 500 characters
+- Verify the returned embedding dimension is exactly 1536. If Gemini changes the default dimension, this will catch it immediately via the assertion
+- The `gemini-embedding-001` model has a token limit of 8191. None of our composed texts will approach this limit (longest is ~30 tokens), but log a warning if any text exceeds 500 characters
 
 ---
 
@@ -1154,7 +1154,7 @@ def embed_events(
     manifest["event_embeddings"] = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "row_count": len(events_df),
-        "model": OPENAI_EMBEDDING_MODEL,
+        "model": GEMINI_EMBEDDING_MODEL,
         "dimension": EMBEDDING_DIMENSION,
     }
     with open(manifest_path, "w") as f:
@@ -1232,7 +1232,7 @@ def embed_courses(
     manifest["course_embeddings"] = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "row_count": len(courses_df),
-        "model": OPENAI_EMBEDDING_MODEL,
+        "model": GEMINI_EMBEDDING_MODEL,
         "dimension": EMBEDDING_DIMENSION,
     }
     with open(manifest_path, "w") as f:
@@ -1259,9 +1259,9 @@ The `cache_manifest.json` is updated atomically after each embed call, accumulat
 
 ```json
 {
-  "speaker_embeddings": { "generated_at": "...", "row_count": 18, "model": "text-embedding-3-small", "dimension": 1536 },
-  "event_embeddings":   { "generated_at": "...", "row_count": 16, "model": "text-embedding-3-small", "dimension": 1536 },
-  "course_embeddings":  { "generated_at": "...", "row_count": 35, "model": "text-embedding-3-small", "dimension": 1536 }
+  "speaker_embeddings": { "generated_at": "...", "row_count": 18, "model": "gemini-embedding-001", "dimension": 1536 },
+  "event_embeddings":   { "generated_at": "...", "row_count": 16, "model": "gemini-embedding-001", "dimension": 1536 },
+  "course_embeddings":  { "generated_at": "...", "row_count": 35, "model": "gemini-embedding-001", "dimension": 1536 }
 }
 ```
 
@@ -1695,7 +1695,7 @@ The Sprint 0 Go/No-Go gate passes when:
 
 - If overall spread < 0.15 (FAIL condition): do NOT panic. Log the actual spread value and the top/bottom matches. The fallback is TF-IDF + keyword overlap, which can be implemented in ~2 hours using `sklearn.feature_extraction.text.TfidfVectorizer`
 - If the 5 known-good test cases don't rank as expected, check if the embedding text composition is capturing enough signal. Consider adding `metro_region` to the event embedding text for geographic signal.
-- Embedding cosine similarity for `text-embedding-3-small` typically ranges from 0.60-0.95 for related texts and 0.30-0.60 for unrelated texts. If ALL scores cluster above 0.80, the embeddings may be capturing general "business/marketing" similarity rather than specific topic alignment.
+- Embedding cosine similarity for `gemini-embedding-001` typically ranges from 0.60-0.95 for related texts and 0.30-0.60 for unrelated texts. If ALL scores cluster above 0.80, the embeddings may be capturing general "business/marketing" similarity rather than specific topic alignment.
 
 ---
 
@@ -1947,8 +1947,8 @@ streamlit run src/app.py
 | Step | Action | Status |
 |------|--------|--------|
 | 1 | Ensure `requirements.txt` is in project root | Sprint 0 |
-| 2 | Create `.streamlit/secrets.toml` locally with `OPENAI_API_KEY` | Sprint 0 |
-| 3 | Add `OPENAI_API_KEY` to Streamlit Cloud secrets dashboard | Sprint 4 |
+| 2 | Create `.streamlit/secrets.toml` locally with `GEMINI_API_KEY` | Sprint 0 |
+| 3 | Add `GEMINI_API_KEY` to Streamlit Cloud secrets dashboard | Sprint 4 |
 | 4 | Verify app runs within 1GB RAM limit | Sprint 4 |
 | 5 | Test that `playwright` import does not crash on cloud (may need conditional import) | Sprint 4 |
 | 6 | Pre-generate cached embeddings and commit `.npy`/`.pkl` files (or regenerate on first load) | Sprint 4 |
@@ -1980,7 +1980,7 @@ gatherUsageStats = false
 - [ ] Discovery tab shows the IA West event calendar DataFrame
 - [ ] Pipeline tab shows the course schedule DataFrame
 - [ ] Data quality warnings appear in sidebar expandable section (if any issues detected)
-- [ ] App displays a clear error message if `.env` is missing `OPENAI_API_KEY`
+- [ ] App displays a clear error message if `.env` is missing `GEMINI_API_KEY`
 - [ ] App displays a clear error message if any CSV file is missing from `data/`
 - [ ] Page title in browser tab reads "IA SmartMatch CRM"
 
