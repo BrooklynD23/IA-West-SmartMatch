@@ -10,7 +10,16 @@
       "Bash(file:*)",
       "Bash(strings:*)",
       "Bash(timeout:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(.venv/bin/pip install:*)",
+      "Bash(.venv/bin/python3 -m ensurepip --upgrade)",
+      "Bash(.venv/bin/python3 -c \"import pandas; print\\(''ok''\\)\")",
+      "Bash(.venv/bin/python3 -c \"import pandas; print\\(''pandas ready''\\)\")",
+      "Bash(.venv/bin/python3 -c \"import pandas; print\\(''pandas'', pandas.__version__\\)\")",
+      "Bash(.venv/bin/python3 -c \"import numpy, scipy, sklearn, pytest, openai, plotly; print\\(''all imports ok''\\)\")",
+      "Bash(.venv/bin/python3 -m pytest tests/ -v)",
+      "Bash(.venv/bin/python3 -m pytest tests/ -v --tb=short)",
+      "Bash(.venv/bin/python3 -c \":*)"
     ]
   },
   "outputStyle": "Explanatory",

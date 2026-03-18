@@ -1,6 +1,26 @@
--r ../requirements-common.txt
+# ── Core Framework ───────────────────────────────────────
+streamlit==1.42.2
+python-dotenv==1.0.1          # installed: 1.0.1
 
-# Category 3 — IA West Smart Match CRM
-scipy>=1.12.0          # For matching algorithms / statistical scoring
-fuzzywuzzy>=0.18.0     # Fuzzy string matching for name deduplication
-python-Levenshtein>=0.25.0
+# ── LLM APIs ────────────────────────────────────────────
+openai>=1.66.3                # installed: 2.29.0 (pinned version unavailable on this platform)
+
+# ── Data Processing ──────────────────────────────────────
+pandas>=2.2.3                 # installed: 3.0.1 (pinned version unavailable on this platform)
+numpy==1.26.4                 # installed: 1.26.4
+
+# ── Visualization ────────────────────────────────────────
+plotly==5.24.1                # installed: 5.24.1
+
+# ── Web Scraping (Sprint 2, install now) ─────────────────
+beautifulsoup4==4.12.3
+requests==2.32.3
+playwright==1.49.1            # Note: can defer to Sprint 2 if install fails
+
+# ── Matching Utilities ───────────────────────────────────
+scipy==1.14.1                 # installed: 1.14.1
+scikit-learn>=1.5.2           # installed: 1.8.0 (pinned version unavailable on this platform)
+
+# ── Dev / Testing ────────────────────────────────────────
+pytest==8.3.4                 # installed: 8.3.4
+pytest-cov>=6.0.0             # installed: 7.0.0

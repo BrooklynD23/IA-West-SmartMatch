@@ -1,0 +1,8 @@
+.env
+.venv/
+__pycache__/
+cache/*.npy
+cache/*.pkl
+cache/cache_manifest.json
+*.pyc
+.streamlit/secrets.toml
