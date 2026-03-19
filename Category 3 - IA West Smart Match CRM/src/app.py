@@ -13,6 +13,9 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+from src.ui.styles import inject_custom_css  # noqa: E402
+inject_custom_css()
+
 from src.config import CACHE_DIR, has_gemini_api_key, validate_config  # noqa: E402
 from src.data_loader import load_all  # noqa: E402
 from src.embeddings import (  # noqa: E402
