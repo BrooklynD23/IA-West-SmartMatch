@@ -320,13 +320,13 @@ ROLE_ALIASES: Final[dict[str, list[str]]] = {
 DEFAULT_HISTORICAL_CONVERSION: Final[float] = 0.50
 
 # ---------- Embedding Config ----------
-EMBEDDING_MODEL: Final[str] = "text-embedding-3-small"
+EMBEDDING_MODEL: Final[str] = "gemini-embedding-001"
 # Sprint 0 writes embedding artifacts as flat files directly under cache/.
 EMBEDDING_CACHE_DIR: Final[str] = "cache"
 
 # ---------- Explanation Config ----------
 EXPLANATION_CACHE_DIR: Final[str] = "cache/explanations"
-EXPLANATION_MODEL: Final[str] = "gpt-4o-mini"
+EXPLANATION_MODEL: Final[str] = "gemini-2.5-flash-lite"
 EXPLANATION_MAX_TOKENS: Final[int] = 250
 EXPLANATION_TEMPERATURE: Final[float] = 0.4
 ```
@@ -364,10 +364,10 @@ def topic_relevance(
     Compute cosine similarity between speaker and event embeddings.
 
     Args:
-        speaker_embedding: 1-D numpy array from text-embedding-3-small.
+        speaker_embedding: 1-D numpy array from gemini-embedding-001.
             Composed during Sprint 0 from:
             f"{expertise_tags} {title} {company} {board_role}"
-        event_embedding: 1-D numpy array from text-embedding-3-small.
+        event_embedding: 1-D numpy array from gemini-embedding-001.
             Composed during Sprint 0 from:
             f"{event_name} {category} {volunteer_roles} {primary_audience}"
 
@@ -892,7 +892,7 @@ def compute_match_score(
 - If the coding agent adds additional factors beyond the 6 specified, reject -- scope creep
 - The `role_fit` function must include the "director+ implies speaker" heuristic to avoid zero-scoring board members who clearly can serve as speakers
 - `calendar_fit` MUST handle the recurrence-pattern case gracefully because most CPP events do NOT have specific dates
-- If the agent tries to call the OpenAI API from within any factor function, reject -- factors must be pure computation using pre-cached embeddings
+- If the agent tries to call the Gemini API from within any factor function, reject -- factors must be pure computation using pre-cached embeddings
 
 ---
 
@@ -1148,7 +1148,7 @@ def rank_speakers_for_course(
 ```python
 """
 LLM-powered match explanation card generation.
-Uses GPT-4o-mini to produce 2-3 sentence natural language explanations
+Uses Gemini `gemini-2.5-flash-lite` to produce 2-3 sentence natural language explanations
 of why a speaker was matched to an event.
 """
 
@@ -1157,7 +1157,7 @@ import json
 import os
 from pathlib import Path
 
-from openai import OpenAI
+from gemini import Gemini
 
 from src.config import (
     EXPLANATION_CACHE_DIR,
@@ -1361,7 +1361,7 @@ def generate_match_explanation(
     Generate a natural language explanation for a match result.
 
     Checks the disk cache first. If no cached explanation exists,
-    calls GPT-4o-mini with the few-shot prompt template.
+    calls Gemini `gemini-2.5-flash-lite` with the few-shot prompt template.
 
     Args:
         match_result: A single dict from rank_speakers_for_event() output.
@@ -1377,8 +1377,8 @@ def generate_match_explanation(
         A 2-3 sentence explanation string.
 
     Error handling:
-        - OpenAI API timeout (>10s) -> return fallback explanation
-        - OpenAI API error -> return fallback explanation
+        - Gemini API timeout (>10s) -> return fallback explanation
+        - Gemini API error -> return fallback explanation
         - Empty response -> return fallback explanation
     """
     speaker_name = match_result["speaker_name"]
@@ -1420,10 +1420,10 @@ def generate_match_explanation(
         {"role": "user", "content": user_message},
     ]
 
-    # Call OpenAI API
+    # Call Gemini API
     fallback = _fallback_explanation(match_result)
     try:
-        client = OpenAI()  # uses OPENAI_API_KEY from environment
+        client = Gemini()  # uses GEMINI_API_KEY from environment
         response = client.chat.completions.create(
             model=EXPLANATION_MODEL,
             messages=messages,
@@ -1449,7 +1449,7 @@ def _fallback_explanation(match_result: dict) -> str:
     Generate a template-based fallback explanation when the LLM is unavailable.
 
     This ensures the UI always has something to display even if the
-    OpenAI API is down or times out.
+    Gemini API is down or times out.
     """
     fs = match_result["factor_scores"]
     # Find the top 2 factors
@@ -1516,8 +1516,8 @@ JSON file format:
 
 - All explanation logic lives in `src/matching/explanations.py`
 - Cache files go in `cache/explanations/` relative to project root
-- The OpenAI client is instantiated inside the function (not at module level) to defer API key validation
-- Use `openai.OpenAI()` (v1.x client), not the legacy `openai.ChatCompletion.create()`
+- The Gemini client is instantiated inside the function (not at module level) to defer API key validation
+- Use `gemini.Gemini()` (v1.x client), not the legacy `gemini.ChatCompletion.create()`
 
 ### Steer Guidelines
 
@@ -2314,7 +2314,7 @@ All items must be checked before proceeding to Sprint 2:
 - [ ] Pipeline sample data (`data/pipeline_sample_data.csv`) is generated from real match outputs with 45 matched entries
 - [ ] Scraping feasibility is confirmed for at least 3 of 5 target universities, documented in `docs/scraping_research.md`
 - [ ] All functions have docstrings with argument types and return types documented
-- [ ] No hardcoded API keys in source code (uses environment variables via `OPENAI_API_KEY`)
+- [ ] No hardcoded API keys in source code (uses environment variables via `GEMINI_API_KEY`)
 - [ ] `cache/explanations/` directory structure works and explanations are cached after first generation
 - [ ] App runs without errors: `streamlit run src/app.py`
 

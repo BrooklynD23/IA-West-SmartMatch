@@ -2,13 +2,13 @@
 
 import json
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import numpy as np
 import pytest
 
 from src.embeddings import (
-    _get_client,
+    _get_api_key,
     compose_course_text,
     compose_event_text,
     compose_speaker_text,
@@ -22,8 +22,8 @@ from src.embeddings import (
 # ── Fixtures ─────────────────────────────────────────────────────────────────
 
 @pytest.fixture()
-def mock_openai_response():
-    """Return a factory for mock OpenAI embedding responses."""
+def mock_gemini_response():
+    """Return a factory for mock Gemini embedding responses."""
     def _make_response(n: int, dim: int = 1536) -> list[list[float]]:
         return [list(np.random.randn(dim).astype(float)) for _ in range(n)]
     return _make_response
@@ -133,25 +133,23 @@ class TestGenerateEmbeddings:
         with pytest.raises(ValueError, match="empty"):
             generate_embeddings(["valid text", ""])
 
-    def test_calls_api_and_returns_correct_shape(self, mock_openai_response) -> None:
+    def test_calls_api_and_returns_correct_shape(self, mock_gemini_response) -> None:
         texts = ["text one", "text two", "text three"]
-        fake_embeddings = mock_openai_response(3)
-
-        mock_response = MagicMock()
-        mock_response.data = [MagicMock(embedding=e) for e in fake_embeddings]
-
-        with patch("src.embeddings._get_client") as mock_client:
-            mock_client.return_value.embeddings.create.return_value = mock_response
+        fake_embeddings = mock_gemini_response(3)
+        with (
+            patch("src.embeddings._get_api_key", return_value="AIza..."),
+            patch("src.embeddings.batch_embed_texts", return_value=fake_embeddings),
+        ):
             result = generate_embeddings(texts)
 
         assert result.shape == (3, 1536)
         assert result.dtype == np.float32
 
-    def test_get_client_requires_real_openai_key(self, monkeypatch) -> None:
-        monkeypatch.setattr("src.embeddings.OPENAI_API_KEY", "")
+    def test_get_api_key_requires_real_gemini_key(self, monkeypatch) -> None:
+        monkeypatch.setattr("src.embeddings.GEMINI_API_KEY", "")
 
-        with pytest.raises(ValueError, match="OPENAI_API_KEY"):
-            _get_client()
+        with pytest.raises(ValueError, match="GEMINI_API_KEY"):
+            _get_api_key()
 
 
 # ── Tests: embed_speakers caching ────────────────────────────────────────────
@@ -168,14 +166,13 @@ class TestEmbedSpeakersCaching:
             "Expertise Tags": ["sales, AI", "research, analytics"],
         })
 
-    def test_embed_speakers_creates_cache_files(self, tmp_path: Path, mock_openai_response) -> None:
+    def test_embed_speakers_creates_cache_files(self, tmp_path: Path, mock_gemini_response) -> None:
         df = self._make_speakers_df()
-        fake_embs = mock_openai_response(2)
-        mock_response = MagicMock()
-        mock_response.data = [MagicMock(embedding=e) for e in fake_embs]
-
-        with patch("src.embeddings._get_client") as mock_client:
-            mock_client.return_value.embeddings.create.return_value = mock_response
+        fake_embs = mock_gemini_response(2)
+        with (
+            patch("src.embeddings.generate_embeddings", return_value=np.array(fake_embs, dtype=np.float32)),
+            patch("src.embeddings._get_api_key", return_value="AIza..."),
+        ):
             embeddings, metadata = embed_speakers(df, cache_dir=tmp_path)
 
         assert (tmp_path / "speaker_embeddings.npy").exists()
@@ -184,20 +181,19 @@ class TestEmbedSpeakersCaching:
         assert embeddings.shape == (2, 1536)
         assert len(metadata) == 2
 
-    def test_second_call_uses_cache(self, tmp_path: Path, mock_openai_response) -> None:
+    def test_second_call_uses_cache(self, tmp_path: Path, mock_gemini_response) -> None:
         df = self._make_speakers_df()
-        fake_embs = mock_openai_response(2)
-        mock_response = MagicMock()
-        mock_response.data = [MagicMock(embedding=e) for e in fake_embs]
-
-        with patch("src.embeddings._get_client") as mock_client:
-            mock_client.return_value.embeddings.create.return_value = mock_response
+        fake_embs = mock_gemini_response(2)
+        with (
+            patch("src.embeddings.generate_embeddings", return_value=np.array(fake_embs, dtype=np.float32)),
+            patch("src.embeddings._get_api_key", return_value="AIza..."),
+        ):
             embed_speakers(df, cache_dir=tmp_path)
 
         # Second call — API should NOT be called again
-        with patch("src.embeddings._get_client") as mock_client2:
+        with patch("src.embeddings._get_api_key") as mock_api_key:
             embed_speakers(df, cache_dir=tmp_path)
-            mock_client2.assert_not_called()
+            mock_api_key.assert_not_called()
 
     def test_cache_invalidated_when_embedding_text_changes(self, tmp_path: Path) -> None:
         df = self._make_speakers_df()
@@ -221,36 +217,34 @@ class TestEmbedSpeakersCaching:
         second = np.full((2, 1536), 3.0, dtype=np.float32)
 
         with patch("src.embeddings.generate_embeddings", side_effect=[first, second]) as mock_generate:
-            with patch("src.embeddings.OPENAI_EMBEDDING_MODEL", "model-a"):
+            with patch("src.embeddings.GEMINI_EMBEDDING_MODEL", "model-a"):
                 emb1, _ = embed_speakers(df, cache_dir=tmp_path)
-            with patch("src.embeddings.OPENAI_EMBEDDING_MODEL", "model-b"):
+            with patch("src.embeddings.GEMINI_EMBEDDING_MODEL", "model-b"):
                 emb2, _ = embed_speakers(df, cache_dir=tmp_path)
 
         assert mock_generate.call_count == 2
         assert not np.array_equal(emb1, emb2)
 
-    def test_metadata_keys(self, tmp_path: Path, mock_openai_response) -> None:
+    def test_metadata_keys(self, tmp_path: Path, mock_gemini_response) -> None:
         df = self._make_speakers_df()
-        fake_embs = mock_openai_response(2)
-        mock_response = MagicMock()
-        mock_response.data = [MagicMock(embedding=e) for e in fake_embs]
-
-        with patch("src.embeddings._get_client") as mock_client:
-            mock_client.return_value.embeddings.create.return_value = mock_response
+        fake_embs = mock_gemini_response(2)
+        with (
+            patch("src.embeddings.generate_embeddings", return_value=np.array(fake_embs, dtype=np.float32)),
+            patch("src.embeddings._get_api_key", return_value="AIza..."),
+        ):
             _, metadata = embed_speakers(df, cache_dir=tmp_path)
 
         required_keys = {"name", "board_role", "metro_region", "company", "title", "expertise_tags", "embedding_text"}
         for entry in metadata:
             assert required_keys.issubset(entry.keys())
 
-    def test_manifest_contains_speaker_entry(self, tmp_path: Path, mock_openai_response) -> None:
+    def test_manifest_contains_speaker_entry(self, tmp_path: Path, mock_gemini_response) -> None:
         df = self._make_speakers_df()
-        fake_embs = mock_openai_response(2)
-        mock_response = MagicMock()
-        mock_response.data = [MagicMock(embedding=e) for e in fake_embs]
-
-        with patch("src.embeddings._get_client") as mock_client:
-            mock_client.return_value.embeddings.create.return_value = mock_response
+        fake_embs = mock_gemini_response(2)
+        with (
+            patch("src.embeddings.generate_embeddings", return_value=np.array(fake_embs, dtype=np.float32)),
+            patch("src.embeddings._get_api_key", return_value="AIza..."),
+        ):
             embed_speakers(df, cache_dir=tmp_path)
 
         manifest = json.loads((tmp_path / "cache_manifest.json").read_text())

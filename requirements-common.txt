@@ -2,7 +2,7 @@
 streamlit>=1.32.0
 
 # ── LLM APIs ────────────────────────────────────────────
-openai>=1.14.0
+# Gemini API is accessed via the stdlib REST helper in shared/llm.py
 
 # ── Data Processing ──────────────────────────────────────
 pandas>=2.0.0

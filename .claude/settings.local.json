@@ -19,9 +19,22 @@
       "Bash(.venv/bin/python3 -c \"import numpy, scipy, sklearn, pytest, openai, plotly; print\\(''all imports ok''\\)\")",
       "Bash(.venv/bin/python3 -m pytest tests/ -v)",
       "Bash(.venv/bin/python3 -m pytest tests/ -v --tb=short)",
-      "Bash(.venv/bin/python3 -c \":*)"
+      "Bash(.venv/bin/python3 -c \":*)",
+      "Bash(git checkout:*)",
+      "Bash(find . -maxdepth 4 -type f \\\\\\(-iname *sprint* -o -iname *cat3* -o -iname *category*3* \\\\\\))",
+      "WebFetch(domain:career.ucla.edu)",
+      "WebFetch(domain:www.sdsu.edu)",
+      "WebFetch(domain:careercenter.ucdavis.edu)",
+      "WebFetch(domain:careers.usc.edu)",
+      "WebFetch(domain:www.pdx.edu)",
+      "WebFetch(domain:ucdavis.joinhandshake.com)",
+      "WebFetch(domain:www.ucdavis.edu)",
+      "Bash(.venv/bin/python -c \":*)",
+      "Bash(.venv/bin/python3 -m pytest tests/ --tb=line -q)",
+      "Bash(.venv/bin/python3 _gen_pipeline_tmp.py)",
+      "Bash(cd:*)"
     ]
   },
   "outputStyle": "Explanatory",
-  "prefersReducedMotion": true
+  "prefersReducedMotion": false
 }

@@ -16,24 +16,24 @@ def _write_required_csvs(data_dir: Path) -> None:
         (data_dir / file_name).write_text("header\nvalue\n", encoding="utf-8")
 
 
-def test_validate_config_allows_app_boot_without_openai_key(tmp_path: Path, monkeypatch) -> None:
+def test_validate_config_allows_app_boot_without_gemini_key(tmp_path: Path, monkeypatch) -> None:
     """Sprint 0 app boot should only require local data files."""
     _write_required_csvs(tmp_path)
     monkeypatch.setattr(config, "DATA_DIR", tmp_path)
-    monkeypatch.setattr(config, "OPENAI_API_KEY", "")
+    monkeypatch.setattr(config, "GEMINI_API_KEY", "")
 
     assert config.validate_config() == []
 
 
-def test_validate_config_requires_openai_key_for_embedding_flows(
+def test_validate_config_requires_gemini_key_for_embedding_flows(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
-    """Embedding flows should still enforce a real OpenAI API key."""
+    """Embedding flows should still enforce a real Gemini API key."""
     _write_required_csvs(tmp_path)
     monkeypatch.setattr(config, "DATA_DIR", tmp_path)
-    monkeypatch.setattr(config, "OPENAI_API_KEY", "sk-...")
+    monkeypatch.setattr(config, "GEMINI_API_KEY", "AIza...")
 
-    errors = config.validate_config(require_openai=True)
+    errors = config.validate_config(require_gemini=True)
 
-    assert "OPENAI_API_KEY is not set or is still the placeholder value" in errors
+    assert "GEMINI_API_KEY is not set or is still the placeholder value" in errors

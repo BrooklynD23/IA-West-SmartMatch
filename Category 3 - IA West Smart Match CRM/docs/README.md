@@ -15,6 +15,8 @@ Use this page as the entry point for Category 3 planning and implementation docs
 
 ## Category-Specific Supporting Docs
 
+- `Category 3 - IA West Smart Match CRM/docs/gemini_provider_decision_2026-03-18.md`
+  Provider decision memo for the planned switch from OpenAI to the Gemini Developer API, including the recommended Gemini models and migration notes.
 - `Category 3 - IA West Smart Match CRM/docs/sprints/sprint-0-foundation.md` through `sprint-4-ship.md`
   Derived implementation specs. These should stay aligned with the canonical docs above.
 - `Category 3 - IA West Smart Match CRM/PLAN.md`
@@ -38,6 +40,7 @@ These are useful for audit history, but they are not implementation authority:
 
 - Imports: use `from src...`
 - Launch command: `streamlit run src/app.py`
+- AI provider decision: new provider work should target the Gemini Developer API; the checked-in runtime now uses Gemini for embeddings and text generation
 - Embedding cache: flat Sprint 0 artifacts under `cache/`
 - Scrape cache: `cache/scrapes/<sha256(url)>.json`
 - Email cache: `cache/emails/<hashed-key>.json`

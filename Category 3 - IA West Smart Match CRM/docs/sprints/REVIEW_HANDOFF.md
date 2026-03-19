@@ -117,7 +117,7 @@ For each task specification:
 
 Stress-test the specs for failure modes:
 
-- [ ] **What breaks if OpenAI API is unreachable?** Is every API call wrapped with fallback?
+- [ ] **What breaks if Gemini API is unreachable?** Is every API call wrapped with fallback?
 - [ ] **What breaks if a CSV column is renamed?** Are column names hardcoded or configurable?
 - [ ] **What breaks if Streamlit Cloud has 1GB RAM?** Are all DataFrames small enough?
 - [ ] **What breaks if a university blocks scraping?** Does every scrape have a cached fallback?
@@ -127,7 +127,7 @@ Stress-test the specs for failure modes:
 - [ ] **What breaks if all weights are set to 0?** Is there a minimum-weight guard?
 - [ ] **What breaks if the .ics date field is unparseable?** Is there a date parsing fallback?
 - [ ] **What breaks if Playwright is unavailable on Streamlit Cloud?** Is there a bs4-only fallback?
-- [ ] **What breaks if GPT-4o-mini returns malformed JSON?** Is there JSON parsing with retry?
+- [ ] **What breaks if Gemini returns malformed JSON?** Is there JSON parsing with retry?
 - [ ] **What breaks if the user enters a malicious URL in Custom URL?** Is there input validation / SSRF prevention?
 
 ### Pass 5: Hour Budget Realism
@@ -245,8 +245,8 @@ These specs will be consumed by **implementation agents** that follow them liter
 ### Known Architectural Decisions
 - **Streamlit** for frontend (rapid prototyping, free cloud hosting)
 - **CSV + Pandas** for data (no database — hackathon scope)
-- **OpenAI text-embedding-3-small** for vector matching (1536 dimensions)
-- **GPT-4o-mini** for LLM tasks (extraction, email gen, explanations)
+- **Gemini `gemini-embedding-001`** for vector matching (1536 dimensions)
+- **Gemini** for LLM tasks (extraction, email gen, explanations)
 - **BeautifulSoup + Playwright** for web scraping (static + dynamic pages)
 - **Session state** for runtime data (no persistence beyond CSV append)
 - **Demo mode** with cached fixtures as backup for live demo

@@ -77,7 +77,7 @@ The architecture and sprint decomposition are still salvageable, but the package
 - Stable IDs for speakers/events instead of name-based identity.
 - A real email-cache contract, if Sprint 4 expects pre-generated cached emails.
 - Custom URL validation and SSRF protections.
-- Retry/backoff policy for malformed JSON and transient OpenAI failures.
+- Retry/backoff policy for malformed JSON and transient Gemini failures.
 - A deterministic fixture-validation step for demo mode.
 
 ## Verdict

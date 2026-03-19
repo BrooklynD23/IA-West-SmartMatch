@@ -1,4 +1,4 @@
-"""OpenAI embedding generation with caching and retry logic."""
+"""Gemini embedding generation with caching and retry logic."""
 
 import hashlib
 import json
@@ -10,26 +10,26 @@ from pathlib import Path
 from typing import Optional
 
 import numpy as np
-from openai import APIError, APITimeoutError, OpenAI, RateLimitError
-
 from src.config import (
     CACHE_DIR,
     EMBEDDING_BATCH_SIZE,
     EMBEDDING_DIMENSION,
     EMBEDDING_MAX_RETRIES,
-    OPENAI_API_KEY,
-    OPENAI_EMBEDDING_MODEL,
-    has_openai_api_key,
+    GEMINI_API_KEY,
+    GEMINI_EMBEDDING_MODEL,
+    has_gemini_api_key,
 )
+from src.gemini_client import GeminiAPIError, batch_embed_texts
+from src.utils import normalize_course_section
 
 logger = logging.getLogger(__name__)
 
 
-def _get_client() -> OpenAI:
-    """Create and return an OpenAI client."""
-    if not has_openai_api_key():
-        raise ValueError("OPENAI_API_KEY is not set or is still the placeholder value")
-    return OpenAI(api_key=OPENAI_API_KEY)
+def _get_api_key() -> str:
+    """Return a validated Gemini API key."""
+    if not has_gemini_api_key():
+        raise ValueError("GEMINI_API_KEY is not set or is still the placeholder value")
+    return GEMINI_API_KEY
 
 
 def _retry_with_backoff(
@@ -41,26 +41,18 @@ def _retry_with_backoff(
     """
     Execute func() with exponential backoff on retryable errors.
 
-    Retries on: RateLimitError, APITimeoutError, APIError (5xx).
-    Does NOT retry on: AuthenticationError, BadRequestError, etc.
+    Retries on GeminiAPIError when the failure is retryable.
     """
     last_exception = None
     for attempt in range(max_retries + 1):
         try:
             return func()
-        except (RateLimitError, APITimeoutError) as e:
+        except GeminiAPIError as e:
             last_exception = e
-            if attempt < max_retries:
+            if e.retryable and attempt < max_retries:
                 delay = min(base_delay * (2**attempt), max_delay)
-                logger.warning("Rate limit/timeout. Retry %d/%d in %.1fs", attempt + 1, max_retries, delay)
+                logger.warning("Gemini API error. Retry %d/%d in %.1fs", attempt + 1, max_retries, delay)
                 time.sleep(delay)
-        except APIError as e:
-            if e.status_code and e.status_code >= 500:
-                last_exception = e
-                if attempt < max_retries:
-                    delay = min(base_delay * (2**attempt), max_delay)
-                    logger.warning("API 5xx error. Retry %d/%d in %.1fs", attempt + 1, max_retries, delay)
-                    time.sleep(delay)
             else:
                 raise
     raise last_exception
@@ -122,13 +114,13 @@ def generate_embeddings(
     batch_size: Optional[int] = None,
 ) -> np.ndarray:
     """
-    Generate embeddings for a list of texts using OpenAI API.
+    Generate embeddings for a list of texts using the Gemini API.
 
     Returns:
         numpy array of shape (len(texts), EMBEDDING_DIMENSION).
     """
     if model is None:
-        model = OPENAI_EMBEDDING_MODEL
+        model = GEMINI_EMBEDDING_MODEL
     if batch_size is None:
         batch_size = EMBEDDING_BATCH_SIZE
 
@@ -139,15 +131,20 @@ def generate_embeddings(
         if not text.strip():
             raise ValueError(f"Text at index {i} is empty after stripping")
 
-    client = _get_client()
+    api_key = _get_api_key()
     all_embeddings = []
 
     for batch_start in range(0, len(texts), batch_size):
         batch_texts = texts[batch_start : batch_start + batch_size]
 
         def _call_api(batch=batch_texts):
-            response = client.embeddings.create(input=batch, model=model)
-            return [item.embedding for item in response.data]
+            return batch_embed_texts(
+                batch,
+                api_key=api_key,
+                model=model,
+                output_dimensionality=EMBEDDING_DIMENSION,
+                batch_size=len(batch),
+            )
 
         batch_embeddings = _retry_with_backoff(_call_api)
         all_embeddings.extend(batch_embeddings)
@@ -194,7 +191,7 @@ def _load_cached_embeddings(
 
         if entry.get("row_count") != len(texts):
             return None
-        if entry.get("model") != OPENAI_EMBEDDING_MODEL:
+        if entry.get("model") != GEMINI_EMBEDDING_MODEL:
             return None
         if entry.get("dimension") != EMBEDDING_DIMENSION:
             return None
@@ -223,7 +220,7 @@ def _update_manifest(manifest_path: Path, key: str, row_count: int, text_hash: s
     manifest[key] = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "row_count": row_count,
-        "model": OPENAI_EMBEDDING_MODEL,
+        "model": GEMINI_EMBEDDING_MODEL,
         "dimension": EMBEDDING_DIMENSION,
         "text_hash": text_hash,
     }
@@ -374,7 +371,7 @@ def embed_courses(
         metadata.append({
             "instructor": row["Instructor"],
             "course": row["Course"],
-            "section": row["Section"],
+            "section": normalize_course_section(row.get("Section")),
             "title": row["Title"],
             "days": row["Days"],
             "start_time": row.get("Start Time", ""),

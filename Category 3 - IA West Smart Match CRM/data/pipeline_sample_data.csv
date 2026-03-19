@@ -1,0 +1,46 @@
+event_name,speaker_name,match_score,rank,stage,stage_order
+AI for a Better Future Hackathon,Dr. Yufan Lin,0.4608,1,Attended,3
+AI for a Better Future Hackathon,Amber Jawaid,0.4408,2,Contacted,1
+AI for a Better Future Hackathon,Calvin Friesth,0.4408,3,Matched,0
+AI Hackathon (CPP hub page),Dr. Yufan Lin,0.4608,1,Attended,3
+AI Hackathon (CPP hub page),Amber Jawaid,0.4408,2,Attended,3
+AI Hackathon (CPP hub page),Calvin Friesth,0.4408,3,Attended,3
+Information Technology Competition (ITC),Dr. Yufan Lin,0.4558,1,Contacted,1
+Information Technology Competition (ITC),Amber Jawaid,0.4358,2,Attended,3
+Information Technology Competition (ITC),Calvin Friesth,0.4358,3,Attended,3
+Bronco Startup Challenge (SIIL),Dr. Yufan Lin,0.4683,1,Contacted,1
+Bronco Startup Challenge (SIIL),Amber Jawaid,0.4483,2,Contacted,1
+Bronco Startup Challenge (SIIL),Calvin Friesth,0.4483,3,Matched,0
+Bronco Startup Challenge (staff contact),Dr. Yufan Lin,0.4683,1,Contacted,1
+Bronco Startup Challenge (staff contact),Amber Jawaid,0.4483,2,Matched,0
+Bronco Startup Challenge (staff contact),Calvin Friesth,0.4483,3,Contacted,1
+SWIFT Tech Symposium,Dr. Yufan Lin,0.6175,1,Contacted,1
+SWIFT Tech Symposium,Amber Jawaid,0.5975,2,Member Inquiry,4
+SWIFT Tech Symposium,Calvin Friesth,0.5975,3,Attended,3
+BroncoHacks,Dr. Yufan Lin,0.4583,1,Attended,3
+BroncoHacks,Amber Jawaid,0.4383,2,Matched,0
+BroncoHacks,Calvin Friesth,0.4383,3,Contacted,1
+OUR — RSCA Conference,Dr. Yufan Lin,0.485,1,Contacted,1
+OUR — RSCA Conference,Amber Jawaid,0.465,2,Confirmed,2
+OUR — RSCA Conference,Calvin Friesth,0.465,3,Contacted,1
+OUR — Director contact,Dr. Yufan Lin,0.485,1,Contacted,1
+OUR — Director contact,Amber Jawaid,0.465,2,Attended,3
+OUR — Director contact,Calvin Friesth,0.465,3,Confirmed,2
+OUR — CARS (Creative Activities & Research Symposium),Dr. Yufan Lin,0.485,1,Matched,0
+OUR — CARS (Creative Activities & Research Symposium),Amber Jawaid,0.465,2,Contacted,1
+OUR — CARS (Creative Activities & Research Symposium),Calvin Friesth,0.465,3,Contacted,1
+College of Science Research Symposium,Dr. Yufan Lin,0.485,1,Attended,3
+College of Science Research Symposium,Amber Jawaid,0.465,2,Contacted,1
+College of Science Research Symposium,Calvin Friesth,0.465,3,Matched,0
+CPP Career Center — Employer Engagement,Dr. Yufan Lin,0.615,1,Confirmed,2
+CPP Career Center — Employer Engagement,Amber Jawaid,0.595,2,Member Inquiry,4
+CPP Career Center — Employer Engagement,Calvin Friesth,0.595,3,Contacted,1
+CPP Career Center — Career Fairs,Dr. Yufan Lin,0.6175,1,Attended,3
+CPP Career Center — Career Fairs,Amber Jawaid,0.5975,2,Contacted,1
+CPP Career Center — Career Fairs,Calvin Friesth,0.5975,3,Matched,0
+CPP Career Center — Business college coaching liaison,Dr. Yufan Lin,0.63,1,Contacted,1
+CPP Career Center — Business college coaching liaison,Amber Jawaid,0.61,2,Contacted,1
+CPP Career Center — Business college coaching liaison,Calvin Friesth,0.61,3,Contacted,1
+CPP Career Center — Employer relations / on-campus recruiting,Dr. Yufan Lin,0.63,1,Attended,3
+CPP Career Center — Employer relations / on-campus recruiting,Amber Jawaid,0.61,2,Matched,0
+CPP Career Center — Employer relations / on-campus recruiting,Calvin Friesth,0.61,3,Contacted,1

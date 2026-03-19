@@ -1255,11 +1255,11 @@ from contextlib import contextmanager
 @contextmanager
 def api_call_spinner(message: str = "Processing..."):
     """
-    Wrap any API call (OpenAI, scraping) with a branded spinner.
+    Wrap any API call (Gemini, scraping) with a branded spinner.
 
     Usage:
         with api_call_spinner("Generating match explanation..."):
-            result = openai_client.chat.completions.create(...)
+            result = generate_text(...)
     """
     with st.spinner(message):
         try:
@@ -1304,7 +1304,7 @@ font = "sans serif"
 - [ ] Score badges display with color coding: >= 0.75 green, 0.50-0.74 amber, < 0.50 red
 - [ ] Explanation cards have left-border accent and italic text
 - [ ] Email previews use serif font with amber border
-- [ ] All API calls (OpenAI, scraping) wrapped in `api_call_spinner`
+- [ ] All API calls (Gemini, scraping) wrapped in `api_call_spinner`
 - [ ] API errors caught and displayed as user-friendly error cards (no raw tracebacks)
 - [ ] Layout renders acceptably on 1024px width (Streamlit Cloud default)
 
@@ -1359,7 +1359,7 @@ cache/
     },
     "travis_miller_explanation": {
       "file": "travis_miller_explanation.json",
-      "description": "GPT-4o-mini match explanation for Travis Miller -> AI Hackathon",
+      "description": "Gemini match explanation for Travis Miller -> AI Hackathon",
       "demo_delay_seconds": 1.5
     },
     "top_match_email": {
@@ -2381,7 +2381,7 @@ events."
 **CLICK:** Gesture across the tab bar: Matches, Discovery, Pipeline
 
 > "First, we ingest all 77 data points -- speaker profiles, CPP events,
-> course schedules, and the IA event calendar. Then we use OpenAI
+> course schedules, and the IA event calendar. Then we use Gemini
 > embeddings to semantically match speaker expertise to event needs
 > across six scoring dimensions."
 
@@ -2405,7 +2405,7 @@ events."
 
 **[WAIT for 2-second demo delay -- spinner shows "Discovering events..."]**
 
-> "...and extract structured event data using GPT-4o-mini. Here we
+> "...and extract structured event data using Gemini. Here we
 > can see [X] events extracted, including hackathons, career fairs,
 > and guest lecture opportunities."
 
@@ -2533,7 +2533,7 @@ events."
 
 | Failure | Trigger | Action |
 |---------|---------|--------|
-| No internet | App cannot reach OpenAI | Toggle Demo Mode ON (all cached) |
+| No internet | App cannot reach Gemini | Toggle Demo Mode ON (all cached) |
 | Scrape hangs | Spinner > 5 seconds | "Let me show you cached results" |
 | API error | Error card appears | Switch to Demo Mode, continue |
 | App crash | Streamlit error page | Restart (5s), or switch to video |
@@ -2679,7 +2679,7 @@ The following events should trigger updates to `.memory/context/` files:
 
 | Dependency | Required For | Fallback |
 |------------|-------------|----------|
-| OpenAI API access | A3.5 (generating demo fixtures) | Use fixtures from Sprint 2 test runs |
+| Gemini API access | A3.5 (generating demo fixtures) | Use fixtures from Sprint 2 test runs |
 | Working internet | A3.5 (live scraping for fixture generation) | Use cached HTML from Sprint 2 |
 | Streamlit app fully functional | A3.7 (screenshots) | Manual mockup screenshots |
 
