@@ -25,7 +25,7 @@ def _parse_date(date_str: Optional[str]) -> datetime:
     unparseable strings like "Every Tuesday".
     """
     if date_str is None:
-        return datetime.now() + timedelta(days=30)
+        return datetime.now(UTC) + timedelta(days=30)
 
     for fmt in ("%Y-%m-%d", "%m/%d/%Y", "%Y-%m-%dT%H:%M:%S"):
         try:
@@ -34,7 +34,7 @@ def _parse_date(date_str: Optional[str]) -> datetime:
             continue
 
     logger.warning("Could not parse date '%s', using 30-day default", date_str)
-    return datetime.now() + timedelta(days=30)
+    return datetime.now(UTC) + timedelta(days=30)
 
 
 def _make_uid(event_name: str, date_str: Optional[str]) -> str:
@@ -84,8 +84,8 @@ def generate_ics(
 
     uid = _make_uid(event_name, date_str)
     dtstamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
-    dtstart = dt_start.strftime("%Y%m%dT%H%M%S")
-    dtend = dt_end.strftime("%Y%m%dT%H%M%S")
+    dtstart = dt_start.strftime("%Y%m%dT%H%M%SZ")
+    dtend = dt_end.strftime("%Y%m%dT%H%M%SZ")
 
     lines: list[str] = [
         "BEGIN:VCALENDAR",

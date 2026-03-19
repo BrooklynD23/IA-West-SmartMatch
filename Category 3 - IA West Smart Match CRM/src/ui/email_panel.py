@@ -11,7 +11,7 @@ from typing import Any
 import streamlit as st
 
 from src.outreach.email_gen import (
-    _event_value,
+    event_value,
     generate_outreach_email,
 )
 
@@ -42,7 +42,7 @@ def render_email_preview(
 
         # Download as .txt
         speaker_name = speaker.get("Name", "speaker")
-        event_name = _event_value(
+        event_name = event_value(
             event, "Event / Program", "event_name", default="event",
         )
         st.download_button(

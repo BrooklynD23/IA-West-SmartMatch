@@ -92,9 +92,9 @@ Extract structured event data from the following {university} webpage content.
 
 Source URL: {url}
 
---- BEGIN CONTENT ---
+<content>
 {content}
---- END CONTENT ---
+</content>
 
 Return a JSON array of events.  Include ONLY events where industry \
 professionals could volunteer as judges, mentors, speakers, or panelists.\
@@ -338,6 +338,21 @@ def save_extraction_cache(
 
 
 # ---------------------------------------------------------------------------
+# Prompt sanitisation
+# ---------------------------------------------------------------------------
+
+
+def _sanitize_for_prompt(text: str) -> str:
+    """Escape content delimiter patterns to prevent prompt injection."""
+    return (
+        text.replace("</content>", "&lt;/content&gt;")
+        .replace("<content>", "&lt;content&gt;")
+        .replace("--- BEGIN CONTENT ---", "--- BEGIN_CONTENT ---")
+        .replace("--- END CONTENT ---", "--- END_CONTENT ---")
+    )
+
+
+# ---------------------------------------------------------------------------
 # Extraction
 # ---------------------------------------------------------------------------
 
@@ -382,7 +397,7 @@ def extract_events(
     user_message = EXTRACTION_USER_PROMPT_TEMPLATE.format(
         university=university,
         url=url,
-        content=content,
+        content=_sanitize_for_prompt(content),
     )
 
     messages = [

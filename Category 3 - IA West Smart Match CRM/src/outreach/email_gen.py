@@ -24,7 +24,7 @@ from src.gemini_client import generate_text
 
 logger = logging.getLogger(__name__)
 
-# Re-export for patching in tests
+# Intentionally shadows config import; tests patch this attribute.
 EMAIL_CACHE_DIR = Path(EMAIL_CACHE_DIR)
 
 
@@ -32,7 +32,7 @@ EMAIL_CACHE_DIR = Path(EMAIL_CACHE_DIR)
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _event_value(event: dict[str, Any], *keys: str, default: str = "") -> Any:
+def event_value(event: dict[str, Any], *keys: str, default: str = "") -> Any:
     """Return the first present event value across literal CSV and derived keys."""
     for key in keys:
         value = event.get(key)
@@ -85,7 +85,7 @@ def _email_cache_key(
     """Generate a deterministic cache key from speaker + event + score."""
     raw = "::".join([
         str(speaker.get("Name", "")),
-        str(_event_value(event, "Event / Program", "event_name", default="")),
+        str(event_value(event, "Event / Program", "event_name", default="")),
         f"{_match_score_value(match_scores, 'total_score'):.4f}",
     ])
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
@@ -251,20 +251,20 @@ def generate_outreach_email(
     speaker_metro = speaker.get("Metro Region", "your region")
     speaker_expertise = speaker.get("Expertise Tags", "your expertise")
 
-    event_name = _event_value(
+    event_name = event_value(
         event, "Event / Program", "event_name", default="the upcoming event",
     )
-    event_category = _event_value(event, "Category", "category", default="event")
-    event_host = _event_value(
+    event_category = event_value(event, "Category", "category", default="event")
+    event_host = event_value(
         event, "Host / Unit", "university", default="the university",
     )
-    volunteer_role = _event_value(
+    volunteer_role = event_value(
         event, "Volunteer Roles (fit)", "volunteer_roles", default="volunteer",
     )
-    primary_audience = _event_value(
+    primary_audience = event_value(
         event, "Primary Audience", "primary_audience", default="students",
     )
-    event_date = _event_value(
+    event_date = event_value(
         event, "Date", "IA Event Date", "date_or_recurrence",
         "Recurrence (typical)", default="TBD",
     )

@@ -16,10 +16,27 @@ from src.matching.explanations import (
     generate_match_explanation,
     load_cached_explanation,
 )
+from src.outreach.ics_generator import ICS_CONTENT_TYPE, generate_ics
 from src.ui.email_panel import render_email_preview
 from src.utils import format_course_display_name, format_course_identifier
 
 logger = logging.getLogger(__name__)
+
+
+@st.cache_data(show_spinner=False)
+def _cached_generate_ics(
+    event_name: str,
+    date_str: str | None = None,
+    location: str | None = None,
+    description: str | None = None,
+) -> str:
+    """Cache-wrapped .ics generation to avoid recomputation on every rerender."""
+    return generate_ics(
+        event_name=event_name,
+        date_str=date_str,
+        location=location,
+        description=description,
+    )
 
 
 def render_matches_tab(
@@ -70,6 +87,7 @@ def _render_weight_sliders() -> None:
     if "match_weights" not in st.session_state:
         st.session_state["match_weights"] = dict(DEFAULT_WEIGHTS)
 
+    updated_weights: dict[str, float] = {}
     for factor_key, label in factor_labels.items():
         current_val = st.session_state["match_weights"].get(
             factor_key, DEFAULT_WEIGHTS[factor_key]
@@ -82,7 +100,8 @@ def _render_weight_sliders() -> None:
             step=0.05,
             key=f"slider_{factor_key}",
         )
-        st.session_state["match_weights"][factor_key] = new_val
+        updated_weights[factor_key] = new_val
+    st.session_state["match_weights"] = updated_weights
 
     w = st.session_state["match_weights"]
     total = sum(w.values())
@@ -241,7 +260,7 @@ def _render_match_card(
 
         with col_chart:
             fig = _create_radar_chart(match["factor_scores"])
-            st.plotly_chart(fig, use_container_width=True, key=f"radar_{rank}_{match['speaker_name']}")
+            st.plotly_chart(fig, use_container_width=True, key=f"radar_{rank}")
 
         with col_explain:
             _render_match_explanation(match=match, event=event)
@@ -250,14 +269,12 @@ def _render_match_card(
         with col_email:
             st.button(
                 "Generate Email",
-                key=f"email_{rank}_{match['speaker_name']}",
+                key=f"email_{rank}",
                 on_click=lambda m=match: st.session_state.update(
                     {"pending_email_match": m}
                 ),
             )
         with col_ics:
-            from src.outreach.ics_generator import generate_ics, ICS_CONTENT_TYPE
-
             _event_name = match.get("event_name", "Event")
             _event_date = event.get("IA Event Date", event.get(
                 "Date", event.get("date_or_recurrence"),
@@ -266,7 +283,7 @@ def _render_match_card(
             _event_desc = (
                 f"{_event_name} — Speaker: {match.get('speaker_name', '')}"
             )
-            _ics_content = generate_ics(
+            _ics_content = _cached_generate_ics(
                 event_name=_event_name,
                 date_str=str(_event_date) if _event_date is not None else None,
                 location=str(_event_location) if _event_location is not None else None,
@@ -278,7 +295,7 @@ def _render_match_card(
                 data=_ics_content,
                 file_name=f"{_safe_name}.ics",
                 mime=ICS_CONTENT_TYPE,
-                key=f"ics_{rank}_{match['speaker_name']}",
+                key=f"ics_{rank}",
             )
 
         # --- Email preview panel ---
@@ -310,7 +327,7 @@ def _render_match_explanation(match: dict, event: pd.Series) -> None:
     )
     explanation = cached_explanation or fallback_match_explanation(match)
     button_label = "Refresh AI Explanation" if cached_explanation else "Generate AI Explanation"
-    button_key = f"explain::{match.get('speaker_name', '')}::{match.get('event_name', '')}"
+    button_key = f"explain_{match.get('rank', '')}"
 
     if st.button(button_label, key=button_key):
         with st.spinner("Generating AI explanation..."):

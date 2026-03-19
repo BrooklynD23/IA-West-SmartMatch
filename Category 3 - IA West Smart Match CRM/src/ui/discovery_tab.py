@@ -75,6 +75,12 @@ def validate_custom_url(url: str) -> str | None:
         return str(exc)
 
 
+@st.cache_data(ttl=300, show_spinner=False)
+def _cached_validate_custom_url(url: str) -> str | None:
+    """Cache-wrapped URL validation to avoid DNS lookup on every keystroke."""
+    return validate_custom_url(url)
+
+
 def format_events_for_dataframe(
     events: list[dict[str, Any]],
 ) -> pd.DataFrame:
@@ -235,7 +241,7 @@ def render_discovery_tab(datasets: Any) -> None:
         key="custom_discovery_url",
     )
     if custom_url:
-        error = validate_custom_url(custom_url)
+        error = _cached_validate_custom_url(custom_url)
         if error:
             st.error(f"Invalid URL: {error}")
         else:

@@ -165,9 +165,10 @@ def generate_embeddings(
 
     embeddings_array = np.array(all_embeddings, dtype=np.float32)
 
-    assert embeddings_array.shape == (len(texts), EMBEDDING_DIMENSION), (
-        f"Expected shape ({len(texts)}, {EMBEDDING_DIMENSION}), got {embeddings_array.shape}"
-    )
+    if embeddings_array.shape != (len(texts), EMBEDDING_DIMENSION):
+        raise ValueError(
+            f"Expected shape ({len(texts)}, {EMBEDDING_DIMENSION}), got {embeddings_array.shape}"
+        )
 
     return embeddings_array
 

@@ -34,8 +34,8 @@ def load_pipeline_data(csv_path: str | None = None) -> pd.DataFrame:
     try:
         df = pd.read_csv(path)
         return df
-    except Exception:
-        logger.warning("Could not load pipeline data from %s", path)
+    except (FileNotFoundError, pd.errors.ParserError, pd.errors.EmptyDataError, OSError) as exc:
+        logger.warning("Could not load pipeline data from %s: %s", path, exc)
         return pd.DataFrame(
             columns=["event_name", "speaker_name", "match_score", "rank", "stage", "stage_order"]
         )

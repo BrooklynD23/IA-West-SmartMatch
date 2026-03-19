@@ -127,11 +127,22 @@
 
 | Module | File | Lines | Tests | Description |
 |---|---|---|---|---|
-| Web Scraper | src/scraping/scraper.py | 345 | 15 | BS4+Playwright, SSRF protection, robots.txt, cache |
-| LLM Extractor | src/extraction/llm_extractor.py | ~300 | 12 | Gemini extraction, HTML preprocessing, few-shot |
-| Discovery Tab | src/ui/discovery_tab.py | 260 | 10 | University selector, results table, Add to Matching |
+| Web Scraper | src/scraping/scraper.py | ~370 | 21 | BS4+Playwright, SSRF/TOCTOU protection, robots.txt, cache, thread-safe rate limiter |
+| LLM Extractor | src/extraction/llm_extractor.py | ~330 | 15 | Gemini extraction, HTML preprocessing, few-shot, prompt injection defence |
+| Discovery Tab | src/ui/discovery_tab.py | 270 | 10 | University selector, results table, Add to Matching, cached DNS validation |
 | Email Generator | src/outreach/email_gen.py | 339 | 13 | Gemini emails, cache, fallback, preview panel |
-| ICS Generator | src/outreach/ics_generator.py | ~100 | 6 | RFC 5545 calendar invites |
+| ICS Generator | src/outreach/ics_generator.py | ~100 | 8 | RFC 5545 calendar invites, UTC-aware DTSTART |
 | Pipeline Funnel | src/ui/pipeline_tab.py | 136 | 11 | Plotly 6-stage funnel, hover tooltips |
 
-**Total Sprint 2:** ~1,480 lines of code, ~67 new tests, 258+ tests passing.
+**Total Sprint 2:** ~1,545 lines of code, ~78 new tests, 262+ tests passing.
+
+### Security Hardening Applied (2026-03-19)
+
+| Fix | Severity | Description |
+|---|---|---|
+| SSRF TOCTOU | CRITICAL | DNS-pinned scraping prevents rebinding between validation and request |
+| Prompt injection | CRITICAL | XML content delimiters with sanitisation for LLM extraction prompts |
+| Cache datetime crash | CRITICAL | Corrupt/missing `scraped_at` handled gracefully with backward compat |
+| Thread-safe rate limiter | HIGH | `threading.Lock` guards shared mutable state |
+| DTSTART timezone | HIGH | `.ics` timestamps appended with `Z` suffix (UTC) per RFC 5545 |
+| Session state mutation | HIGH | Slider weights collected immutably then assigned once |

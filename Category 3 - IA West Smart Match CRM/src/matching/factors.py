@@ -26,6 +26,10 @@ from src.similarity import cosine_similarity_pair
 
 logger = logging.getLogger(__name__)
 
+_CANONICAL_REGIONS: frozenset[str] = frozenset(
+    region for pair in GEO_PROXIMITY for region in pair
+)
+
 
 # ---------------------------------------------------------------------------
 # Factor 1: Topic Relevance
@@ -120,6 +124,8 @@ def role_fit(
     """
     if pd.isna(speaker_board_role) or pd.isna(event_volunteer_roles):
         return 0.0
+    if str(speaker_board_role).strip().lower() == "nan" or str(event_volunteer_roles).strip().lower() == "nan":
+        return 0.0
     if not str(speaker_board_role).strip() or not str(event_volunteer_roles).strip():
         return 0.0
 
@@ -193,7 +199,7 @@ def _resolve_event_region(raw_region: str) -> str:
         return DEFAULT_EVENT_REGION
 
     normalized_region = raw_region.strip().lower()
-    canonical_regions = {region for pair in GEO_PROXIMITY for region in pair}
+    canonical_regions = _CANONICAL_REGIONS
 
     # Exact matches first, including canonical region names.
     for key, canonical in EVENT_REGION_MAP.items():

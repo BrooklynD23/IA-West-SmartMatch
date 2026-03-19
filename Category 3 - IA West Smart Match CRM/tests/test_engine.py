@@ -708,13 +708,16 @@ class TestGeneratePipelineData:
                 "total_score": 0.9 - i * 0.01,
                 "rank": i + 1,
             }
-            for i in range(50)
+            for i in range(100)
         ]
         df1 = generate_pipeline_data(ranked, seed=42)
         df2 = generate_pipeline_data(ranked, seed=999)
-        # With 50 entries, different seeds should very likely produce
-        # different stage assignments
-        assert not df1["stage"].equals(df2["stage"])
+        # With 100 entries, different seeds should produce
+        # different stage assignments (probability of identical ≈ 0)
+        assert not df1["stage"].equals(df2["stage"]), (
+            "Two different seeds produced identical stage assignments "
+            "across 100 entries — this should be astronomically unlikely"
+        )
 
     def test_all_stages_valid(self) -> None:
         ranked = [

@@ -11,8 +11,9 @@ import json
 import logging
 import os
 import socket
+import threading
 import time
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any, Literal
 from urllib.parse import urlparse
 from urllib.robotparser import RobotFileParser
@@ -65,7 +66,39 @@ USER_AGENT: str = (
 
 
 # ---------------------------------------------------------------------------
-# Cache helpers
+# DNS resolution & SSRF protection
+# ---------------------------------------------------------------------------
+
+
+def _resolve_validated_ips(hostname: str) -> frozenset:
+    """Resolve hostname to IPs and validate all are public.
+
+    Returns a frozenset of validated ``ipaddress`` objects.
+    Raises ValueError on DNS failure or if any resolved IP is non-public.
+    """
+    try:
+        resolved_ips = frozenset(
+            ipaddress.ip_address(info[4][0])
+            for info in socket.getaddrinfo(hostname, None)
+        )
+    except socket.gaierror as exc:
+        raise ValueError(f"Could not resolve hostname: {hostname}") from exc
+
+    for ip in resolved_ips:
+        if (
+            ip.is_private
+            or ip.is_loopback
+            or ip.is_link_local
+            or ip.is_multicast
+            or ip.is_reserved
+        ):
+            raise ValueError("Custom URL must resolve to a public internet host")
+
+    return resolved_ips
+
+
+# ---------------------------------------------------------------------------
+# URL validation
 # ---------------------------------------------------------------------------
 
 
@@ -92,28 +125,17 @@ def validate_public_demo_url(url: str) -> None:
         if urlparse(cfg["url"]).hostname
     }
 
-    try:
-        resolved_ips = {
-            ipaddress.ip_address(info[4][0])
-            for info in socket.getaddrinfo(hostname, None)
-        }
-    except socket.gaierror as exc:
-        raise ValueError(f"Could not resolve hostname: {hostname}") from exc
-
-    for ip in resolved_ips:
-        if (
-            ip.is_private
-            or ip.is_loopback
-            or ip.is_link_local
-            or ip.is_multicast
-            or ip.is_reserved
-        ):
-            raise ValueError("Custom URL must resolve to a public internet host")
+    _resolve_validated_ips(hostname)
 
     if normalized_host not in allowed_hosts and not normalized_host.endswith(
         ALLOWED_CUSTOM_HOST_SUFFIXES
     ):
         raise ValueError("Custom URL must target a public university domain")
+
+
+# ---------------------------------------------------------------------------
+# Cache helpers
+# ---------------------------------------------------------------------------
 
 
 def _cache_key(url: str) -> str:
@@ -138,7 +160,7 @@ def load_from_cache(
     dict with keys {html, scraped_at, url, method, ttl_hours}
         if cache hit and TTL has not expired.
     None
-        if cache miss or expired.
+        if cache miss, expired, or corrupted timestamp.
     """
     path = _cache_path(url, cache_dir)
     if not os.path.exists(path):
@@ -147,9 +169,17 @@ def load_from_cache(
     with open(path, "r", encoding="utf-8") as fh:
         data: dict[str, Any] = json.load(fh)
 
-    scraped_at = datetime.fromisoformat(data["scraped_at"])
+    try:
+        scraped_at = datetime.fromisoformat(data["scraped_at"])
+    except (ValueError, KeyError):
+        return None
+
+    # Backward compat: assume UTC if naive timestamp
+    if scraped_at.tzinfo is None:
+        scraped_at = scraped_at.replace(tzinfo=UTC)
+
     ttl = timedelta(hours=data.get("ttl_hours", CACHE_TTL_HOURS))
-    if datetime.utcnow() - scraped_at > ttl:
+    if datetime.now(UTC) - scraped_at > ttl:
         return None  # expired
     return data
 
@@ -170,7 +200,7 @@ def save_to_cache(
     payload = {
         "url": url,
         "html": html,
-        "scraped_at": datetime.utcnow().isoformat(),
+        "scraped_at": datetime.now(UTC).isoformat(),
         "ttl_hours": CACHE_TTL_HOURS,
         "method": method,
     }
@@ -205,19 +235,21 @@ def check_robots_txt(url: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# Rate limiter (module-level state)
+# Rate limiter (module-level state, thread-safe)
 # ---------------------------------------------------------------------------
 
 _last_request_time: float = 0.0
+_rate_limit_lock = threading.Lock()
 
 
 def _rate_limit() -> None:
     """Block until RATE_LIMIT_SECONDS have elapsed since the last request."""
     global _last_request_time
-    elapsed = time.time() - _last_request_time
-    if elapsed < RATE_LIMIT_SECONDS:
-        time.sleep(RATE_LIMIT_SECONDS - elapsed)
-    _last_request_time = time.time()
+    with _rate_limit_lock:
+        elapsed = time.time() - _last_request_time
+        if elapsed < RATE_LIMIT_SECONDS:
+            time.sleep(RATE_LIMIT_SECONDS - elapsed)
+        _last_request_time = time.time()
 
 
 # ---------------------------------------------------------------------------
@@ -237,6 +269,36 @@ def _scrape_bs4(url: str) -> str:
     response = requests.get(url, headers=headers, timeout=30)
     response.raise_for_status()
     return response.text
+
+
+def _validated_scrape_bs4(url: str, resolved_ips: frozenset) -> str:
+    """Fetch a page using pre-resolved IPs to prevent DNS rebinding (TOCTOU).
+
+    Temporarily pins ``socket.getaddrinfo`` for the target hostname to a
+    pre-validated public IP, ensuring the HTTP request connects to the
+    same address that was verified as non-private.  TLS certificate
+    verification works normally because the original hostname is retained.
+    """
+    _rate_limit()
+    parsed = urlparse(url)
+    target_ip = str(next(iter(resolved_ips)))
+
+    original_getaddrinfo = socket.getaddrinfo
+
+    def _pinned_getaddrinfo(host, port, *args, **kwargs):
+        if host == parsed.hostname:
+            return [(socket.AF_INET, socket.SOCK_STREAM, 6, "",
+                     (target_ip, port or 443))]
+        return original_getaddrinfo(host, port, *args, **kwargs)
+
+    socket.getaddrinfo = _pinned_getaddrinfo
+    try:
+        headers = {"User-Agent": USER_AGENT}
+        response = requests.get(url, headers=headers, timeout=30)
+        response.raise_for_status()
+        return response.text
+    finally:
+        socket.getaddrinfo = original_getaddrinfo
 
 
 def _scrape_playwright(url: str) -> str:
@@ -297,18 +359,23 @@ def scrape_university(
             f"robots.txt disallows scraping {url} for user-agent {USER_AGENT}"
         )
 
-    # 3. Live scrape
+    # 3. Re-resolve DNS just-in-time to close the TOCTOU gap between
+    #    validate_public_demo_url() and the actual HTTP request.
+    parsed = urlparse(url)
+    resolved_ips = _resolve_validated_ips(parsed.hostname)
+
+    # 4. Live scrape
     if method == "playwright":
         html = _scrape_playwright(url)
     else:
-        html = _scrape_bs4(url)
+        html = _validated_scrape_bs4(url, resolved_ips)
 
-    # 4. Cache the result
+    # 5. Cache the result
     save_to_cache(url, html, method, cache_dir)
 
     return {
         "html": html,
-        "scraped_at": datetime.utcnow().isoformat(),
+        "scraped_at": datetime.now(UTC).isoformat(),
         "url": url,
         "method": method,
         "source": "live",

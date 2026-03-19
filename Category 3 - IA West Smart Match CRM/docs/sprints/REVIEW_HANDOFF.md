@@ -261,3 +261,41 @@ These specs will be consumed by **implementation agents** that follow them liter
 | Scalability | ~5 | 10% |
 
 Written deliverables = 40% of score. The specs must support both code AND writing tracks.
+
+---
+
+## Code Review Resolution (2026-03-19)
+
+All 17 findings from the adversarial code review have been resolved:
+
+### CRITICAL (3)
+
+| ID | File | Finding | Resolution |
+|---|---|---|---|
+| C1 | scraper.py | `datetime.fromisoformat()` crash on corrupt cache | Wrapped in `try/except (ValueError, KeyError)`, added naive→UTC backward compat, replaced `datetime.utcnow()` with `datetime.now(UTC)` |
+| C2 | scraper.py | SSRF TOCTOU gap between DNS validation and HTTP request | Extracted `_resolve_validated_ips()`, added `_validated_scrape_bs4()` with DNS pinning via `socket.getaddrinfo` override |
+| C3 | llm_extractor.py | Prompt injection via content delimiters | Changed delimiters to `<content>`/`</content>` XML tags, added `_sanitize_for_prompt()` escaping |
+
+### HIGH (7)
+
+| ID | File | Finding | Resolution |
+|---|---|---|---|
+| H1 | scraper.py | Thread-unsafe rate limiter (shared mutable `_last_request_time`) | Added `threading.Lock` around read-check-sleep-write block |
+| H2 | matches_tab.py | Session state mutation inside slider loop | Collect slider values into `updated_weights` dict, assign once after loop |
+| H3 | matches_tab.py | `.ics` generation on every Streamlit rerender | Moved import to top-of-file, added `@st.cache_data` wrapper `_cached_generate_ics()` |
+| H4 | discovery_tab.py | DNS lookup on every keystroke in Custom URL field | Added `@st.cache_data(ttl=300)` wrapper `_cached_validate_custom_url()` |
+| H5 | email_gen.py + email_panel.py | Private function `_event_value` imported cross-module | Renamed to `event_value` (public API) |
+| H6 | ics_generator.py | DTSTART/DTEND missing timezone designator | Appended `Z` to format strings, fixed `_parse_date` fallback to use `datetime.now(UTC)` |
+| H7 | test_engine.py | Flaky test with only 50 samples | Increased to 100 entries with descriptive assertion message |
+
+### MEDIUM (7)
+
+| ID | File | Finding | Resolution |
+|---|---|---|---|
+| M1 | embeddings.py | `assert` used for runtime validation | Replaced with `if ... raise ValueError(...)` |
+| M2 | matches_tab.py | Speaker name in Streamlit widget keys (non-URL-safe) | Replaced with rank index (unique per render cycle) |
+| M3 | pipeline_tab.py | Bare `except Exception` swallows all errors | Narrowed to `(FileNotFoundError, pd.errors.ParserError, pd.errors.EmptyDataError, OSError)` with `exc` logging |
+| M4 | factors.py | `canonical_regions` set recomputed on every call | Moved to module-level `_CANONICAL_REGIONS: frozenset[str]` |
+| M5 | factors.py | `pd.isna()` doesn't catch string `"nan"` | Added explicit `str(...).strip().lower() == "nan"` guard |
+| M6 | email_gen.py | Confusing `EMAIL_CACHE_DIR` re-assignment | Replaced comment with: "Intentionally shadows config import; tests patch this attribute." |
+| M7 | engine.py | Ambiguous cumulative vs per-stage pipeline semantics | Added cross-reference comments between `_PIPELINE_STAGES` and `stage_transitions` |

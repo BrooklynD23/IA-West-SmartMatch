@@ -25,7 +25,9 @@ from src.utils import format_course_display_name
 
 logger = logging.getLogger(__name__)
 
-# Pipeline stage definitions (label, cumulative-retention rate relative to Matched)
+# Pipeline stage definitions (label, cumulative-retention rate relative to Matched).
+# NOTE: These rates are cumulative from "Matched" — see generate_pipeline_data()
+# where they are converted to per-stage transition probabilities.
 _PIPELINE_STAGES: list[tuple[str, float]] = [
     ("Matched", 1.00),
     ("Contacted", 0.80),
@@ -348,7 +350,9 @@ def generate_pipeline_data(
 
     rng = random.Random(seed)
 
-    # Stage transitions: (label, retention_rate_from_previous_stage)
+    # Stage transitions: (label, retention_rate_from_previous_stage).
+    # NOTE: These are per-stage retention rates, unlike _PIPELINE_STAGES
+    # at module level which stores cumulative rates for funnel display.
     stage_transitions: list[tuple[str, float]] = [
         ("Matched", 1.00),
         ("Contacted", 0.80),

@@ -2,8 +2,9 @@
 
 import hashlib
 import json
+import threading
 import time
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock, patch, AsyncMock
 
 import pytest
@@ -103,7 +104,7 @@ class TestSaveAndLoadCache:
         path = _cache_path(url, cache_dir)
         with open(path, "r", encoding="utf-8") as fh:
             data = json.load(fh)
-        expired_time = datetime.utcnow() - timedelta(hours=CACHE_TTL_HOURS + 1)
+        expired_time = datetime.now(UTC) - timedelta(hours=CACHE_TTL_HOURS + 1)
         data["scraped_at"] = expired_time.isoformat()
         with open(path, "w", encoding="utf-8") as fh:
             json.dump(data, fh)
@@ -114,6 +115,147 @@ class TestSaveAndLoadCache:
 # ---------------------------------------------------------------------------
 # robots.txt tests
 # ---------------------------------------------------------------------------
+
+class TestCacheCorruptedTimestamp:
+    """Tests for corrupted scraped_at handling (C1 fix)."""
+
+    def test_corrupted_scraped_at_returns_none(self, tmp_path: "pytest.TempPathFactory") -> None:
+        from src.scraping.scraper import _cache_path, load_from_cache
+
+        url = "https://career.ucla.edu/events/"
+        cache_dir = str(tmp_path)
+
+        # Write a cache file with a malformed scraped_at
+        path = _cache_path(url, cache_dir)
+        import os
+        os.makedirs(cache_dir, exist_ok=True)
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump({
+                "url": url,
+                "html": "<html/>",
+                "scraped_at": "not-a-date",
+                "ttl_hours": 24,
+                "method": "bs4",
+            }, fh)
+
+        result = load_from_cache(url, cache_dir=cache_dir)
+        assert result is None
+
+    def test_missing_scraped_at_returns_none(self, tmp_path: "pytest.TempPathFactory") -> None:
+        from src.scraping.scraper import _cache_path, load_from_cache
+
+        url = "https://career.ucla.edu/events/"
+        cache_dir = str(tmp_path)
+
+        path = _cache_path(url, cache_dir)
+        import os
+        os.makedirs(cache_dir, exist_ok=True)
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump({
+                "url": url,
+                "html": "<html/>",
+                "ttl_hours": 24,
+                "method": "bs4",
+            }, fh)
+
+        result = load_from_cache(url, cache_dir=cache_dir)
+        assert result is None
+
+    def test_timezone_aware_cache_roundtrip(self, tmp_path: "pytest.TempPathFactory") -> None:
+        from src.scraping.scraper import save_to_cache, load_from_cache
+
+        url = "https://career.ucla.edu/events/"
+        cache_dir = str(tmp_path)
+
+        save_to_cache(url, "<html/>", "bs4", cache_dir=cache_dir)
+        loaded = load_from_cache(url, cache_dir=cache_dir)
+        assert loaded is not None
+        # Verify scraped_at has timezone info (UTC offset or Z suffix)
+        ts = loaded["scraped_at"]
+        assert "+" in ts or "Z" in ts or ts.endswith("+00:00")
+
+    def test_naive_timestamp_backward_compat(self, tmp_path: "pytest.TempPathFactory") -> None:
+        from src.scraping.scraper import _cache_path, load_from_cache
+
+        url = "https://career.ucla.edu/events/"
+        cache_dir = str(tmp_path)
+
+        # Write a cache file with a naive (no timezone) scraped_at — simulating old format
+        path = _cache_path(url, cache_dir)
+        import os
+        os.makedirs(cache_dir, exist_ok=True)
+        naive_time = datetime.now(UTC).replace(tzinfo=None).isoformat()
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump({
+                "url": url,
+                "html": "<html>naive</html>",
+                "scraped_at": naive_time,
+                "ttl_hours": 24,
+                "method": "bs4",
+            }, fh)
+
+        # Should still load — naive timestamp assumed UTC
+        result = load_from_cache(url, cache_dir=cache_dir)
+        assert result is not None
+        assert result["html"] == "<html>naive</html>"
+
+
+class TestResolveValidatedIps:
+    """Tests for _resolve_validated_ips() and TOCTOU-safe scraping (C2 fix)."""
+
+    def test_validated_scrape_uses_pinned_dns(self) -> None:
+        import src.scraping.scraper as scraper_mod
+
+        # Mock getaddrinfo to return a public IP
+        with patch("socket.getaddrinfo") as mock_gai:
+            mock_gai.return_value = [
+                (2, 1, 6, "", ("52.10.20.30", 80)),
+            ]
+            ips = scraper_mod._resolve_validated_ips("example.edu")
+            assert len(ips) > 0
+
+        # Now test _validated_scrape_bs4 pins DNS
+        with patch("src.scraping.scraper.requests.get") as mock_get, \
+             patch("time.sleep"):
+            mock_response = MagicMock()
+            mock_response.text = "<html>pinned</html>"
+            mock_response.raise_for_status = MagicMock()
+            mock_get.return_value = mock_response
+            scraper_mod._last_request_time = 0.0
+
+            import ipaddress
+            resolved = frozenset({ipaddress.ip_address("52.10.20.30")})
+            html = scraper_mod._validated_scrape_bs4(
+                "https://example.edu/events", resolved,
+            )
+            assert html == "<html>pinned</html>"
+            mock_get.assert_called_once()
+
+
+class TestRateLimitThreadSafety:
+    """Tests for thread-safe rate limiting (H1 fix)."""
+
+    def test_concurrent_rate_limit_calls(self) -> None:
+        import src.scraping.scraper as scraper_mod
+
+        errors: list[Exception] = []
+
+        def call_rate_limit() -> None:
+            try:
+                scraper_mod._rate_limit()
+            except Exception as exc:
+                errors.append(exc)
+
+        scraper_mod._last_request_time = 0.0
+        with patch("time.sleep"):
+            threads = [threading.Thread(target=call_rate_limit) for _ in range(5)]
+            for t in threads:
+                t.start()
+            for t in threads:
+                t.join(timeout=10)
+
+        assert len(errors) == 0, f"Thread safety errors: {errors}"
+
 
 class TestCheckRobotsTxt:
     """Tests for check_robots_txt()."""
