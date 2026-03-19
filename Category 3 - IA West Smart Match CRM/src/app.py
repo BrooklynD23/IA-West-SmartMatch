@@ -21,6 +21,7 @@ from src.embeddings import (  # noqa: E402
     load_embedding_lookup_dicts,
 )
 from src.ui.matches_tab import render_matches_tab as render_matches_tab_ui  # noqa: E402
+from src.ui.discovery_tab import render_discovery_tab  # noqa: E402
 from src.ui.pipeline_tab import render_pipeline_tab  # noqa: E402
 from src.utils import format_course_identifier, summarize_missing_keys  # noqa: E402
 
@@ -153,24 +154,6 @@ def render_sidebar():
 
         st.markdown("### Data Summary")
         return st.container()
-
-
-# ── Tab: Discovery ──────────────────────────────────────────────────────────
-
-def render_discovery_tab(datasets) -> None:
-    """Render the Discovery tab for university event scanning."""
-    st.header("University Event Discovery")
-    st.info(
-        "Automated university event discovery will be activated in Sprint 2. "
-        "Web scraping + LLM extraction pipeline."
-    )
-
-    st.subheader("IA West Event Calendar")
-    st.dataframe(
-        datasets.calendar,
-        use_container_width=True,
-        hide_index=True,
-    )
 
 
 # ── Main App ────────────────────────────────────────────────────────────────
