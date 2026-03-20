@@ -119,6 +119,21 @@ class TestSaveAndLoadCache:
 class TestCacheCorruptedTimestamp:
     """Tests for corrupted scraped_at handling (C1 fix)."""
 
+    def test_invalid_json_cache_returns_none(self, tmp_path: "pytest.TempPathFactory") -> None:
+        from src.scraping.scraper import _cache_path, load_from_cache
+
+        url = "https://career.ucla.edu/events/"
+        cache_dir = str(tmp_path)
+
+        path = _cache_path(url, cache_dir)
+        import os
+        os.makedirs(cache_dir, exist_ok=True)
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write("{not valid json")
+
+        result = load_from_cache(url, cache_dir=cache_dir)
+        assert result is None
+
     def test_corrupted_scraped_at_returns_none(self, tmp_path: "pytest.TempPathFactory") -> None:
         from src.scraping.scraper import _cache_path, load_from_cache
 
@@ -198,6 +213,24 @@ class TestCacheCorruptedTimestamp:
         result = load_from_cache(url, cache_dir=cache_dir)
         assert result is not None
         assert result["html"] == "<html>naive</html>"
+
+    def test_allow_expired_returns_stale_cache(self, tmp_path: "pytest.TempPathFactory") -> None:
+        from src.scraping.scraper import _cache_path, load_from_cache, save_to_cache
+
+        url = "https://career.ucla.edu/events/"
+        cache_dir = str(tmp_path)
+        save_to_cache(url, "<html>cached</html>", "bs4", cache_dir=cache_dir)
+
+        path = _cache_path(url, cache_dir)
+        with open(path, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+        data["scraped_at"] = (datetime.now(UTC) - timedelta(hours=48)).isoformat()
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump(data, fh)
+
+        loaded = load_from_cache(url, cache_dir=cache_dir, allow_expired=True)
+        assert loaded is not None
+        assert loaded["is_stale"] is True
 
 
 class TestResolveValidatedIps:
@@ -388,6 +421,32 @@ class TestScrapeUniversity:
             result = scrape_university(url, method="bs4", cache_dir=cache_dir)
 
         assert result["source"] == "cache"
+        assert result["html"] == "<html>cached</html>"
+
+    def test_returns_stale_cache_when_live_scrape_fails(self, tmp_path: "pytest.TempPathFactory") -> None:
+        import src.scraping.scraper as scraper_mod
+
+        url = "https://career.ucla.edu/events/"
+        cache_dir = str(tmp_path)
+        scraper_mod.save_to_cache(url, "<html>cached</html>", "bs4", cache_dir=cache_dir)
+
+        path = scraper_mod._cache_path(url, cache_dir)
+        with open(path, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+        data["scraped_at"] = (datetime.now(UTC) - timedelta(hours=48)).isoformat()
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump(data, fh)
+
+        with (
+            patch("src.scraping.scraper.validate_public_demo_url"),
+            patch("src.scraping.scraper.check_robots_txt", return_value=True),
+            patch("src.scraping.scraper._resolve_validated_ips", return_value=frozenset()),
+            patch("src.scraping.scraper._validated_scrape_bs4", side_effect=RuntimeError("offline")),
+        ):
+            result = scraper_mod.scrape_university(url, method="bs4", cache_dir=cache_dir)
+
+        assert result["source"] == "stale_cache"
+        assert "Live scrape unavailable" in result["message"]
         assert result["html"] == "<html>cached</html>"
 
     def test_raises_on_robots_deny(self, tmp_path: "pytest.TempPathFactory") -> None:

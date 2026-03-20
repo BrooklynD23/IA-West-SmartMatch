@@ -10,7 +10,9 @@ from typing import Any, Callable
 
 import streamlit as st
 
-DEMO_FIXTURES_DIR: str = "cache/demo_fixtures"
+from src.config import CACHE_DIR
+
+DEMO_FIXTURES_DIR: Path = CACHE_DIR / "demo_fixtures"
 
 
 def load_fixture(key: str) -> Any:
@@ -25,8 +27,8 @@ def load_fixture(key: str) -> Any:
     Raises:
         FileNotFoundError: If the fixture file does not exist.
     """
-    path = Path(DEMO_FIXTURES_DIR) / f"{key}.json"
-    with open(path) as f:
+    path = DEMO_FIXTURES_DIR / f"{key}.json"
+    with open(path, encoding="utf-8") as f:
         return json.load(f)
 
 

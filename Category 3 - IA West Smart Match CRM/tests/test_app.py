@@ -6,6 +6,7 @@ from unittest.mock import patch
 import numpy as np
 
 from src.app import _resolve_embedding_lookup_dicts
+from src.app import _empty_dataset_issues
 
 
 class TestResolveEmbeddingLookupDicts:
@@ -56,3 +57,18 @@ class TestResolveEmbeddingLookupDicts:
         assert issues == ["missing cache"]
         assert bootstrap_error is None
         assert cache_generated is False
+
+
+class TestEmptyDatasetIssues:
+    def test_reports_headers_only_csvs(self) -> None:
+        datasets = SimpleNamespace(
+            speakers=[],
+            events=[{"id": 1}],
+            courses=[],
+            calendar=[{"id": 1}],
+        )
+
+        issues = _empty_dataset_issues(datasets)
+
+        assert "data_speaker_profiles.csv" in issues[0]
+        assert any("data_cpp_course_schedule.csv" in issue for issue in issues)

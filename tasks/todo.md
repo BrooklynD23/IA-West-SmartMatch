@@ -2,71 +2,89 @@
 
 ## Current Work
 
-### Sprint 3 Audit Plan
+### Sprint 4 Review Fix Pass
+
+- [x] Fix the Sprint 4 review findings without expanding product scope.
+- [x] Make `scripts/sprint4_preflight.py --prewarm-discovery` actually warm the caches it claims to warm.
+- [x] Reconcile the deployment/runtime contract with Sprint 4 docs and make preflight validate content, not just file presence.
+- [x] Harden discovery and extraction cache reads so corrupt or malformed cache files degrade safely instead of crashing.
+- [x] Add regression tests for each fixed review finding and rerun targeted verification.
+
+### Sprint 4 Autonomous Orchestration
 
 #### Requirements Restatement
 
-- Audit the Sprint 3 orchestration branch against actual runtime behavior, not just unit-test intent.
-- Repair the three confirmed feature-integration failures:
-  - Real pipeline data path is unreachable from the shipped app.
-  - Volunteer dashboard never receives populated match results.
-  - Demo Mode toggle is present but not wired into production call sites.
-- Tighten verification so future tests catch app-level integration breaks instead of only helper-level behavior.
+- Execute Sprint 4 for Category 3 from the reviewed sprint docs, using `Category 3 - IA West Smart Match CRM/docs/SPRINT_PLAN.md` and `Category 3 - IA West Smart Match CRM/docs/sprints/sprint-4-ship.md` as the implementation authority.
+- Work on the new git branch `sprint4-cat3`.
+- Orchestrate with subagents and keep progress visible in this file.
+- Treat Sprint 4 as ship-hardening only: testing, bug fixing, performance, deployment readiness, demo readiness, cache/demo-mode readiness, and final cleanup.
+- Verify every code change with direct evidence before marking it complete.
 
 #### Risks
 
-- High: The branch advertises features that do not execute in the running app, creating demo and stakeholder trust risk.
-- High: Fixes cross shared runtime seams (`app.py`, matches flow, pipeline flow, demo dispatch), so partial edits can introduce new state-contract bugs.
-- Medium: Existing tests mock around the real app contract and currently miss these failures.
-- Medium: Local verification depends on the project virtualenv or missing packages being available.
+- High: Sprint 4 explicitly forbids new feature work, so fixes must stay inside existing product contracts.
+- High: Demo-mode, cache, and fallback paths can pass unit tests while still failing in the real demo flow.
+- High: Deployment and performance work may expose environment-specific bugs not covered by the current local suite.
+- Medium: The repo already has unrelated dirty files; avoid reverting or entangling them.
+- Medium: Some Sprint 4 items are human-only operational tasks and must be separated from code-completable work.
 
-#### Remediation Phases
+#### Execution Board
 
-- [x] Phase 1: Reconcile the runtime data contract.
-  - Define one canonical source for match results, feedback log, scraped events, and email counts.
-  - Decide whether these live on `LoadedDatasets`, `st.session_state`, or a dedicated runtime state helper.
-  - Remove dead assumptions that `load_all()` returns fields it does not provide today.
+- [x] Phase 1: Establish Sprint 4 execution context.
+  - Create and switch to branch `sprint4-cat3`.
+  - Reconcile current repo state, Sprint 4 authority docs, and Category 3 status.
+  - Rewrite this task board for Sprint 4 orchestration.
 
-- [x] Phase 2: Fix the real pipeline integration.
-  - Wire `render_pipeline_tab()` to the actual runtime source used by the app.
-  - Preserve the richer hover/detail payload from real funnel data instead of degrading back to `"No data"`.
-  - Add an app-level test that proves the real-data branch is reachable from the concrete app contract.
+- [ ] Phase 2: Audit Sprint 4 gaps with subagents.
+- [x] Phase 2: Audit Sprint 4 gaps with subagents.
+  - Compare current code/test/docs state against A4.1-A4.10 requirements.
+  - Identify missing automation, weak fallback paths, deployment gaps, and verification gaps.
+  - Turn findings into a prioritized implementation backlog.
 
-- [x] Phase 3: Fix the volunteer dashboard integration.
-  - Persist match results from both event-based and course-based match flows into a shared runtime location.
-  - Ensure the dashboard reads the same canonical structure and renders non-empty results after running matches.
-  - Add regression tests covering the state handoff from Matches to Volunteers.
+- [x] Phase 3: Close code and test gaps.
+  - Implement only Sprint 4 bug-fix, hardening, performance, deployment, and cleanup work.
+  - Add or tighten tests where the current suite misses Sprint 4 acceptance criteria.
+  - Keep fixes minimal and aligned with the existing runtime contracts.
 
-- [x] Phase 4: Fix Demo Mode wiring.
-  - Replace the current checkbox-only behavior with actual fixture dispatch at production call sites.
-  - Use `demo_or_live()` only where the live behavior and fixture shape are contract-compatible.
-  - Add integration tests proving the toggle changes app behavior, not just helper return values.
+- [x] Phase 4: Produce Sprint 4 operational artifacts.
+  - Create testing/rehearsal/day-of prep artifacts that can be committed now.
+  - Separate automated evidence from human-only rehearsal/video tasks.
+  - Record any items that still require manual execution by the team.
 
-- [x] Phase 5: Verification and audit closeout.
-  - Run targeted tests for app, pipeline, matches, demo mode, and volunteer dashboard paths.
-  - Run the relevant full regression suite in the project environment.
-  - Record final verification evidence and any residual gaps in the review section below.
-
-#### Success Criteria
-
-- The Pipeline tab can render real runtime data from the app’s actual state contract.
-- The Volunteer tab shows real matches after running the matching workflow.
-- Demo Mode materially swaps live behavior for fixtures in the shipped app.
-- New tests fail on the pre-fix branch and pass after the remediation.
+- [x] Phase 5: Verify and close out.
+  - Run targeted verification for all touched areas.
+  - Run the full relevant regression suite if feasible in the project environment.
+  - Update this review section with evidence, residual risks, and next manual steps.
 
 #### Execution Guidance For Worker
 
-- Start with the runtime contract, not isolated helper fixes.
-- Prefer one clean state handoff mechanism over duplicating data across dataset objects and session state.
-- Preserve existing user-facing behavior unless it is directly part of the broken integration.
-- Add tests that exercise the concrete app wiring paths which were previously missed.
+- Start with the delta between Sprint 4 acceptance criteria and the current checked-in behavior.
+- Prefer fixes that improve the real demo path and Demo Mode together instead of maintaining separate logic branches.
+- Do not invent new UX or product scope under the banner of polish.
+- If a Sprint 4 requirement is human-only, document it cleanly rather than faking completion in code.
 
 ## Review
 
-- Status: Complete
-- Notes: Added a dedicated runtime-state helper so shared dynamic data now lives in `st.session_state` instead of being assumed on `LoadedDatasets`. Matches now persists normalized match results, Discovery populates `scraped_events`, Pipeline reads runtime state and preserves real hover text, Volunteer Dashboard tolerates the normalized schema, and Demo Mode now affects discovery, match explanations, email preview, pipeline rendering, and empty feedback summary rendering.
+- Status: Sprint 4 CLOSED for engineering scope (code + committed artifacts)
+- Notes: Created `sprint4-cat3`, hardened discovery for stale-cache fallback and cache-first status visibility, made cache paths repo-stable for root/subdir execution, blocked all-zero match-weight runs, added file-specific empty-dataset errors, aligned the demo funnel fixture to the 6-stage runtime contract, added `runtime.txt`, and committed Sprint 4 testing/rehearsal templates plus `scripts/sprint4_preflight.py`.
+- Review fix pass: `scripts/sprint4_preflight.py --prewarm-discovery` now persists extraction caches, `runtime.txt` and preflight now match the Sprint 4 Streamlit Cloud contract, scrape/extraction cache loaders degrade safely on corrupt payloads, and regression coverage was added for those cases.
 - Verification:
-  - `./.venv/bin/python -m pytest tests/test_matches_tab.py tests/test_email_panel.py tests/test_discovery_tab.py tests/test_pipeline_tab.py tests/test_volunteer_dashboard.py -q` -> 44 passed
-  - `./.venv/bin/python -m pytest -q` -> 366 passed
+  - `git checkout -b sprint4-cat3` -> branch created from `sprint3-cat3`
+  - `./.venv/bin/python -m pytest tests/test_scraper.py tests/test_llm_extractor.py tests/test_matches_tab.py tests/test_app.py -q` -> 47 passed
+  - `./.venv/bin/python -m pytest tests/test_demo_mode.py tests/test_pipeline_tab.py -q` -> 47 passed
+  - `./.venv/bin/python -m pytest -q` -> 373 passed
+  - `./.venv/bin/python scripts/sprint4_preflight.py` -> passes with warnings only for missing live-warmed caches (`cache/scrapes`, embedding cache, `cache/explanations`, `cache/emails`)
+  - `Category 3 - IA West Smart Match CRM/.venv/bin/python -m pytest 'Category 3 - IA West Smart Match CRM/tests/test_demo_mode.py' -q` from repo root -> 27 passed
+  - `./.venv/bin/python -m pytest tests/test_scraper.py tests/test_llm_extractor.py tests/test_sprint4_preflight.py -q` -> 45 passed
+  - `./.venv/bin/python -m pytest tests/test_app.py tests/test_scraper.py tests/test_llm_extractor.py tests/test_matches_tab.py tests/test_pipeline_tab.py tests/test_discovery_tab.py tests/test_sprint4_preflight.py -q` -> 81 passed
 - Follow-ups:
-  - The runtime match-results contract currently reflects the most recent matching run, not an accumulated history across all events. That is sufficient for the repaired Sprint 3 flows but worth revisiting if the pipeline or volunteer views need multi-event session analytics later.
+  - Run `./.venv/bin/python scripts/sprint4_preflight.py --prewarm-discovery` on the actual demo machine with `GEMINI_API_KEY` configured to warm live scrape and extraction caches.
+  - Generate real embedding, explanation, and email caches on the demo machine before rehearsal and day-of use.
+  - Complete the human-only Sprint 4 items in `docs/testing/rehearsal_log.md`, `docs/testing/test_log.md`, and `docs/testing/bug_log.md`.
+  - Manual gaps still remaining: true copy-to-clipboard confirmation in the email UI, full browser-level E2E rehearsal automation, Streamlit Cloud deployment verification, and backup video recording.
+
+## Sprint 4 Closure
+
+- Closed on branch `sprint4-cat3` after Sprint 4 hardening implementation plus review-fix pass.
+- Closure scope: repository code, tests, deployment/runtime wiring, and Sprint 4 operational scaffolding templates.
+- Remaining items are explicitly manual/demo-operations tasks and are tracked in `Category 3 - IA West Smart Match CRM/docs/testing/`.

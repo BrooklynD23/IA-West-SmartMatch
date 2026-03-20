@@ -293,9 +293,18 @@ def _cache_key(url: str) -> str:
     return hashlib.sha256(url.encode()).hexdigest()
 
 
+def _validated_cached_events(payload: Any) -> list[dict[str, Any]] | None:
+    """Return cached events only when the payload is a list of dicts."""
+    if not isinstance(payload, list):
+        return None
+    if not all(isinstance(event, dict) for event in payload):
+        return None
+    return list(payload)
+
+
 def load_extraction_cache(
     url: str,
-    cache_dir: str = EXTRACTION_CACHE_DIR,
+    cache_dir: str | None = None,
 ) -> list[dict[str, Any]] | None:
     """Load previously cached extraction results for a URL.
 
@@ -303,15 +312,20 @@ def load_extraction_cache(
     -------
     list[dict] if cache hit, None if cache miss.
     """
+    cache_dir = cache_dir or EXTRACTION_CACHE_DIR
     path = os.path.join(cache_dir, f"{_cache_key(url)}.json")
     if not os.path.exists(path):
         return None
 
     try:
         with open(path, "r", encoding="utf-8") as fh:
-            data: dict[str, Any] = json.load(fh)
-        return data.get("events")  # type: ignore[return-value]
-    except (json.JSONDecodeError, KeyError, OSError) as exc:
+            data = json.load(fh)
+        if isinstance(data, list):
+            return _validated_cached_events(data)
+        if not isinstance(data, dict):
+            return None
+        return _validated_cached_events(data.get("events"))
+    except (json.JSONDecodeError, OSError) as exc:
         logger.warning("Failed to load extraction cache for %s: %s", url, exc)
         return None
 
@@ -319,12 +333,13 @@ def load_extraction_cache(
 def save_extraction_cache(
     url: str,
     events: list[dict[str, Any]],
-    cache_dir: str = EXTRACTION_CACHE_DIR,
+    cache_dir: str | None = None,
 ) -> str:
     """Persist extraction results to the JSON cache.
 
     Returns the path of the written cache file.
     """
+    cache_dir = cache_dir or EXTRACTION_CACHE_DIR
     os.makedirs(cache_dir, exist_ok=True)
     path = os.path.join(cache_dir, f"{_cache_key(url)}.json")
     payload = {
@@ -362,6 +377,7 @@ def extract_events(
     url: str,
     model: str = EXTRACTION_MODEL,
     temperature: float = EXTRACTION_TEMPERATURE,
+    prefer_cache: bool = False,
 ) -> list[dict[str, Any]]:
     """Extract structured event data from raw HTML using Gemini.
 
@@ -384,6 +400,10 @@ def extract_events(
         Extracted event dicts conforming to EXTRACTED_EVENT_SCHEMA.
         Empty list on any failure.
     """
+    cached_events = load_extraction_cache(url)
+    if prefer_cache and cached_events is not None:
+        return cached_events
+
     content = preprocess_html(raw_html)
 
     if len(content.strip()) < 50:
@@ -420,8 +440,13 @@ def extract_events(
             return []
 
         events = _parse_and_validate(raw_output, url)
+        if events and prefer_cache:
+            save_extraction_cache(url, events)
         return events
 
     except Exception as exc:
         logger.error("LLM extraction failed for %s: %s", url, exc)
+        fallback = load_extraction_cache(url)
+        if fallback is not None:
+            return fallback
         return []

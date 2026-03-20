@@ -106,3 +106,27 @@ class TestMatchesRuntimeState:
         mod.generate_match_explanation.assert_not_called()
         assert captured
         assert "Travis Miller" in captured[-1]
+
+
+class TestWeightValidation:
+    def test_validate_weights_rejects_all_zero_values(self) -> None:
+        from src.ui.matches_tab import validate_weights
+
+        error = validate_weights(
+            {
+                "topic_relevance": 0.0,
+                "role_fit": 0.0,
+                "geographic_proximity": 0.0,
+                "calendar_fit": 0.0,
+                "historical_conversion": 0.0,
+                "student_interest": 0.0,
+            }
+        )
+
+        assert error is not None
+        assert "At least one weight" in error
+
+    def test_validate_weights_accepts_positive_total(self) -> None:
+        from src.ui.matches_tab import validate_weights
+
+        assert validate_weights({"topic_relevance": 0.25, "role_fit": 0.75}) is None

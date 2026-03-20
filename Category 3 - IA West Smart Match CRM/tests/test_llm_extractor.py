@@ -234,6 +234,78 @@ class TestExtractionCache:
         )
         assert result is None
 
+    def test_malformed_cache_payload_returns_none(self, tmp_path: Path) -> None:
+        from src.extraction.llm_extractor import load_extraction_cache, _cache_key
+
+        url = "https://career.ucla.edu/events/"
+        cache_path = tmp_path / f"{_cache_key(url)}.json"
+        cache_path.write_text(json.dumps({"url": url, "events": ["bad"]}), encoding="utf-8")
+
+        result = load_extraction_cache(url, cache_dir=str(tmp_path))
+
+        assert result is None
+
+    def test_extract_events_uses_cache_before_llm(self, tmp_path: Path) -> None:
+        from src.extraction import llm_extractor as mod
+
+        url = "https://career.ucla.edu/events/"
+        cached_events = [{"event_name": "Cached", "category": "hackathon", "url": url}]
+
+        with (
+            patch.object(mod, "EXTRACTION_CACHE_DIR", str(tmp_path)),
+            patch.object(mod, "generate_text") as mock_generate,
+        ):
+            mod.save_extraction_cache(url, cached_events, cache_dir=str(tmp_path))
+            events = mod.extract_events(
+                SAMPLE_HTML,
+                university="UCLA",
+                url=url,
+                prefer_cache=True,
+            )
+
+        mock_generate.assert_not_called()
+        assert events == cached_events
+
+    def test_extract_events_saves_successful_results_to_cache(self, tmp_path: Path) -> None:
+        from src.extraction import llm_extractor as mod
+
+        url = "https://career.ucla.edu/events/"
+        with (
+            patch.object(mod, "EXTRACTION_CACHE_DIR", str(tmp_path)),
+            patch.object(mod, "generate_text", return_value=MOCK_LLM_RESPONSE),
+        ):
+            events = mod.extract_events(
+                SAMPLE_HTML,
+                university="UCLA",
+                url=url,
+                prefer_cache=True,
+            )
+            cached = mod.load_extraction_cache(url, cache_dir=str(tmp_path))
+
+        assert events
+        assert cached == events
+
+    def test_extract_events_ignores_malformed_cache_and_uses_llm(self, tmp_path: Path) -> None:
+        from src.extraction import llm_extractor as mod
+
+        url = "https://career.ucla.edu/events/"
+        cache_path = tmp_path / f"{mod._cache_key(url)}.json"
+        cache_path.write_text(json.dumps({"url": url, "events": ["bad"]}), encoding="utf-8")
+
+        with (
+            patch.object(mod, "EXTRACTION_CACHE_DIR", str(tmp_path)),
+            patch.object(mod, "generate_text", return_value=MOCK_LLM_RESPONSE) as mock_generate,
+        ):
+            events = mod.extract_events(
+                SAMPLE_HTML,
+                university="UCLA",
+                url=url,
+                prefer_cache=True,
+            )
+
+        mock_generate.assert_called_once()
+        assert events
+
 
 # ---------------------------------------------------------------------------
 # Prompt injection tests

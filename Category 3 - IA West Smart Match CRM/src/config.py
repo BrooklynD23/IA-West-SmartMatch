@@ -1,6 +1,7 @@
-"""Centralized configuration loaded from environment variables."""
+"""Centralized configuration loaded from environment variables and secrets."""
 
 import os
+import sys
 from pathlib import Path
 from typing import Final
 
@@ -13,8 +14,32 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = PROJECT_ROOT / os.getenv("DATA_DIR", "data")
 CACHE_DIR = PROJECT_ROOT / os.getenv("CACHE_DIR", "cache")
 
+
+def _secret_or_env(name: str, default: str = "") -> str:
+    """Read a config value from env first, then Streamlit secrets if available."""
+    env_value = os.getenv(name)
+    if env_value:
+        return env_value
+
+    if "streamlit" not in sys.modules:
+        return default
+    st = sys.modules["streamlit"]
+
+    secrets = getattr(st, "secrets", None)
+    if secrets is None:
+        return default
+
+    try:
+        value = secrets.get(name)
+    except Exception:
+        return default
+
+    if value in (None, ""):
+        return default
+    return str(value)
+
 # --- Gemini ---
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_API_KEY = _secret_or_env("GEMINI_API_KEY", "")
 GEMINI_BASE_URL = os.getenv(
     "GEMINI_BASE_URL",
     "https://generativelanguage.googleapis.com/v1beta",
@@ -246,7 +271,7 @@ ROLE_ALIASES: Final[dict[str, list[str]]] = {
 DEFAULT_HISTORICAL_CONVERSION: Final[float] = 0.50
 
 # ---------- Explanation Config ----------
-EXPLANATION_CACHE_DIR: Final[str] = "cache/explanations"
+EXPLANATION_CACHE_DIR: Final[str] = str(CACHE_DIR / "explanations")
 EXPLANATION_MODEL: Final[str] = GEMINI_TEXT_MODEL
 EXPLANATION_MAX_TOKENS: Final[int] = 250
 EXPLANATION_TEMPERATURE: Final[float] = 0.4
@@ -254,12 +279,12 @@ EXPLANATION_TEMPERATURE: Final[float] = 0.4
 
 # ---------- Email Generation Config ----------
 # ---------- Extraction Config ----------
-EXTRACTION_CACHE_DIR: Final[str] = "cache/extractions"
+EXTRACTION_CACHE_DIR: Final[str] = str(CACHE_DIR / "extractions")
 EXTRACTION_MODEL: Final[str] = GEMINI_TEXT_MODEL
 EXTRACTION_MAX_TOKENS: Final[int] = 4000
 EXTRACTION_TEMPERATURE: Final[float] = 0.1
 
-EMAIL_CACHE_DIR: Final[str] = "cache/emails"
+EMAIL_CACHE_DIR: Final[str] = str(CACHE_DIR / "emails")
 EMAIL_MODEL: Final[str] = GEMINI_TEXT_MODEL
 EMAIL_MAX_TOKENS: Final[int] = 500
 EMAIL_TEMPERATURE: Final[float] = 0.7

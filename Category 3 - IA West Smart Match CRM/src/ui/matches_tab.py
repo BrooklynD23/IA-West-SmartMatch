@@ -26,6 +26,14 @@ from src.utils import format_course_display_name, format_course_identifier
 logger = logging.getLogger(__name__)
 
 
+def validate_weights(weights: dict[str, float]) -> str | None:
+    """Return an error message when weights are invalid for scoring."""
+    total = sum(float(value) for value in weights.values())
+    if total <= 0:
+        return "At least one weight must be greater than 0. Please adjust weights."
+    return None
+
+
 @st.cache_data(show_spinner=False)
 def _cached_generate_ics(
     event_name: str,
@@ -53,7 +61,10 @@ def render_matches_tab(
 ) -> None:
     """Render the Matches tab in the Streamlit app."""
     init_runtime_state()
-    _render_weight_sliders()
+    weight_error = _render_weight_sliders()
+    if weight_error:
+        st.error(weight_error)
+        return
 
     view_mode = st.sidebar.radio(
         "View Mode",
@@ -74,7 +85,7 @@ def render_matches_tab(
         )
 
 
-def _render_weight_sliders() -> None:
+def _render_weight_sliders() -> str | None:
     """Render 6 weight-tuning sliders in the sidebar."""
     st.sidebar.markdown("### Match Weights")
     st.sidebar.caption("Adjust weights to change ranking priorities. Weights are normalized automatically.")
@@ -108,19 +119,22 @@ def _render_weight_sliders() -> None:
     st.session_state["match_weights"] = updated_weights
 
     w = st.session_state["match_weights"]
+    weight_error = validate_weights(w)
     total = sum(w.values())
-    if total > 0:
+    if weight_error is None:
         st.sidebar.markdown("---")
         st.sidebar.caption("Normalized weights:")
         for k, v in w.items():
             normalized = v / total
             st.sidebar.text(f"  {factor_labels[k]}: {normalized:.0%}")
     else:
-        st.sidebar.warning("All weights are zero. Scores will be 0.0.")
+        st.sidebar.error(weight_error)
 
     if st.sidebar.button("Reset to Defaults", key="reset_weights"):
         st.session_state["match_weights"] = dict(DEFAULT_WEIGHTS)
         st.rerun()
+
+    return weight_error
 
 
 def _render_event_matches(

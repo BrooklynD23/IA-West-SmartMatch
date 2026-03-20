@@ -419,11 +419,12 @@ class TestRenderPipelineTabDataSource:
         mock_state["demo_mode"] = True
         render_pipeline_tab(None)
         assert chart_y == [
-            "Universities Scraped",
-            "Events Discovered",
-            "Events Matched",
-            "Emails Generated",
-            "Outreach Sent",
+            "Discovered",
+            "Matched",
+            "Contacted",
+            "Confirmed",
+            "Attended",
+            "Member Inquiry",
         ]
 
 

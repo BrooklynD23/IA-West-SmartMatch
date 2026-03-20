@@ -17,6 +17,7 @@ from src.extraction.llm_extractor import extract_events
 from src.runtime_state import init_runtime_state
 from src.scraping.scraper import (
     UNIVERSITY_TARGETS,
+    load_from_cache,
     scrape_university,
     validate_public_demo_url,
 )
@@ -126,6 +127,16 @@ def format_events_for_dataframe(
     return pd.DataFrame(rows)
 
 
+def discovery_cache_status(url: str) -> tuple[str, str]:
+    """Return the status label and user-facing message for a discovery URL."""
+    cached = load_from_cache(url, allow_expired=True)
+    if cached is None:
+        return "Ready", "No cache yet. A live scrape will run."
+    if cached.get("is_stale"):
+        return "Stale Cache", f"Cached scrape from {cached.get('scraped_at', 'unknown time')}."
+    return "Cached", f"Fresh cache from {cached.get('scraped_at', 'unknown time')}."
+
+
 # ---------------------------------------------------------------------------
 # Streamlit UI
 # ---------------------------------------------------------------------------
@@ -153,6 +164,15 @@ def _run_discovery(
         source = result.get("source", "live")
         if source == "cache":
             st.info("Using cached scrape result.")
+        elif source == "stale_cache":
+            st.warning(
+                result.get(
+                    "message",
+                    "Live scrape unavailable. Showing cached results.",
+                )
+            )
+        elif result.get("message"):
+            st.info(str(result["message"]))
 
         with st.spinner("Extracting events with AI..."):
             try:
@@ -160,6 +180,7 @@ def _run_discovery(
                     raw_html=html,
                     university=university,
                     url=url,
+                    prefer_cache=True,
                 )
             except Exception as exc:
                 st.error(f"Extraction failed: {exc}")
@@ -185,7 +206,10 @@ def _run_discovery(
     if events:
         st.success(f"Found {len(events)} event(s).")
     else:
-        st.warning("No relevant events found on this page.")
+        st.warning(
+            "Could not extract events from this page. The page may not contain "
+            "recognizable event listings."
+        )
 
     return discovered_university, events
 
@@ -217,6 +241,10 @@ def render_discovery_tab(datasets: Any) -> None:
             "Discover Events",
             key="discover_events_btn",
         )
+    with col_status:
+        status_label, status_message = discovery_cache_status(uni_cfg["url"])
+        st.caption(f"Status: {status_label}")
+        st.caption(status_message)
 
     # --- Run discovery on button click ---
     if discover_clicked:

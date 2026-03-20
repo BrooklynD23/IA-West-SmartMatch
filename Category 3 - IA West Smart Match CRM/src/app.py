@@ -35,6 +35,13 @@ from src.utils import format_course_identifier, summarize_missing_keys  # noqa: 
 
 logger = logging.getLogger(__name__)
 
+DATASET_FILE_NAMES = {
+    "speakers": "data_speaker_profiles.csv",
+    "events": "data_cpp_events_contacts.csv",
+    "courses": "data_cpp_course_schedule.csv",
+    "calendar": "data_event_calendar.csv",
+}
+
 
 def _embedding_cache_issues(
     datasets,
@@ -142,6 +149,16 @@ def _resolve_embedding_lookup_dicts(
     )
 
 
+def _empty_dataset_issues(datasets) -> list[str]:
+    """Return file-specific errors for headers-only or empty datasets."""
+    issues: list[str] = []
+    for attr_name, file_name in DATASET_FILE_NAMES.items():
+        dataset = getattr(datasets, attr_name)
+        if len(dataset) == 0:
+            issues.append(f"No {attr_name} found in data file. Please check {file_name}.")
+    return issues
+
+
 # ── Sidebar ─────────────────────────────────────────────────────────────────
 
 def render_sidebar():
@@ -205,6 +222,14 @@ def main() -> None:
             datasets.courses, datasets.calendar,
         ])
         st.metric("Total Records", total)
+
+    empty_dataset_issues = _empty_dataset_issues(datasets)
+    if empty_dataset_issues:
+        with st.sidebar:
+            for issue in empty_dataset_issues:
+                st.error(issue)
+        st.stop()
+        return
 
     all_issues = []
     for qr in datasets.quality_results:
