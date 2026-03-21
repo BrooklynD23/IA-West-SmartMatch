@@ -184,10 +184,9 @@ def _render_event_matches(
     st.markdown(f"### Top 3 Matches for: *{selected_event_name}*")
 
     weights = st.session_state.get("match_weights", DEFAULT_WEIGHTS)
-    event_emb = (
-        event_embeddings.get(selected_event_name)
-        or event_embeddings.get(selected_event_id)
-    )
+    event_emb = event_embeddings.get(selected_event_name)
+    if event_emb is None:
+        event_emb = event_embeddings.get(selected_event_id)
 
     top_matches = rank_speakers_for_event(
         event_row=selected_event,
