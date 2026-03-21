@@ -13,7 +13,7 @@
   - `Category 3 - IA West Smart Match CRM/docs/README.md` says the remaining work is documentation/governance refresh plus sprint closeout.
 - [x] Use parallel subagents wherever they materially reduce context pressure or shorten independent discovery/review work.
 - [x] Create a phase-based plan that ends with an `$ecc-code-review` audit, fixes, documentation updates, per-phase commits, and sprint closure.
-- [ ] Verify each phase with direct evidence before marking it complete.
+- [x] Verify each phase with direct evidence before marking it complete.
 
 #### Risks
 
@@ -34,7 +34,7 @@
   - Create `.planning/` project state, config, requirements, and roadmap for Sprint 5 closeout.
   - Record the Sprint 5 scope assumption in the planning docs.
 
-- [ ] Phase 3: Execute Sprint 5 closeout phases.
+- [x] Phase 3: Execute Sprint 5 closeout phases.
   - Run the planned closeout phases with parallel subagents where appropriate.
   - Keep commits scoped per phase with explicit pathspecs only.
   - Update progress in this file as work lands.
@@ -53,10 +53,11 @@
   - Ran the repo governance workflow for `category:3`, regenerated `docs/governance/REPO_REFERENCE.md`, and emitted dated Sprint 5 audit/reconcile reports under `docs/governance/reports/`.
   - Verified the governance outputs report `0` safe reconciliations and `0` human-decision items before committing Phase 3.2.
 
-- [ ] Phase 3.3: Adversarial audit and sprint closure.
-  - Run `$ecc-code-review` on the Sprint 5 diff after Phase 3.2 lands.
-  - Apply accepted findings without expanding scope, then rerun targeted or full verification as needed.
-  - Update `.planning/ROADMAP.md`, `.planning/STATE.md`, and this review section with final evidence, residual risks, and truthful manual follow-ups.
+- [x] Phase 3.3: Adversarial audit and sprint closure.
+  - Planning artifacts created in `.planning/phases/03-adversarial-audit-and-sprint-closure/`: `03-CONTEXT.md`, `03-01-PLAN.md`, `03-02-PLAN.md`, `03-03-PLAN.md`.
+  - Created `Category 3 - IA West Smart Match CRM/docs/reviews/2026-03-21-sprint5-code-review.md` and fixed the accepted findings without expanding scope.
+  - Reran targeted verification (`87 passed in 6.56s`), full `pytest -q` (`392 passed in 11.93s`), and `scripts/sprint4_preflight.py` (same expected cache warnings only).
+  - Updated `.planning/ROADMAP.md`, `.planning/STATE.md`, and this review section with final evidence, residual risks, and truthful manual follow-ups.
   - Close out Sprint 5 on `sprint5-cat3` with a scoped final commit.
 
 ### Sprint 4 Review Fix Pass
@@ -136,6 +137,11 @@
   - `python3 .agents/skills/repo-governance/scripts/audit.py --scope category:3 --date 2026-03-20 --report docs/governance/reports/2026-03-20-category-3-sprint5-audit.md` -> `Safe reconciliations: 0`, `Needs human decision: 0`
   - `python3 .agents/skills/repo-governance/scripts/reconcile.py --scope category:3 --date 2026-03-20 --report docs/governance/reports/2026-03-20-category-3-sprint5-governance.md --index-output docs/governance/REPO_REFERENCE.md` -> `Safe issues before reconcile: 0`, `Safe issues after reconcile: 0`, `Needs human decision after reconcile: 0`
   - `python3 .agents/skills/repo-governance/scripts/build_index.py --output docs/governance/REPO_REFERENCE.md` -> `docs/governance/REPO_REFERENCE.md`
+- Sprint 5 Phase 3 adversarial audit and closeout: checked in `Category 3 - IA West Smart Match CRM/docs/reviews/2026-03-21-sprint5-code-review.md`, normalized discovered events around stable `event_id` plus dedupe semantics, added fallback topic scoring for discovered events without cached embeddings, corrected discovered-event region handling, and routed merged events into Volunteer Dashboard accounting.
+- Sprint 5 Phase 3 verification:
+  - `Category 3 - IA West Smart Match CRM/.venv/bin/python -m pytest tests/test_discovery_tab.py tests/test_matches_tab.py tests/test_engine.py tests/test_app.py tests/test_acceptance.py tests/test_volunteer_dashboard.py -q` -> `87 passed in 6.56s`
+  - `timeout 300s ./.venv/bin/python -m pytest -q` -> `392 passed in 11.93s`
+  - `timeout 180s ./.venv/bin/python scripts/sprint4_preflight.py` -> passes with the same expected cache warnings for missing live-warmed embedding, scrape, extraction, explanation, and email artifacts
 - Category 3 output/path hygiene: feedback CSV persistence now defaults to `src.config.DATA_DIR / "feedback_log.csv"` instead of a CWD-relative string, generated feedback/cache JSON outputs are ignored in the Category 3 subproject, and checked-in `cache/demo_fixtures/*.json` remain trackable.
 - Codebase map review: `arch` mapping completed on 2026-03-20. Wrote `.planning/codebase/ARCHITECTURE.md` (177 lines) and `.planning/codebase/STRUCTURE.md` (181 lines) after inspecting the Category 3 runtime, root governance docs, and sprint task board. Verification: `wc -l .planning/codebase/ARCHITECTURE.md .planning/codebase/STRUCTURE.md` -> `177`, `181`.
 - Status: Sprint 4 CLOSED for engineering scope (code + committed artifacts)

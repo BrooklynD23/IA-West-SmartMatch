@@ -170,6 +170,58 @@ class TestMainMatchesAvailability:
         warning_mock.assert_not_called()
         error_mock.assert_called()
 
+    def test_main_passes_merged_events_to_volunteer_dashboard(self) -> None:
+        import src.app as app
+
+        captured_events: dict[str, pd.DataFrame] = {}
+
+        def capture_dashboard(**kwargs) -> None:
+            captured_events["events_df"] = kwargs["events_df"].copy()
+
+        with (
+            patch(
+                "streamlit.session_state",
+                new={
+                    "demo_mode": True,
+                    "matching_discovered_events": [
+                        {
+                            "event_id": "disc-1",
+                            "Event / Program": "Fresh Discovery Event",
+                            "Category": "career_fair",
+                            "Host / Unit": "USC",
+                            "Event Region": "Los Angeles",
+                        }
+                    ],
+                },
+            ),
+            patch("src.app.init_runtime_state"),
+            patch("src.app.validate_config", return_value=[]),
+            patch("src.app.render_sidebar", return_value=_noop_context()),
+            patch("src.app.load_all", return_value=_sample_datasets()),
+            patch(
+                "src.app._resolve_embedding_lookup_dicts",
+                return_value=({}, {}, {}, [], None, False),
+            ),
+            patch("src.app.has_gemini_api_key", return_value=False),
+            patch("src.app.render_matches_tab_ui"),
+            patch("src.app.render_discovery_tab"),
+            patch("src.app.render_pipeline_tab"),
+            patch("src.app.render_expansion_map", return_value=object()),
+            patch("src.app.render_volunteer_dashboard", side_effect=capture_dashboard),
+            patch("src.feedback.acceptance.init_feedback_state"),
+            patch("src.app.render_feedback_sidebar"),
+            patch("src.app.get_match_results_df", return_value=pd.DataFrame()),
+            patch.object(app.st, "tabs", return_value=tuple(_noop_context() for _ in range(5))),
+            patch.object(app.st, "expander", side_effect=lambda *args, **kwargs: _noop_context()),
+            patch.object(app.st, "slider", return_value=0.30),
+            patch.object(app.st, "warning"),
+            patch.object(app.st, "error"),
+        ):
+            app.main()
+
+        merged_events = captured_events["events_df"]
+        assert "Fresh Discovery Event" in merged_events["Event / Program"].tolist()
+
 
 class TestEmptyDatasetIssues:
     def test_reports_headers_only_csvs(self) -> None:

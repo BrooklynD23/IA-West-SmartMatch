@@ -54,6 +54,8 @@ def get_matching_events_df(events_df: pd.DataFrame) -> pd.DataFrame:
     init_runtime_state()
 
     base_events = events_df.copy()
+    if "event_id" not in base_events.columns and "Event / Program" in base_events.columns:
+        base_events["event_id"] = base_events["Event / Program"].astype(str)
     discovered_rows = st.session_state.get("matching_discovered_events", [])
     if not isinstance(discovered_rows, list):
         return base_events
@@ -70,6 +72,8 @@ def get_matching_events_df(events_df: pd.DataFrame) -> pd.DataFrame:
         discovered_df,
         base_columns=base_events.columns.tolist(),
     )
+    if "event_id" in discovered_df.columns:
+        discovered_df = discovered_df.drop_duplicates(subset=["event_id"], keep="last")
 
     ordered_columns = list(base_events.columns) + [
         column for column in discovered_df.columns
@@ -94,6 +98,8 @@ def _hydrate_discovered_event_contract(
     for column in base_columns:
         if column not in discovered_df.columns:
             discovered_df[column] = pd.NA
+    if "event_id" not in discovered_df.columns and "Event / Program" in discovered_df.columns:
+        discovered_df["event_id"] = discovered_df["Event / Program"].astype(str)
 
 
 def normalize_match_results(match_results: list[dict[str, Any]]) -> pd.DataFrame:
@@ -105,6 +111,7 @@ def normalize_match_results(match_results: list[dict[str, Any]]) -> pd.DataFrame
     for match in match_results:
         factor_scores = match.get("factor_scores", {})
         event_name = str(match.get("event_name", "") or "")
+        event_id = str(match.get("event_id", "") or event_name)
         speaker_name = str(
             match.get("speaker_name")
             or match.get("speaker_id")
@@ -112,7 +119,7 @@ def normalize_match_results(match_results: list[dict[str, Any]]) -> pd.DataFrame
         )
         rows.append(
             {
-                "event_id": event_name,
+                "event_id": event_id,
                 "event_name": event_name,
                 "speaker_id": speaker_name,
                 "speaker_name": speaker_name,

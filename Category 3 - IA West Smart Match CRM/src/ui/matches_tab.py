@@ -30,6 +30,22 @@ from src.utils import format_course_display_name, format_course_identifier
 logger = logging.getLogger(__name__)
 
 
+def _event_option_id(event_row: pd.Series) -> str:
+    """Return the stable ID used to select an event."""
+    return str(event_row.get("event_id", "") or event_row.get("Event / Program", ""))
+
+
+def _event_option_label(event_row: pd.Series) -> str:
+    """Return a label that disambiguates same-named events."""
+    event_name = str(event_row.get("Event / Program", "Event"))
+    host_unit = str(event_row.get("Host / Unit", "") or "").strip()
+    event_date = str(
+        event_row.get("Date", event_row.get("Recurrence (typical)", "")) or ""
+    ).strip()
+    details = " | ".join(part for part in [host_unit, event_date] if part)
+    return f"{event_name} ({details})" if details else event_name
+
+
 def validate_weights(weights: dict[str, float]) -> str | None:
     """Return an error message when weights are invalid for scoring."""
     total = sum(float(value) for value in weights.values())
@@ -150,22 +166,28 @@ def _render_event_matches(
     ia_event_calendar: pd.DataFrame,
 ) -> None:
     """Render event-based matching view."""
-    event_names = events["Event / Program"].tolist()
-    selected_event_name = st.selectbox(
+    event_options = {
+        _event_option_id(row): _event_option_label(row)
+        for _, row in events.iterrows()
+    }
+    selected_event_id = st.selectbox(
         "Select an Event",
-        options=event_names,
+        options=list(event_options),
+        format_func=lambda option: event_options[option],
         index=0,
         key="selected_event",
     )
 
-    selected_event = events[
-        events["Event / Program"] == selected_event_name
-    ].iloc[0]
+    selected_event = events[events.apply(_event_option_id, axis=1) == selected_event_id].iloc[0]
+    selected_event_name = str(selected_event.get("Event / Program", selected_event_id))
 
     st.markdown(f"### Top 3 Matches for: *{selected_event_name}*")
 
     weights = st.session_state.get("match_weights", DEFAULT_WEIGHTS)
-    event_emb = event_embeddings.get(selected_event_name, None)
+    event_emb = (
+        event_embeddings.get(selected_event_name)
+        or event_embeddings.get(selected_event_id)
+    )
 
     top_matches = rank_speakers_for_event(
         event_row=selected_event,
@@ -324,7 +346,7 @@ def _render_match_card(
             )
 
         # --- Feedback buttons ---
-        _event_id = match.get("event_name", "Event")
+        _event_id = match.get("event_id") or match.get("event_name", "Event")
         render_feedback_buttons(
             event_id=_event_id,
             speaker_id=match.get("speaker_name", ""),

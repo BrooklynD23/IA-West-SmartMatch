@@ -31,7 +31,9 @@ These five files are the current implementation specs for the Category 3 build. 
 
 ## Sprint 5 Closeout Baseline
 
-- Sprint 3 integration audit and Sprint 4 hardening are already reflected in the checked-in runtime; the current branch is limited to Sprint 5 closeout work on `sprint5-cat3`.
-- Current verification baseline: `./.venv/bin/python -m pytest -q` -> `385 passed in 37.40s`.
+- Sprint 3 integration audit and Sprint 4 hardening are already reflected in the checked-in runtime; Sprint 5 closeout engineering work is now complete on `sprint5-cat3`.
+- Current verification baseline: `./.venv/bin/python -m pytest -q` -> `392 passed in 11.93s`.
+- Current targeted Phase 3 regression baseline: `87 passed in 6.56s`.
 - Current preflight baseline: `./.venv/bin/python scripts/sprint4_preflight.py` passes with warnings only for un-warmed live caches (embedding artifacts plus scrape, extraction, explanation, and email caches).
+- Current review artifact: `Category 3 - IA West Smart Match CRM/docs/reviews/2026-03-21-sprint5-code-review.md`.
 - Current manual/demo-day follow-ups remain: warm live caches on the demo machine, verify the real rehearsal path, and complete the human-run testing logs under `docs/testing/`.

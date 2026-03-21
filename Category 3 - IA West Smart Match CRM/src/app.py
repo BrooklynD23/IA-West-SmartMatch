@@ -30,7 +30,11 @@ from src.ui.expansion_map import render_expansion_map  # noqa: E402
 from src.ui.volunteer_dashboard import render_volunteer_dashboard  # noqa: E402
 from src.feedback.acceptance import render_feedback_sidebar  # noqa: E402
 from src.demo_mode import init_demo_mode  # noqa: E402
-from src.runtime_state import get_match_results_df, init_runtime_state  # noqa: E402
+from src.runtime_state import (  # noqa: E402
+    get_match_results_df,
+    get_matching_events_df,
+    init_runtime_state,
+)
 from src.utils import format_course_identifier, summarize_missing_keys  # noqa: E402
 
 logger = logging.getLogger(__name__)
@@ -256,6 +260,8 @@ def main() -> None:
                 for issue in all_issues:
                     st.warning(issue)
 
+    available_events = get_matching_events_df(datasets.events)
+
     with st.spinner("Preparing embedding cache..."):
         (
             speaker_embeddings,
@@ -327,7 +333,7 @@ def main() -> None:
                     st.write("- Automatic generation is unavailable until `GEMINI_API_KEY` is configured.")
         if matches_tab_available:
             render_matches_tab_ui(
-                events=datasets.events,
+                events=available_events,
                 courses=datasets.courses,
                 speakers=datasets.speakers,
                 speaker_embeddings=speaker_embeddings,
@@ -361,7 +367,7 @@ def main() -> None:
         render_volunteer_dashboard(
             speakers_df=datasets.speakers,
             match_results=get_match_results_df(),
-            events_df=datasets.events,
+            events_df=available_events,
             feedback_log=feedback_log,
         )
 

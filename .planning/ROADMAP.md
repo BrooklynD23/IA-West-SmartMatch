@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Runtime Fixes and Clean Outputs** - Restore the closeout-critical demo path and isolate generated runtime artifacts.
 - [x] **Phase 2: Documentation and Governance Reconciliation** - Refresh Category 3 closeout docs and mirrors from one live verification baseline.
-- [ ] **Phase 3: Adversarial Audit and Sprint Closure** - Run `$ecc-code-review`, remediate accepted findings, verify the final state, and close Sprint 5.
+- [x] **Phase 3: Adversarial Audit and Sprint Closure** - Run `$ecc-code-review`, remediate accepted findings, verify the final state, and close Sprint 5.
 
 ## Phase Details
 
@@ -64,9 +64,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 03-01: Run `$ecc-code-review` on the Sprint 5 change set and triage findings by acceptance and severity.
-- [ ] 03-02: Remediate accepted findings, rerun targeted or full verification, and keep fixes inside the closeout scope.
-- [ ] 03-03: Record final closure evidence in planning or task docs and prepare the sprint-closeout handoff.
+- [x] 03-01: Run `$ecc-code-review` on the Sprint 5 change set and triage findings by acceptance and severity.
+- [x] 03-02: Remediate accepted findings, rerun targeted or full verification, and keep fixes inside the closeout scope.
+- [x] 03-03: Record final closure evidence in planning or task docs and prepare the sprint-closeout handoff.
 
 ## Progress
 
@@ -77,4 +77,4 @@ Phases execute in numeric order: 1 -> 2 -> 3
 |-------|----------------|--------|-----------|
 | 1. Runtime Fixes and Clean Outputs | 3/3 | Complete | 2026-03-20 |
 | 2. Documentation and Governance Reconciliation | 2/2 | Complete | 2026-03-20 |
-| 3. Adversarial Audit and Sprint Closure | 0/3 | Not started | - |
+| 3. Adversarial Audit and Sprint Closure | 3/3 | Complete | 2026-03-21 |

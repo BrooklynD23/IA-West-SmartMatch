@@ -21,6 +21,7 @@ from src.matching.factors import (
     student_interest,
     topic_relevance,
 )
+from src.similarity import keyword_overlap_score
 from src.utils import format_course_display_name
 
 logger = logging.getLogger(__name__)
@@ -73,6 +74,7 @@ def compute_match_score(
     weights: Optional[dict[str, float]] = None,
     conversion_overrides: Optional[dict[str, float]] = None,
     student_interest_override: Optional[float] = None,
+    topic_relevance_override: Optional[float] = None,
 ) -> dict[str, Any]:
     """
     Compute a composite match score for one speaker–event pair.
@@ -101,7 +103,11 @@ def compute_match_score(
     active_weights = _normalize_weights(weights)
 
     factor_scores: dict[str, float] = {
-        "topic_relevance": topic_relevance(speaker_embedding, event_embedding),
+        "topic_relevance": (
+            max(0.0, min(1.0, float(topic_relevance_override)))
+            if topic_relevance_override is not None
+            else topic_relevance(speaker_embedding, event_embedding)
+        ),
         "role_fit": role_fit(speaker_board_role, event_volunteer_roles),
         "geographic_proximity": geographic_proximity(speaker_metro_region, event_region),
         "calendar_fit": calendar_fit(
@@ -140,6 +146,7 @@ def compute_match_score(
 def _build_speaker_result(
     rank: int,
     speaker_row: pd.Series,
+    event_id: str,
     event_name: str,
     score_data: dict[str, Any],
 ) -> dict[str, Any]:
@@ -157,6 +164,7 @@ def _build_speaker_result(
         "speaker_board_role": str(speaker_row.get("Board Role", "")),
         "speaker_metro_region": str(speaker_row.get("Metro Region", "")),
         "speaker_expertise_tags": str(speaker_row.get("Expertise Tags", "")),
+        "event_id": event_id,
         "event_name": event_name,
         "total_score": score_data["total_score"],
         "factor_scores": score_data["factor_scores"],
@@ -198,11 +206,28 @@ def rank_speakers_for_event(
         the downstream-contract keys (rank, speaker_name, speaker_title, etc.).
     """
     event_name = str(event_row.get("Event / Program", "Unknown Event"))
+    event_id = str(event_row.get("event_id", "") or event_name)
     event_volunteer_roles = str(event_row.get("Volunteer Roles (fit)", ""))
-    event_region = str(event_row.get("Host / Unit", ""))
+    event_region = str(
+        event_row.get("Event Region", event_row.get("Host / Unit", ""))
+    )
     event_category = str(event_row.get("Category", ""))
     event_date_or_recurrence = event_row.get(
         "Event Date", event_row.get("Recurrence (typical)", "")
+    )
+    event_text = str(
+        event_row.get(
+            "Event Text",
+            " ".join(
+                str(event_row.get(column, "") or "")
+                for column in [
+                    "Event / Program",
+                    "Category",
+                    "Volunteer Roles (fit)",
+                    "Primary Audience",
+                ]
+            ),
+        )
     )
 
     scored: list[dict[str, Any]] = []
@@ -210,10 +235,24 @@ def rank_speakers_for_event(
     for _, speaker_row in speakers_df.iterrows():
         speaker_name = str(speaker_row.get("Name", ""))
         speaker_embedding = speaker_embeddings.get(speaker_name)
+        needs_topic_fallback = (
+            event_embedding is None
+            or getattr(event_embedding, "size", 0) == 0
+            or np.any(np.isnan(event_embedding))
+        )
+        topic_fallback = None
+        if needs_topic_fallback:
+            topic_fallback = keyword_overlap_score(
+                str(speaker_row.get("Expertise Tags", "") or ""),
+                event_text,
+            )
 
         # Embeddings are optional; topic_relevance returns 0.0 for None/empty/NaN
         _speaker_emb = speaker_embedding if speaker_embedding is not None else np.array([])
-        _event_emb = event_embedding if event_embedding is not None else np.array([])
+        _event_emb = (
+            event_embedding if not needs_topic_fallback and event_embedding is not None
+            else np.array([])
+        )
 
         score_data = compute_match_score(
             speaker_embedding=_speaker_emb,
@@ -229,11 +268,13 @@ def rank_speakers_for_event(
             weights=weights,
             conversion_overrides=conversion_overrides,
             student_interest_override=student_interest_override,
+            topic_relevance_override=topic_fallback,
         )
         scored.append(
             _build_speaker_result(
                 rank=0,  # placeholder — assigned after sorting
                 speaker_row=speaker_row,
+                event_id=event_id,
                 event_name=event_name,
                 score_data=score_data,
             )

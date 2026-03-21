@@ -408,6 +408,46 @@ class TestRankSpeakersForEvent:
         for entry in results:
             assert entry["factor_scores"]["topic_relevance"] == 0.0
 
+    def test_missing_event_embedding_falls_back_to_keyword_overlap(
+        self,
+        mock_calendar_df: pd.DataFrame,
+    ) -> None:
+        speakers_df = pd.DataFrame(
+            [
+                {
+                    "Name": "Alice Nguyen",
+                    "Title": "VP of Engineering",
+                    "Company": "Acme Corp",
+                    "Board Role": "Judge",
+                    "Metro Region": "Los Angeles — West",
+                    "Expertise Tags": "AI, machine learning, hackathon",
+                }
+            ]
+        )
+        event_row = pd.Series(
+            {
+                "event_id": "disc-1",
+                "Event / Program": "AI Hackathon 2026",
+                "Category": "AI / Hackathon",
+                "Volunteer Roles (fit)": "judge; guest speaker",
+                "Host / Unit": "UCLA",
+                "Event Region": "Los Angeles",
+                "Primary Audience": "Students",
+            }
+        )
+
+        results = rank_speakers_for_event(
+            event_row=event_row,
+            speakers_df=speakers_df,
+            speaker_embeddings={},
+            event_embedding=np.array([]),
+            ia_event_calendar=mock_calendar_df,
+            top_n=1,
+        )
+
+        assert results[0]["event_id"] == "disc-1"
+        assert results[0]["factor_scores"]["topic_relevance"] > 0.0
+
     def test_stable_sort_alphabetical_tiebreaker(self) -> None:
         """Speakers with identical scores should be ordered alphabetically."""
         speakers = pd.DataFrame(

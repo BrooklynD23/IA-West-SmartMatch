@@ -34,26 +34,31 @@ UNIVERSITY_TARGETS: dict[str, dict[str, str]] = {
         "url": "https://career.ucla.edu/events/",
         "method": "bs4",
         "label": "UCLA Career Center Events",
+        "region": "Los Angeles",
     },
     "SDSU": {
         "url": "https://www.sdsu.edu/events-calendar",
         "method": "playwright",
         "label": "San Diego State University Events",
+        "region": "San Diego",
     },
     "UC Davis": {
         "url": "https://careercenter.ucdavis.edu/career-center-services/career-fairs",
         "method": "bs4",
         "label": "UC Davis Career Fairs",
+        "region": "San Francisco",
     },
     "USC": {
         "url": "https://careers.usc.edu/events/",
         "method": "bs4",
         "label": "USC Career Center Events",
+        "region": "Los Angeles",
     },
     "Portland State": {
         "url": "https://www.pdx.edu/careers/events",
         "method": "bs4",
         "label": "Portland State University Career Events",
+        "region": "Portland",
     },
 }
 

@@ -56,8 +56,9 @@ These are useful for audit history, but they are not implementation authority:
 
 ## Current Sprint Status
 
-- Sprint 5 closeout is running on `sprint5-cat3` as a wrap-up lane for runtime hardening, documentation/governance reconciliation, and final review.
-- Latest live verification baseline from the project virtualenv is green: `./.venv/bin/python -m pytest -q` -> `385 passed in 37.40s`.
+- Sprint 5 closeout engineering work is complete on `sprint5-cat3`.
+- Latest live verification baseline from the project virtualenv is green: `./.venv/bin/python -m pytest -q` -> `392 passed in 11.93s`.
+- Latest targeted Phase 3 regression set is green: `tests/test_discovery_tab.py tests/test_matches_tab.py tests/test_engine.py tests/test_app.py tests/test_acceptance.py tests/test_volunteer_dashboard.py` -> `87 passed in 6.56s`.
 - Latest preflight baseline passes with warnings only for un-warmed live caches: missing embedding artifacts plus empty or absent `cache/scrapes/`, `cache/extractions/`, `cache/explanations/`, and `cache/emails/`.
-- Phase 1 closeout fixes are already committed: discovery events merge into Matches in-session, offline or demo-mode runs no longer hard-block on missing embeddings, and runtime-generated outputs are isolated from source-controlled fixtures.
+- Sprint 5 review artifact: `Category 3 - IA West Smart Match CRM/docs/reviews/2026-03-21-sprint5-code-review.md`.
 - Manual demo-day steps still require a machine with `GEMINI_API_KEY` to warm live caches, a rehearsal pass using the real environment, and completion of the human-run logs under `docs/testing/`.

@@ -8,6 +8,11 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 
 
+@contextmanager
+def _noop_context():
+    yield
+
+
 class TestMatchesRuntimeState:
     @patch("streamlit.session_state", new_callable=dict)
     def test_render_matches_tab_merges_discovered_events_into_event_view(
@@ -34,11 +39,13 @@ class TestMatchesRuntimeState:
         )
         mock_state["matching_discovered_events"] = [
             {
+                "event_id": "disc-fresh-1",
                 "Event / Program": "Fresh Discovery Event",
                 "Category": "career_fair",
                 "Volunteer Roles (fit)": "Speaker",
                 "Primary Audience": "Graduate students",
                 "Host / Unit": "USC",
+                "Event Region": "Los Angeles",
                 "Date": "2026-05-02",
                 "URL": "https://usc.edu/events/fresh-discovery",
                 "Contact Name": "Dr. Gomez",
@@ -72,6 +79,10 @@ class TestMatchesRuntimeState:
             "AI Hackathon",
             "Fresh Discovery Event",
         ]
+        assert list(merged_events["event_id"]) == [
+            "AI Hackathon",
+            "disc-fresh-1",
+        ]
         assert merged_events.iloc[1]["Recurrence (typical)"] == "2026-05-02"
         assert merged_events.iloc[1]["Public URL"] == "https://usc.edu/events/fresh-discovery"
         assert merged_events.iloc[1]["Point(s) of Contact (published)"] == "Dr. Gomez"
@@ -102,6 +113,7 @@ class TestMatchesRuntimeState:
         top_matches = [
             {
                 "rank": 1,
+                "event_id": "evt-ai-hackathon",
                 "event_name": "AI Hackathon",
                 "speaker_name": "Alice",
                 "total_score": 0.91,
@@ -130,10 +142,112 @@ class TestMatchesRuntimeState:
         )
 
         stored = mock_state["match_results_df"]
-        assert list(stored["event_id"]) == ["AI Hackathon"]
+        assert list(stored["event_id"]) == ["evt-ai-hackathon"]
         assert list(stored["speaker_id"]) == ["Alice"]
         assert list(stored["speaker_name"]) == ["Alice"]
         assert list(stored["total_score"]) == [0.91]
+
+    @patch("streamlit.session_state", new_callable=dict)
+    def test_event_matches_selects_by_stable_event_id_when_names_collide(
+        self,
+        mock_state: dict,
+        monkeypatch,
+    ) -> None:
+        import src.ui.matches_tab as mod
+
+        events = pd.DataFrame(
+            [
+                {
+                    "event_id": "evt-1",
+                    "Event / Program": "Career Fair",
+                    "Volunteer Roles (fit)": "Judge",
+                    "Host / Unit": "UCLA",
+                    "Category": "career_fair",
+                },
+                {
+                    "event_id": "evt-2",
+                    "Event / Program": "Career Fair",
+                    "Volunteer Roles (fit)": "Speaker",
+                    "Host / Unit": "USC",
+                    "Category": "career_fair",
+                },
+            ]
+        )
+        captured: dict[str, pd.Series] = {}
+
+        def fake_rank(**kwargs):
+            captured["event_row"] = kwargs["event_row"]
+            return []
+
+        monkeypatch.setattr(mod.st, "selectbox", lambda *args, **kwargs: "evt-2")
+        monkeypatch.setattr(mod.st, "markdown", lambda *args, **kwargs: None)
+        monkeypatch.setattr(mod, "_render_match_card", lambda *args, **kwargs: None)
+        monkeypatch.setattr(mod, "rank_speakers_for_event", fake_rank)
+
+        mod._render_event_matches(
+            events=events,
+            speakers=pd.DataFrame([{"Name": "Alice"}]),
+            speaker_embeddings={},
+            event_embeddings={},
+            ia_event_calendar=pd.DataFrame(),
+        )
+
+        assert captured["event_row"]["event_id"] == "evt-2"
+        assert captured["event_row"]["Host / Unit"] == "USC"
+
+    def test_render_match_card_uses_event_id_for_feedback_buttons(
+        self,
+        monkeypatch,
+    ) -> None:
+        import src.ui.matches_tab as mod
+
+        captured: dict[str, str] = {}
+
+        def fake_columns(spec, *args, **kwargs):
+            return tuple(_noop_context() for _ in range(len(spec)))
+
+        monkeypatch.setattr(mod.st, "container", _noop_context)
+        monkeypatch.setattr(mod.st, "markdown", lambda *args, **kwargs: None)
+        monkeypatch.setattr(mod.st, "caption", lambda *args, **kwargs: None)
+        monkeypatch.setattr(mod.st, "metric", lambda *args, **kwargs: None)
+        monkeypatch.setattr(mod.st, "columns", fake_columns)
+        monkeypatch.setattr(mod.st, "plotly_chart", lambda *args, **kwargs: None)
+        monkeypatch.setattr(mod.st, "button", lambda *args, **kwargs: False)
+        monkeypatch.setattr(mod.st, "download_button", lambda *args, **kwargs: None)
+        monkeypatch.setattr(mod, "_render_match_explanation", lambda *args, **kwargs: None)
+        monkeypatch.setattr(mod, "_create_radar_chart", lambda *args, **kwargs: object())
+        monkeypatch.setattr(mod, "render_email_preview", lambda *args, **kwargs: None)
+        monkeypatch.setattr(
+            mod,
+            "render_feedback_buttons",
+            lambda **kwargs: captured.update({"event_id": kwargs["event_id"]}),
+        )
+
+        mod._render_match_card(
+            match={
+                "rank": 1,
+                "event_id": "disc-123",
+                "event_name": "Career Fair",
+                "speaker_name": "Alice",
+                "speaker_title": "VP",
+                "speaker_company": "Acme",
+                "speaker_metro_region": "Los Angeles",
+                "speaker_board_role": "Judge",
+                "speaker_expertise_tags": "AI",
+                "total_score": 0.9,
+                "factor_scores": {
+                    "topic_relevance": 0.9,
+                    "role_fit": 0.8,
+                    "geographic_proximity": 0.7,
+                    "calendar_fit": 0.6,
+                    "historical_conversion": 0.5,
+                    "student_interest": 0.4,
+                },
+            },
+            event=pd.Series({"Host / Unit": "UCLA"}),
+        )
+
+        assert captured["event_id"] == "disc-123"
 
     @patch("streamlit.session_state", new_callable=dict)
     def test_demo_mode_uses_fixture_for_match_explanations(

@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
 import pytest
+
+
+@contextmanager
+def _noop_context():
+    yield
 
 
 # ---------------------------------------------------------------------------
@@ -37,7 +43,10 @@ class TestUniversityConfigsAvailable:
 
 class TestAddToMatchingTransform:
     def test_transforms_extracted_event_to_matching_format(self) -> None:
-        from src.ui.discovery_tab import transform_event_for_matching
+        from src.ui.discovery_tab import (
+            _build_discovered_event_id,
+            transform_event_for_matching,
+        )
 
         extracted: dict[str, Any] = {
             "event_name": "Spring Hackathon 2026",
@@ -57,11 +66,13 @@ class TestAddToMatchingTransform:
         assert "judge" in result["Volunteer Roles (fit)"]
         assert result["Primary Audience"] == "undergraduate CS students"
         assert result["Host / Unit"] == "UCLA"
+        assert result["Event Region"] == "Los Angeles"
         assert result["Recurrence (typical)"] == "2026-04-20"
         assert result["Public URL"] == "https://career.ucla.edu/events/hackathon"
         assert result["Point(s) of Contact (published)"] == "Dr. Chen"
         assert result["Contact Email / Phone (published)"] == "chen@ucla.edu"
         assert result["Date"] == "2026-04-20"
+        assert result["event_id"] == _build_discovered_event_id(extracted, university="UCLA")
         assert result["source"] == "discovery"
 
     def test_handles_missing_optional_fields(self) -> None:
@@ -81,6 +92,65 @@ class TestAddToMatchingTransform:
         result = transform_event_for_matching(extracted, university="USC")
         assert result["Event / Program"] == "Career Fair"
         assert result["Host / Unit"] == "USC"
+        assert result["Event Region"] == "Los Angeles"
+
+    @patch("streamlit.session_state", new_callable=dict)
+    def test_add_discovered_events_to_matching_pool_sets_flash_message(
+        self,
+        mock_state: dict,
+    ) -> None:
+        from src.ui.discovery_tab import (
+            MATCHING_POOL_FLASH_KEY,
+            add_discovered_events_to_matching_pool,
+        )
+
+        mock_state["matching_discovered_events"] = []
+        discovered = [
+            {
+                "event_name": "Spring Hackathon 2026",
+                "category": "hackathon",
+                "date_or_recurrence": "2026-04-20",
+                "volunteer_roles": ["judge", "mentor"],
+                "primary_audience": "undergraduate CS students",
+                "contact_name": "Dr. Chen",
+                "contact_email": "chen@ucla.edu",
+                "url": "https://career.ucla.edu/events/hackathon",
+            }
+        ]
+
+        added = add_discovered_events_to_matching_pool(discovered, university="UCLA")
+
+        assert added == 1
+        assert len(mock_state["matching_discovered_events"]) == 1
+        assert mock_state["matching_discovered_events"][0]["Event / Program"] == "Spring Hackathon 2026"
+        assert mock_state[MATCHING_POOL_FLASH_KEY] == "Added 1 event(s) to matching pool."
+
+    @patch("streamlit.session_state", new_callable=dict)
+    def test_add_discovered_events_to_matching_pool_dedupes_by_event_id(
+        self,
+        mock_state: dict,
+    ) -> None:
+        from src.ui.discovery_tab import add_discovered_events_to_matching_pool
+
+        discovered = [
+            {
+                "event_name": "Spring Hackathon 2026",
+                "category": "hackathon",
+                "date_or_recurrence": "2026-04-20",
+                "volunteer_roles": ["judge", "mentor"],
+                "primary_audience": "undergraduate CS students",
+                "contact_name": "Dr. Chen",
+                "contact_email": "chen@ucla.edu",
+                "url": "https://career.ucla.edu/events/hackathon",
+            }
+        ]
+
+        first_add = add_discovered_events_to_matching_pool(discovered, university="UCLA")
+        second_add = add_discovered_events_to_matching_pool(discovered, university="UCLA")
+
+        assert first_add == 1
+        assert second_add == 0
+        assert len(mock_state["matching_discovered_events"]) == 1
 
 
 # ---------------------------------------------------------------------------
@@ -188,3 +258,55 @@ class TestDiscoveryDemoMode:
         assert university == "UCLA"
         assert len(events) == 2
         assert events[0]["event_name"] == "UCLA Data Analytics Hackathon"
+
+
+class TestDiscoveryTabRerender:
+    @patch("streamlit.session_state", new_callable=dict)
+    def test_add_to_matching_triggers_rerun_for_same_interaction_visibility(
+        self,
+        mock_state: dict,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        import src.ui.discovery_tab as mod
+
+        mock_state["discovered_university"] = "UCLA"
+        mock_state["discovered_events"] = [
+            {
+                "event_name": "Spring Hackathon 2026",
+                "category": "hackathon",
+                "date_or_recurrence": "2026-04-20",
+                "volunteer_roles": ["judge"],
+                "primary_audience": "undergraduate CS students",
+                "contact_name": "Dr. Chen",
+                "contact_email": "chen@ucla.edu",
+                "url": "https://career.ucla.edu/events/hackathon",
+            }
+        ]
+
+        datasets = type("Datasets", (), {"calendar": pd.DataFrame()})()
+        rerun_mock = MagicMock()
+
+        monkeypatch.setattr(mod, "init_runtime_state", lambda: None)
+        monkeypatch.setattr(mod.st, "header", lambda *args, **kwargs: None)
+        monkeypatch.setattr(mod.st, "subheader", lambda *args, **kwargs: None)
+        monkeypatch.setattr(mod.st, "dataframe", lambda *args, **kwargs: None)
+        monkeypatch.setattr(mod.st, "divider", lambda *args, **kwargs: None)
+        monkeypatch.setattr(mod.st, "caption", lambda *args, **kwargs: None)
+        monkeypatch.setattr(
+            mod.st,
+            "columns",
+            lambda *args, **kwargs: (_noop_context(), _noop_context()),
+        )
+        monkeypatch.setattr(mod.st, "selectbox", lambda *args, **kwargs: "UCLA")
+        monkeypatch.setattr(
+            mod.st,
+            "button",
+            lambda label, **kwargs: label == "Add to Matching",
+        )
+        monkeypatch.setattr(mod.st, "text_input", lambda *args, **kwargs: "")
+        monkeypatch.setattr(mod.st, "rerun", rerun_mock)
+
+        mod.render_discovery_tab(datasets)
+
+        rerun_mock.assert_called_once()
+        assert len(mock_state["matching_discovered_events"]) == 1
