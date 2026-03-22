@@ -65,7 +65,7 @@ def get_matching_events_df(events_df: pd.DataFrame) -> pd.DataFrame:
         return base_events
 
     discovered_df = pd.DataFrame(discovered_dicts).copy()
-    _hydrate_discovered_event_contract(
+    discovered_df = _hydrate_discovered_event_contract(
         discovered_df,
         base_columns=base_events.columns.tolist(),
     )
@@ -86,17 +86,22 @@ def get_matching_events_df(events_df: pd.DataFrame) -> pd.DataFrame:
 def _hydrate_discovered_event_contract(
     discovered_df: pd.DataFrame,
     base_columns: Sequence[str],
-) -> None:
-    """Fill canonical event columns from legacy discovery aliases."""
+) -> pd.DataFrame:
+    """Fill canonical event columns from legacy discovery aliases.
+
+    Returns a new DataFrame — the original is never mutated.
+    """
+    result = discovered_df.copy()
     for canonical_column, alias_column in DISCOVERED_EVENT_ALIASES.items():
-        if canonical_column not in discovered_df.columns and alias_column in discovered_df.columns:
-            discovered_df[canonical_column] = discovered_df[alias_column]
+        if canonical_column not in result.columns and alias_column in result.columns:
+            result[canonical_column] = result[alias_column]
 
     for column in base_columns:
-        if column not in discovered_df.columns:
-            discovered_df[column] = pd.NA
-    if "event_id" not in discovered_df.columns and "Event / Program" in discovered_df.columns:
-        discovered_df["event_id"] = discovered_df["Event / Program"].astype(str)
+        if column not in result.columns:
+            result[column] = pd.NA
+    if "event_id" not in result.columns and "Event / Program" in result.columns:
+        result["event_id"] = result["Event / Program"].astype(str)
+    return result
 
 
 def normalize_match_results(match_results: list[dict[str, Any]]) -> pd.DataFrame:

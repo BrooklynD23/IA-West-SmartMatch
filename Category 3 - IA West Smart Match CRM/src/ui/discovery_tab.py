@@ -248,11 +248,12 @@ def _run_discovery(
             try:
                 result = scrape_university(url=url, method=method)
             except PermissionError as exc:
-                st.error(f"Blocked by robots.txt: {exc}")
+                logger.warning("Blocked by robots.txt for %s: %s", url, exc)
+                st.error("Blocked by robots.txt. This site does not allow automated access.")
                 return {"university": university, "events": []}
             except Exception as exc:
-                st.error(f"Scraping failed: {exc}")
                 logger.error("Scrape error for %s: %s", url, exc)
+                st.error("Scraping failed. Please check the application logs for details.")
                 return {"university": university, "events": []}
 
         html = result.get("html", "")
@@ -278,8 +279,8 @@ def _run_discovery(
                     prefer_cache=True,
                 )
             except Exception as exc:
-                st.error(f"Extraction failed: {exc}")
                 logger.error("Extraction error for %s: %s", url, exc)
+                st.error("Event extraction failed. Please check the application logs for details.")
                 return {"university": university, "events": []}
         return {"university": university, "events": events}
 

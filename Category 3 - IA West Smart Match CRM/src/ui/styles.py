@@ -7,10 +7,13 @@ Inject at the top of the main app file via st.markdown(..., unsafe_allow_html=Tr
 
 from __future__ import annotations
 
+import logging
 from contextlib import contextmanager
 from typing import Generator
 
 import streamlit as st
+
+logger = logging.getLogger(__name__)
 
 # ── Academic Curator Brand Colors ─────────────────────────────────────
 BRAND_PRIMARY: str = "#005394"
@@ -238,9 +241,9 @@ def api_call_spinner(message: str = "Processing...") -> Generator[None, None, No
         try:
             yield
         except Exception as e:
+            logger.error("API call failed: %s", e)
             st.error(
-                f"An error occurred: {str(e)[:200]}. "
-                "Please try again or switch to Demo Mode."
+                "An error occurred. Please try again or switch to Demo Mode."
             )
             raise
 

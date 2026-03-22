@@ -26,8 +26,11 @@ def load_fixture(key: str) -> Any:
 
     Raises:
         FileNotFoundError: If the fixture file does not exist.
+        ValueError: If the key resolves outside the fixtures directory.
     """
-    path = DEMO_FIXTURES_DIR / f"{key}.json"
+    path = (DEMO_FIXTURES_DIR / f"{key}.json").resolve()
+    if not str(path).startswith(str(DEMO_FIXTURES_DIR.resolve())):
+        raise ValueError(f"Invalid fixture key: {key}")
     with open(path, encoding="utf-8") as f:
         return json.load(f)
 

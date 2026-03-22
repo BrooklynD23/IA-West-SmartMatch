@@ -235,8 +235,8 @@ def main() -> None:
         try:
             datasets = load_all()
         except Exception as e:
-            st.error(f"Failed to load data: {e}")
             logger.exception("Failed to load datasets.")
+            st.error("Failed to load data. Please check the application logs for details.")
             st.stop()
             return
 
