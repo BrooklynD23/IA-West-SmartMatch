@@ -1,8 +1,6 @@
 """Tests for the Landing Page module."""
 
-from unittest.mock import MagicMock, patch, call
-
-import pytest
+from unittest.mock import MagicMock, patch
 
 
 def _setup_mock_st(mock_st: MagicMock, button_side_effects: list[bool] | None = None) -> None:
@@ -110,6 +108,22 @@ class TestFactorDonutChart:
         pie_call = mock_go.Pie.call_args
         assert len(pie_call.kwargs["values"]) == len(DEFAULT_WEIGHTS)
         assert len(pie_call.kwargs["labels"]) == len(DEFAULT_WEIGHTS)
+        assert len(pie_call.kwargs["marker"]["colors"]) == len(DEFAULT_WEIGHTS)
+
+    @patch("src.ui.landing_page.st")
+    def test_donut_heading_uses_dynamic_factor_count(self, mock_st: MagicMock) -> None:
+        """Donut heading should reflect the registry-driven factor count."""
+        _setup_mock_st(mock_st)
+
+        from src.config import DEFAULT_WEIGHTS
+        from src.ui.landing_page import _render_factor_donut
+
+        _render_factor_donut()
+
+        all_html = " ".join(
+            str(c.args[0]) for c in mock_st.markdown.call_args_list if c.args
+        )
+        assert f"The Bridge: {len(DEFAULT_WEIGHTS)}-Factor MATCH_SCORE" in all_html
 
 
 class TestViewSwitchingIntegration:
@@ -190,16 +204,10 @@ class TestPartnerShowcase:
         all_html = " ".join(
             str(c.args[0]) for c in mock_st.markdown.call_args_list if c.args
         )
-        # Also check column-level markdown calls
-        for col_call in mock_st.columns.call_args_list:
-            pass  # columns are created by side_effect, captured in the call
 
         for uni in ["CPP", "UCLA", "SDSU", "UC DAVIS", "USC", "PORTLAND STATE"]:
-            # Universities may be rendered via columns context managers
-            # Check the header at minimum
-            pass
+            assert uni in all_html
 
-        # The header "Bridging CRM Data to" is rendered via st.markdown
         assert "Bridging CRM Data to" in all_html
 
 

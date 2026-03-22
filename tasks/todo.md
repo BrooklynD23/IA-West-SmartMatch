@@ -2,6 +2,14 @@
 
 ## Current Work
 
+### Sprint 6 Phase 0-1 Review Fix Pass
+
+- [x] Fix all HIGH findings from the latest `$ecc-code-review` report for Phase 0/1.
+- [x] Close the MEDIUM finding by making landing-page factor visuals resilient to factor-count changes.
+- [x] Close the LOW finding by removing unused imports and tightening test quality.
+- [x] Verify touched files with targeted automated checks in the available environment.
+- [x] Commit only the scoped fix files with a clear message.
+
 ### Sprint 5 GSD Closeout Orchestration
 
 #### Requirements Restatement
@@ -123,6 +131,10 @@
 
 ## Review
 
+- Sprint 6 Phase 0-1 review fix pass: refactored `src/ui/landing_page.py` into smaller helpers (clearing the >50-line function finding), made donut heading/colors derive from `DEFAULT_WEIGHTS` count for future factor expansion, removed dead/unused test imports, and replaced the partner-logo no-op assertions with concrete per-university checks plus dynamic-factor donut assertions in `tests/test_landing_page.py`.
+- Sprint 6 Phase 0-1 verification:
+  - `python3 -m compileall Category 3 - IA West Smart Match CRM/src/ui/landing_page.py Category 3 - IA West Smart Match CRM/tests/test_landing_page.py` -> both files compiled successfully.
+  - `rg -n \"TODO|FIXME|console\\.log\" Category 3 - IA West Smart Match CRM/src/ui/landing_page.py Category 3 - IA West Smart Match CRM/tests/test_landing_page.py` -> no matches.
 - Sprint 5 bootstrap: created `sprint5-cat3`, initialized GSD at repo root, wrote `.planning/config.json`, `.planning/PROJECT.md`, `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md`, `.planning/STATE.md`, and the 7-file brownfield codebase map under `.planning/codebase/`, then committed the bootstrap as `docs: bootstrap sprint 5 planning`.
 - Sprint 5 Phase 1 runtime fixes: discovery-to-match handoff now merges in-session discovered events into Matches, offline/demo runs can render Matches with fallback scoring when embeddings are unavailable, and feedback/generated output paths are repo-stable plus ignored correctly.
 - Sprint 5 Phase 1 verification:
