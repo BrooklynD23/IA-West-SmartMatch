@@ -7,6 +7,7 @@ import pandas as pd
 import pytest
 
 from src.matching.factors import (
+    _haversine_miles,
     _parse_date_flexible,
     _resolve_event_region,
     calendar_fit,
@@ -197,6 +198,109 @@ class TestGeographicProximity:
 
     def test_resolve_event_region_does_not_collapse_long_beach_to_bare_la(self) -> None:
         assert _resolve_event_region("Los Angeles — Long Beach") == "Los Angeles — Long Beach"
+
+
+class TestHaversineMiles:
+    """Unit tests for the _haversine_miles helper."""
+
+    def test_same_point_returns_zero(self) -> None:
+        assert _haversine_miles((34.0, -118.0), (34.0, -118.0)) == pytest.approx(0.0, abs=0.01)
+
+    def test_la_to_sf_roughly_350_miles(self) -> None:
+        la = (34.0522, -118.2437)
+        sf = (37.7749, -122.4194)
+        distance = _haversine_miles(la, sf)
+        assert 340.0 < distance < 390.0
+
+    def test_la_to_seattle_roughly_960_miles(self) -> None:
+        la = (34.0522, -118.2437)
+        seattle = (47.6062, -122.3321)
+        distance = _haversine_miles(la, seattle)
+        assert 940.0 < distance < 980.0
+
+    def test_symmetry(self) -> None:
+        a = (34.0522, -118.2437)
+        b = (37.7749, -122.4194)
+        assert _haversine_miles(a, b) == pytest.approx(_haversine_miles(b, a), abs=0.01)
+
+
+class TestGeodesicFallback:
+    """Tests for the geodesic distance fallback in geographic_proximity."""
+
+    def test_existing_lookup_pairs_unchanged(self) -> None:
+        """All 121 known GEO_PROXIMITY pairs should still use the lookup table."""
+        # Spot-check a few known pairs to confirm lookup still takes precedence
+        assert geographic_proximity("Seattle", "Portland") == pytest.approx(0.75, abs=0.01)
+        assert geographic_proximity("San Diego", "San Diego") == 1.0
+        assert geographic_proximity("Los Angeles — West", "Los Angeles — East") == pytest.approx(0.85, abs=0.01)
+
+    def test_fallback_returns_no_coordinates(self) -> None:
+        """Speaker region with no coordinates and no lookup entry falls back to 0.3."""
+        # "Narnia" is not in REGION_COORDINATES or GEO_PROXIMITY
+        score = geographic_proximity("Narnia", "Narnia")
+        assert score == pytest.approx(0.3, abs=0.01)
+
+    def test_fallback_near_regions_high_score(self) -> None:
+        """Two nearby regions not in lookup table should get a high geodesic score.
+
+        We can't easily create this scenario with existing regions (all are in GEO_PROXIMITY),
+        so we test _haversine_miles directly and verify the formula.
+        """
+        # LA to LA-East: ~30 miles → score = 1.0 - (30/600) = 0.95
+        la = (34.0522, -118.2437)
+        la_east = (34.0579, -117.8214)
+        distance = _haversine_miles(la, la_east)
+        expected_score = max(0.0, 1.0 - (distance / 600.0))
+        assert expected_score > 0.9  # nearby = high score
+
+    def test_fallback_distant_regions_low_score(self) -> None:
+        """Distant regions should produce low geodesic scores."""
+        la = (34.0522, -118.2437)
+        seattle = (47.6062, -122.3321)
+        distance = _haversine_miles(la, seattle)
+        expected_score = max(0.0, 1.0 - (distance / 600.0))
+        assert expected_score == 0.0  # > 600mi → clamped to 0.0
+
+    def test_fallback_score_in_unit_range(self) -> None:
+        """Geodesic fallback scores must be in [0.0, 1.0]."""
+        sf = (37.7749, -122.4194)
+        sd = (32.7157, -117.1611)
+        distance = _haversine_miles(sf, sd)
+        score = max(0.0, 1.0 - (distance / 600.0))
+        assert 0.0 <= score <= 1.0
+
+    def test_geodesic_path_integration(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Integration test: geographic_proximity uses geodesic when coords exist but pair is not in GEO_PROXIMITY.
+
+        Injects a temporary region into REGION_COORDINATES so the lookup table
+        misses but the geodesic fallback fires with real coordinates.
+        """
+        import src.config as config_module
+
+        # "Test Metro" is near LA (~30 mi east) — should produce a high score
+        patched_coords = {**config_module.REGION_COORDINATES, "Test Metro": (34.05, -117.75)}
+        monkeypatch.setattr(config_module, "REGION_COORDINATES", patched_coords)
+        # Also patch the local reference in factors module
+        import src.matching.factors as factors_module
+        monkeypatch.setattr(factors_module, "REGION_COORDINATES", patched_coords)
+
+        score = geographic_proximity("Test Metro", "Los Angeles")
+        # "Test Metro" is ~30 mi from LA → score ≈ 1.0 - (30/600) ≈ 0.95
+        assert 0.8 < score < 1.0, f"Expected high geodesic score, got {score}"
+
+    def test_geodesic_path_distant_integration(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Integration test: distant injected region produces low geodesic score."""
+        import src.config as config_module
+
+        # "Far Away Metro" near Seattle coords — ~960 mi from LA → score = 0.0
+        patched_coords = {**config_module.REGION_COORDINATES, "Far Away Metro": (47.6, -122.3)}
+        monkeypatch.setattr(config_module, "REGION_COORDINATES", patched_coords)
+        import src.matching.factors as factors_module
+        monkeypatch.setattr(factors_module, "REGION_COORDINATES", patched_coords)
+
+        score = geographic_proximity("Far Away Metro", "San Diego")
+        # ~1100 mi → clamped to 0.0
+        assert score == pytest.approx(0.0, abs=0.05)
 
 
 class TestCalendarFit:

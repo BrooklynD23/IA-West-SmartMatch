@@ -12,37 +12,13 @@ import pandas as pd
 from math import radians, sin, cos, sqrt, atan2
 from typing import Dict, List, Tuple
 
+from src.config import REGION_COORDINATES, UNIVERSITY_COORDINATES
+
 # ---------- Coordinate Lookup Tables ----------
-
-SPEAKER_METRO_COORDS: Dict[str, Tuple[float, float]] = {
-    # (latitude, longitude) for each metro region
-    "Ventura / Thousand Oaks": (34.2164, -119.0376),
-    "Los Angeles — West":     (34.0259, -118.4965),
-    "Los Angeles":            (34.0522, -118.2437),
-    "Los Angeles — North":    (34.1808, -118.3090),
-    "Los Angeles — East":     (34.0579, -117.8214),
-    "Los Angeles — Long Beach": (33.7701, -118.1937),
-    "Orange County / Long Beach": (33.7701, -118.1937),
-    "San Francisco":          (37.7749, -122.4194),
-    "Portland":               (45.5152, -122.6784),
-    "San Diego":              (32.7157, -117.1611),
-    "Seattle":                (47.6062, -122.3321),
-}
-
-UNIVERSITY_COORDS: Dict[str, Tuple[float, float]] = {
-    # (latitude, longitude) for each target campus
-    "UCLA":                   (34.0689, -118.4452),
-    "SDSU":                   (32.7757, -117.0719),
-    "UC Davis":               (38.5382, -121.7617),
-    "USC":                    (34.0224, -118.2851),
-    "Portland State":         (45.5116, -122.6857),
-    "Cal Poly Pomona":        (34.0565, -117.8215),
-    "CSULB":                  (33.7838, -118.1141),
-    "UC San Diego":           (32.8801, -117.2340),
-    "UW (Seattle)":           (47.6553, -122.3035),
-    "USF":                    (37.7765, -122.4506),
-    "SFSU":                   (37.7219, -122.4782),
-}
+# Coordinates are now sourced from config.py (single source of truth).
+# Local aliases maintain backward compatibility for this module.
+SPEAKER_METRO_COORDS = REGION_COORDINATES
+UNIVERSITY_COORDS = UNIVERSITY_COORDINATES
 
 # Expertise cluster color mapping (6 clusters)
 EXPERTISE_CLUSTER_COLORS: Dict[str, str] = {

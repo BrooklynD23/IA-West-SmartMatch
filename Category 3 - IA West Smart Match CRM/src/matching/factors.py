@@ -8,7 +8,8 @@ All functions are pure computation — no API calls or I/O side effects.
 import logging
 import re
 from datetime import date, datetime
-from typing import Optional
+from math import atan2, cos, radians, sin, sqrt
+from typing import Final, Optional
 
 import numpy as np
 import pandas as pd
@@ -20,6 +21,8 @@ from src.config import (
     DEFAULT_HISTORICAL_CONVERSION,
     EVENT_REGION_MAP,
     GEO_PROXIMITY,
+    MAX_FALLBACK_DISTANCE_MILES,
+    REGION_COORDINATES,
     ROLE_ALIASES,
 )
 from src.similarity import cosine_similarity_pair
@@ -29,6 +32,26 @@ logger = logging.getLogger(__name__)
 _CANONICAL_REGIONS: frozenset[str] = frozenset(
     region for pair in GEO_PROXIMITY for region in pair
 )
+
+_EARTH_RADIUS_MILES: Final[float] = 3959.0
+
+
+def _haversine_miles(
+    coord1: tuple[float, float],
+    coord2: tuple[float, float],
+) -> float:
+    """
+    Compute the great-circle distance in miles between two (lat, lng) points.
+
+    Uses the Haversine formula (same math as expansion_map.py).
+    """
+    lat1, lon1 = map(radians, coord1)
+    lat2, lon2 = map(radians, coord2)
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    return _EARTH_RADIUS_MILES * c
 
 
 # ---------------------------------------------------------------------------
@@ -257,8 +280,22 @@ def geographic_proximity(
     )
 
     if score is None:
+        # Geodesic fallback: compute distance from coordinates if available
+        speaker_coords = REGION_COORDINATES.get(speaker_metro_region)
+        event_coords = REGION_COORDINATES.get(canonical_event_region)
+        if speaker_coords and event_coords:
+            distance = _haversine_miles(speaker_coords, event_coords)
+            geodesic_score = max(0.0, 1.0 - (distance / MAX_FALLBACK_DISTANCE_MILES))
+            logger.debug(
+                "Geodesic fallback for (%r, %r): %.1f mi → %.3f",
+                speaker_metro_region,
+                canonical_event_region,
+                distance,
+                geodesic_score,
+            )
+            return geodesic_score
         logger.debug(
-            "No GEO_PROXIMITY entry for (%r, %r); defaulting to 0.3",
+            "No GEO_PROXIMITY entry or coordinates for (%r, %r); defaulting to 0.3",
             speaker_metro_region,
             canonical_event_region,
         )

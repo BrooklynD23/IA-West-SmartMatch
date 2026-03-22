@@ -294,6 +294,39 @@ ROLE_ALIASES: Final[dict[str, list[str]]] = {
     "volunteer": ["volunteer"],
 }
 
+# ---------- Region Coordinates (lat, lng) ----------
+# Centroid coordinates for speaker metro regions and university campuses.
+# Used by geographic_proximity geodesic fallback and expansion map visualization.
+REGION_COORDINATES: Final[dict[str, tuple[float, float]]] = {
+    "Ventura / Thousand Oaks": (34.2164, -119.0376),
+    "Los Angeles — West":     (34.0259, -118.4965),
+    "Los Angeles":            (34.0522, -118.2437),
+    "Los Angeles — North":    (34.1808, -118.3090),
+    "Los Angeles — East":     (34.0579, -117.8214),
+    "Los Angeles — Long Beach": (33.7701, -118.1937),
+    "Orange County / Long Beach": (33.7175, -117.8311),
+    "San Francisco":          (37.7749, -122.4194),
+    "Portland":               (45.5152, -122.6784),
+    "San Diego":              (32.7157, -117.1611),
+    "Seattle":                (47.6062, -122.3321),
+}
+
+UNIVERSITY_COORDINATES: Final[dict[str, tuple[float, float]]] = {
+    "UCLA":                   (34.0689, -118.4452),
+    "SDSU":                   (32.7757, -117.0719),
+    "UC Davis":               (38.5382, -121.7617),
+    "USC":                    (34.0224, -118.2851),
+    "Portland State":         (45.5116, -122.6857),
+    "Cal Poly Pomona":        (34.0565, -117.8215),
+    "CSULB":                  (33.7838, -118.1141),
+    "UC San Diego":           (32.8801, -117.2340),
+    "UW (Seattle)":           (47.6553, -122.3035),
+    "USF":                    (37.7765, -122.4506),
+    "SFSU":                   (37.7219, -122.4782),
+}
+
+MAX_FALLBACK_DISTANCE_MILES: Final[float] = 600.0
+
 # ---------- Historical Conversion Defaults ----------
 DEFAULT_HISTORICAL_CONVERSION: Final[float] = 0.50
 
