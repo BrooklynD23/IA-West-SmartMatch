@@ -7,6 +7,8 @@ from typing import Any, Sequence
 import pandas as pd
 import streamlit as st
 
+from src.config import FACTOR_KEYS
+
 MATCH_RESULTS_COLUMNS: list[str] = [
     "event_id",
     "event_name",
@@ -14,12 +16,7 @@ MATCH_RESULTS_COLUMNS: list[str] = [
     "speaker_name",
     "rank",
     "total_score",
-    "topic_relevance",
-    "role_fit",
-    "geographic_proximity",
-    "calendar_fit",
-    "historical_conversion",
-    "student_interest",
+    *FACTOR_KEYS,
 ]
 
 DISCOVERED_EVENT_ALIASES: dict[str, str] = {
@@ -117,28 +114,17 @@ def normalize_match_results(match_results: list[dict[str, Any]]) -> pd.DataFrame
             or match.get("speaker_id")
             or ""
         )
-        rows.append(
-            {
-                "event_id": event_id,
-                "event_name": event_name,
-                "speaker_id": speaker_name,
-                "speaker_name": speaker_name,
-                "rank": int(match.get("rank", 0) or 0),
-                "total_score": float(match.get("total_score", 0.0) or 0.0),
-                "topic_relevance": float(factor_scores.get("topic_relevance", 0.0) or 0.0),
-                "role_fit": float(factor_scores.get("role_fit", 0.0) or 0.0),
-                "geographic_proximity": float(
-                    factor_scores.get("geographic_proximity", 0.0) or 0.0
-                ),
-                "calendar_fit": float(factor_scores.get("calendar_fit", 0.0) or 0.0),
-                "historical_conversion": float(
-                    factor_scores.get("historical_conversion", 0.0) or 0.0
-                ),
-                "student_interest": float(
-                    factor_scores.get("student_interest", 0.0) or 0.0
-                ),
-            }
-        )
+        row_dict: dict[str, Any] = {
+            "event_id": event_id,
+            "event_name": event_name,
+            "speaker_id": speaker_name,
+            "speaker_name": speaker_name,
+            "rank": int(match.get("rank", 0) or 0),
+            "total_score": float(match.get("total_score", 0.0) or 0.0),
+        }
+        for fk in FACTOR_KEYS:
+            row_dict[fk] = float(factor_scores.get(fk, 0.0) or 0.0)
+        rows.append(row_dict)
 
     return pd.DataFrame(rows, columns=MATCH_RESULTS_COLUMNS)
 

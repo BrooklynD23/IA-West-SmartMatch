@@ -2,6 +2,7 @@
 
 import os
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Final
 
@@ -62,15 +63,41 @@ EVENT_CALENDAR_CSV = "data_event_calendar.csv"
 PAGE_TITLE = os.getenv("STREAMLIT_PAGE_TITLE", "IA SmartMatch CRM")
 
 
-# ---------- Default Matching Weights ----------
-DEFAULT_WEIGHTS: Final[dict[str, float]] = {
-    "topic_relevance": 0.30,
-    "role_fit": 0.25,
-    "geographic_proximity": 0.20,
-    "calendar_fit": 0.15,
-    "historical_conversion": 0.05,
-    "student_interest": 0.05,
-}
+# ---------- Factor Registry (single source of truth) ----------
+
+@dataclass(frozen=True)
+class FactorSpec:
+    """Immutable specification for a matching factor."""
+    key: str
+    display_label: str
+    short_label: str
+    default_weight: float
+    prompt_label: str
+    email_alias: str
+
+
+FACTOR_REGISTRY: Final[tuple[FactorSpec, ...]] = (
+    FactorSpec("topic_relevance", "Topic Relevance", "Topic", 0.30,
+               "topic alignment", "Topic Match"),
+    FactorSpec("role_fit", "Role Fit", "Role Fit", 0.25,
+               "role compatibility", "Role Fit"),
+    FactorSpec("geographic_proximity", "Geographic Proximity", "Proximity", 0.20,
+               "geographic proximity", "Geographic Fit"),
+    FactorSpec("calendar_fit", "Calendar Fit", "Calendar", 0.15,
+               "calendar alignment", "Calendar Fit"),
+    FactorSpec("historical_conversion", "Historical Conversion", "History", 0.05,
+               "engagement history", "Engagement History"),
+    FactorSpec("student_interest", "Student Interest", "Student Int.", 0.05,
+               "student interest potential", "Student Interest"),
+)
+
+# Derived constants — identical values to pre-refactor
+FACTOR_KEYS: Final[tuple[str, ...]] = tuple(f.key for f in FACTOR_REGISTRY)
+DEFAULT_WEIGHTS: Final[dict[str, float]] = {f.key: f.default_weight for f in FACTOR_REGISTRY}
+FACTOR_DISPLAY_LABELS: Final[dict[str, str]] = {f.key: f.display_label for f in FACTOR_REGISTRY}
+FACTOR_SHORT_LABELS: Final[dict[str, str]] = {f.key: f.short_label for f in FACTOR_REGISTRY}
+FACTOR_PROMPT_LABELS: Final[dict[str, str]] = {f.key: f.prompt_label for f in FACTOR_REGISTRY}
+FACTOR_EMAIL_ALIASES: Final[dict[str, str]] = {f.key: f.email_alias for f in FACTOR_REGISTRY}
 
 # ---------- Metro Regions ----------
 METRO_REGIONS: Final[list[str]] = [

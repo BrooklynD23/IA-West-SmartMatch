@@ -9,7 +9,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from src.config import DEFAULT_WEIGHTS
+from src.config import DEFAULT_WEIGHTS, FACTOR_DISPLAY_LABELS, FACTOR_KEYS, FACTOR_SHORT_LABELS
 from src.demo_mode import demo_or_live
 from src.matching.engine import rank_speakers_for_course, rank_speakers_for_event
 from src.matching.explanations import (
@@ -111,14 +111,7 @@ def _render_weight_sliders() -> str | None:
     st.sidebar.markdown("### Match Weights")
     st.sidebar.caption("Adjust weights to change ranking priorities. Weights are normalized automatically.")
 
-    factor_labels = {
-        "topic_relevance": "Topic Relevance",
-        "role_fit": "Role Fit",
-        "geographic_proximity": "Geographic Proximity",
-        "calendar_fit": "Calendar Fit",
-        "historical_conversion": "Historical Conversion",
-        "student_interest": "Student Interest",
-    }
+    factor_labels = FACTOR_DISPLAY_LABELS
 
     if "match_weights" not in st.session_state:
         st.session_state["match_weights"] = dict(DEFAULT_WEIGHTS)
@@ -406,22 +399,8 @@ def _render_match_explanation(match: dict, event: pd.Series) -> None:
 
 def _create_radar_chart(factor_scores: dict[str, float]) -> go.Figure:
     """Create a Plotly radar chart for the 6 match factors."""
-    factor_order = [
-        "topic_relevance",
-        "role_fit",
-        "geographic_proximity",
-        "calendar_fit",
-        "historical_conversion",
-        "student_interest",
-    ]
-    display_labels = [
-        "Topic",
-        "Role Fit",
-        "Proximity",
-        "Calendar",
-        "History",
-        "Student Int.",
-    ]
+    factor_order = list(FACTOR_KEYS)
+    display_labels = [FACTOR_SHORT_LABELS[k] for k in FACTOR_KEYS]
 
     values = [factor_scores.get(f, 0.0) for f in factor_order]
     values_closed = values + [values[0]]

@@ -12,7 +12,7 @@ from typing import Any, Optional
 import numpy as np
 import pandas as pd
 
-from src.config import DEFAULT_WEIGHTS
+from src.config import DEFAULT_WEIGHTS, FACTOR_KEYS
 from src.matching.factors import (
     calendar_fit,
     geographic_proximity,
@@ -52,11 +52,11 @@ def _normalize_weights(weights: Optional[dict[str, float]] = None) -> dict[str, 
     raw_weights = weights if weights is not None else DEFAULT_WEIGHTS
     weight_sum = sum(raw_weights.values())
     if weight_sum <= 0:
-        return {factor: 0.0 for factor in DEFAULT_WEIGHTS}
+        return {factor: 0.0 for factor in FACTOR_KEYS}
 
     return {
         factor: raw_weights.get(factor, 0.0) / weight_sum
-        for factor in DEFAULT_WEIGHTS
+        for factor in FACTOR_KEYS
     }
 
 

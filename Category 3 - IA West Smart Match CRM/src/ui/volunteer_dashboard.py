@@ -11,6 +11,8 @@ import pandas as pd
 import plotly.graph_objects as go
 from typing import Dict, List
 
+from src.config import FACTOR_KEYS, FACTOR_SHORT_LABELS
+
 
 # Simulated downstream metrics (percentages applied to matched count)
 CONVERSION_RATES: Dict[str, float] = {
@@ -221,14 +223,10 @@ def render_volunteer_dashboard(
             f"{row.get('event_id', row.get('event_name', 'Event'))} -- Score: {row['total_score']:.0%}",
             expanded=(idx == top_matches.index[0]),
         ):
-            factor_col1, factor_col2, factor_col3 = st.columns(3)
-            factor_col1.metric(
-                "Topic", f"{row.get('topic_relevance', 0):.0%}"
-            )
-            factor_col2.metric(
-                "Role Fit", f"{row.get('role_fit', 0):.0%}"
-            )
-            factor_col3.metric(
-                "Proximity",
-                f"{row.get('geographic_proximity', 0):.0%}",
-            )
+            _display_factors = list(FACTOR_KEYS)[:3]  # Show top 3 factors in compact view
+            factor_cols = st.columns(len(_display_factors))
+            for _col, _fk in zip(factor_cols, _display_factors):
+                _col.metric(
+                    FACTOR_SHORT_LABELS[_fk],
+                    f"{row.get(_fk, 0):.0%}",
+                )

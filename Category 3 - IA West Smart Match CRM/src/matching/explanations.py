@@ -15,6 +15,7 @@ from src.config import (
     EXPLANATION_MAX_TOKENS,
     EXPLANATION_MODEL,
     EXPLANATION_TEMPERATURE,
+    FACTOR_PROMPT_LABELS,
     GEMINI_API_KEY,
 )
 from src.gemini_client import generate_text
@@ -132,14 +133,7 @@ FEW_SHOT_EXAMPLES = [
     },
 ]
 
-FACTOR_LABELS = {
-    "topic_relevance": "topic alignment",
-    "role_fit": "role compatibility",
-    "geographic_proximity": "geographic proximity",
-    "calendar_fit": "calendar alignment",
-    "historical_conversion": "engagement history",
-    "student_interest": "student interest potential",
-}
+FACTOR_LABELS = FACTOR_PROMPT_LABELS
 
 
 def _normalize_text(value: object, default: str = "") -> str:
