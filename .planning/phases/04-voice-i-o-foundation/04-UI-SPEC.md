@@ -39,8 +39,8 @@ Declared values (must be multiples of 4):
 | Token | Value | Usage |
 |-------|-------|-------|
 | xs | 4px | Icon gaps, inline padding inside chat bubble meta row |
-| sm | 8px | Spacing between input field and mic button; padding inside intent badge |
-| md | 16px | Default element spacing; chat bubble internal padding; card padding |
+| sm | 8px | Spacing between input field and mic button; padding inside intent badge; chat bubble vertical padding |
+| md | 16px | Default element spacing; chat bubble horizontal padding; card padding |
 | lg | 24px | Section gap between voice panel header and chat history |
 | xl | 32px | Top padding of Command Center tab content area |
 | 2xl | 48px | Not used in Phase 4 |
@@ -109,7 +109,7 @@ New CSS classes to add to `src/ui/styles.py` as part of Phase 4:
 - `padding: 16px`; background `var(--surface)`
 
 ### `.chat-bubble`
-- `max-width: 72%`; `padding: 12px 16px`; `border-radius: 16px`
+- `max-width: 72%`; `padding: 8px 16px`; `border-radius: 16px`
 - `background: var(--surface-container-lowest)`; `box-shadow: var(--ambient-shadow)`
 - `font-family: var(--font-body)`; `font-size: 16px`; `line-height: 1.5`
 
@@ -125,7 +125,7 @@ New CSS classes to add to `src/ui/styles.py` as part of Phase 4:
 
 ### `.intent-badge`
 - `display: inline-block`; `background: var(--intent-badge-color)` (`#F59E0B`); `color: #ffffff`
-- `font-size: 13px`; `font-weight: 400`; `padding: 2px 8px`; `border-radius: var(--radius-pill)`
+- `font-size: 13px`; `font-weight: 400`; `padding: 4px 8px`; `border-radius: var(--radius-pill)`
 - `margin-left: 8px`
 
 ### `.mic-button-active`
