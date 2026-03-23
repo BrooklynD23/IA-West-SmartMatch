@@ -20,7 +20,7 @@ Deliver a working voice + text I/O layer in the Streamlit Command Center tab —
 - Single shared input field for both text typing and STT transcript insertion — unified conversation flow
 
 ### TTS Voice and Playback
-- Use KittenTTS voice "af_heart" for Jarvis — warm, clear, professional tone
+- Use KittenTTS voice "Bella" for Jarvis — warm, clear female voice (NOTE: "af_heart" from discuss was invalid; research confirmed valid voices are Bella, Jasper, Luna, Bruno, Rosie, Hugo, Kiki, Leo)
 - Auto-play TTS output via `st.audio(autoplay=True)` — more natural demo UX, Jarvis "speaks" immediately after each response
 - Sentence-chunked TTS generation — split response text on `.`/`?`, generate per sentence, play sequentially to reduce perceived latency
 - Cache TTS model in `st.session_state["tts_model"]` — load once per session on first use, avoids 3-5s cold start on every call
@@ -30,6 +30,13 @@ Deliver a working voice + text I/O layer in the Streamlit Command Center tab —
 - Voice panel (input field + mic button + TTS audio player) positioned at the top of the Command Center tab
 - Chat-style conversation bubbles — coordinator messages aligned left, Jarvis responses aligned right, with timestamps
 - Subtle intent badge on Jarvis responses (e.g., `[Intent: echo]`) — in Phase 4 this is a hardcoded echo; real parsing arrives Phase 5
+
+### UI Mockup Bridge Strategy
+- UI team React/Tailwind mockup exists at `docs/mockup/V1.1/IA-West_UI/` — 7 pages (Dashboard, Opportunities, Volunteers, AI Matching, Pipeline, Calendar, Outreach)
+- Design tokens: purple-centric (#8b5cf6 primary), white cards with rounded-xl/border-gray-200/shadow-sm, gradient icon badges, Sparkles icon for AI elements
+- Phase 4 builds Command Center in Streamlit with basic styling — NOT matching mockup CSS yet
+- Full React migration planned as a future phase; mockup serves as design reference for that migration
+- No Command Center page exists in the mockup — it's net-new for v2.0
 
 ### Claude's Discretion
 - Exact CSS styling of chat bubbles and Command Center layout
