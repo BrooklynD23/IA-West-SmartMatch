@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-03-23)
 ## Current Position
 
 Phase: 4 — Voice I/O Foundation
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-03-23 — v2.0 roadmap created
+Plan: Not started — CONTEXT.md + RESEARCH.md + VALIDATION.md complete, ready for gsd-planner
+Status: Ready to plan (run `/gsd:plan-phase 4` to continue)
+Last activity: 2026-03-23 — Smart discuss + research + validation strategy complete
 
 ```
 Progress: [===-------] 3/7 phases complete (v1 done, v2 not started)
