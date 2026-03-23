@@ -91,7 +91,12 @@ Plans:
   3. Coordinator can press a push-to-talk button, speak a sentence, and see the transcribed text appear in the input field via faster-whisper STT.
   4. Coordinator can scroll the Command Center and see a full chronological history of every voice and text exchange in the current session.
   5. All 392 existing tests continue to pass after the voice layer is added (no existing signature changes).
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Voice service modules (TTS + STT) with tests and dependencies
+- [ ] 04-02-PLAN.md — Command Center UI tab with text input, echo replies, and conversation history
+- [ ] 04-03-PLAN.md — Integration wiring: TTS + STT + push-to-talk into Command Center tab in app.py
 
 ### Phase 5: Coordinator Core and HITL Approval Gate
 **Goal**: Coordinator can submit any command (voice or text), have Jarvis parse the intent and propose a concrete agent action with reasoning, and explicitly approve or reject that action before any execution occurs — the approval state machine is proven correct with stubbed agent calls.
@@ -138,7 +143,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 1. Runtime Fixes and Clean Outputs | 3/3 | Complete | 2026-03-20 |
 | 2. Documentation and Governance Reconciliation | 2/2 | Complete | 2026-03-20 |
 | 3. Adversarial Audit and Sprint Closure | 3/3 | Complete | 2026-03-21 |
-| 4. Voice I/O Foundation | 0/TBD | Not started | - |
+| 4. Voice I/O Foundation | 0/3 | Planned | - |
 | 5. Coordinator Core and HITL Approval Gate | 0/TBD | Not started | - |
 | 6. Agent Tool Wrappers and Result Bus | 0/TBD | Not started | - |
 | 7. NemoClaw Lead Agent and Live Dashboard | 0/TBD | Not started | - |
