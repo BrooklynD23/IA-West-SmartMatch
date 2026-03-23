@@ -1,9 +1,10 @@
-# Requirements: Category 3 SmartMatch Sprint 5 Closeout
+# Requirements: IA West SmartMatch CRM
 
 **Defined:** 2026-03-20
-**Core Value:** An operator can run a dependable end-to-end SmartMatch demo flow that surfaces credible matches and outreach artifacts without closeout-time surprises.
+**Updated:** 2026-03-23 (v2.0 Jarvis Agent Coordinator)
+**Core Value:** A coordinator can use voice or text to command an AI assistant that orchestrates parallel agents for event discovery, speaker matching, and outreach — with human approval gating every action.
 
-## v1 Requirements
+## v1 Requirements (Sprint 5 Closeout — Complete)
 
 ### Runtime Reliability
 
@@ -23,41 +24,103 @@
 - [x] **REV-01**: Sprint 5 changes undergo an `$ecc-code-review` audit and every accepted finding is fixed or explicitly documented before closure.
 - [x] **REV-02**: Sprint 5 closes with direct verification evidence recorded in planning or task docs and preserved in commit history.
 
-## v2 Requirements
+## v2 Requirements (Jarvis Agent Coordinator)
 
-### Deferred Improvements
+### Voice I/O
+
+- [ ] **VOICE-01**: Coordinator can type text commands in a Command Center tab and receive parsed intent responses
+- [ ] **VOICE-02**: Coordinator can hear Jarvis speak responses via KittenTTS voice synthesis
+- [ ] **VOICE-03**: Coordinator can use push-to-talk to speak commands, transcribed via faster-whisper STT
+- [ ] **VOICE-04**: Coordinator can see full conversation history (voice + text) in the Command Center
+
+### Agent Orchestration
+
+- [ ] **ORCH-01**: Existing SmartMatch discovery, matching, and outreach functions are wrapped as agent-callable tool services
+- [ ] **ORCH-02**: NemoClaw/OpenClaw dispatches sub-agents for webscraping, matching, and outreach tasks
+- [ ] **ORCH-03**: Sub-agents can run in parallel with independent status tracking
+- [ ] **ORCH-04**: Jarvis proactively suggests actions when data is stale or follow-ups are overdue
+
+### Human-in-the-Loop
+
+- [ ] **HITL-01**: Every agent action displays a proposed action card with agent name, action description, and reasoning
+- [ ] **HITL-02**: Coordinator can approve, reject, or edit parameters on any proposed action before execution
+- [ ] **HITL-03**: No agent action executes without explicit coordinator approval
+
+### Dashboard
+
+- [ ] **DASH-01**: Visual command center shows per-agent swimlane cards with idle/running/awaiting/complete status
+- [ ] **DASH-02**: Dashboard updates in real-time as agents dispatch, execute, and return results
+- [ ] **DASH-03**: Command center integrates into existing Streamlit app as a new tab
+
+### Contact Management
+
+- [ ] **POC-01**: Coordinator can view and manage POC contacts with communication history
+- [ ] **POC-02**: Coordinator can track follow-up reminders and see overdue contacts
+- [ ] **POC-03**: Jarvis surfaces POC follow-up status as part of proactive suggestions
+
+## Future Requirements
+
+### Deferred from v1
 
 - **E2E-01**: Add a browser-driven end-to-end suite that exercises the full Streamlit demo path.
 - **PAR-01**: Add automated Python 3.11 deployment-parity verification for the Streamlit Cloud runtime.
 - **ARCH-01**: Break up late-stage hotspot modules into smaller units after closeout pressure is gone.
 
+### Deferred from v2
+
+- **VOICE-05**: Real-time streaming transcription during speech (requires VAD + streaming Whisper)
+- **VOICE-06**: Wake word activation ("Hey Jarvis") for hands-free operation
+- **ORCH-05**: Agent self-modification or dynamic tool creation
+- **DASH-04**: Mobile-responsive command center layout
+
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| New SmartMatch product features | Sprint 5 is a closeout milestone, not a feature-expansion sprint |
-| Large architecture refactors | The codebase is already functionally broad and late-stage changes should stay low-risk |
-| Replacing the filesystem cache model | Useful long-term, but outside hackathon closeout scope |
+| Fully autonomous agent execution | Hard constraint — all actions gate on coordinator approval |
+| Custom TTS voice training | KittenTTS built-in voices sufficient for demo |
+| Always-on microphone listening | Unreliable in demo environments; push-to-talk instead |
+| Production auth / multi-tenant | Demo-focused hackathon scope |
+| Mobile / native app | Streamlit web is the demo surface |
+| Agent self-modification | High risk, contradicts HITL constraint |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FLOW-01 | Phase 1 | Complete |
-| FLOW-02 | Phase 1 | Complete |
-| DEMO-01 | Phase 1 | Complete |
-| PATH-01 | Phase 1 | Complete |
-| GOV-01 | Phase 2 | Complete |
-| OPS-01 | Phase 1 | Complete |
-| DOC-01 | Phase 2 | Complete |
-| REV-01 | Phase 3 | Complete |
-| REV-02 | Phase 3 | Complete |
+| FLOW-01 | Phase 1 (v1) | Complete |
+| FLOW-02 | Phase 1 (v1) | Complete |
+| DEMO-01 | Phase 1 (v1) | Complete |
+| PATH-01 | Phase 1 (v1) | Complete |
+| GOV-01 | Phase 2 (v1) | Complete |
+| OPS-01 | Phase 1 (v1) | Complete |
+| DOC-01 | Phase 2 (v1) | Complete |
+| REV-01 | Phase 3 (v1) | Complete |
+| REV-02 | Phase 3 (v1) | Complete |
+| VOICE-01 | TBD | Pending |
+| VOICE-02 | TBD | Pending |
+| VOICE-03 | TBD | Pending |
+| VOICE-04 | TBD | Pending |
+| ORCH-01 | TBD | Pending |
+| ORCH-02 | TBD | Pending |
+| ORCH-03 | TBD | Pending |
+| ORCH-04 | TBD | Pending |
+| HITL-01 | TBD | Pending |
+| HITL-02 | TBD | Pending |
+| HITL-03 | TBD | Pending |
+| DASH-01 | TBD | Pending |
+| DASH-02 | TBD | Pending |
+| DASH-03 | TBD | Pending |
+| POC-01 | TBD | Pending |
+| POC-02 | TBD | Pending |
+| POC-03 | TBD | Pending |
 
 **Coverage:**
-- v1 requirements: 9 total
-- Mapped to phases: 9
-- Unmapped: 0
+- v1 requirements: 9 total (9 complete)
+- v2 requirements: 16 total
+- Mapped to phases: 0 (pending roadmap)
+- Unmapped: 16
 
 ---
 *Requirements defined: 2026-03-20*
-*Last updated: 2026-03-21 after Sprint 5 closeout*
+*Last updated: 2026-03-23 after v2.0 milestone requirements definition*
