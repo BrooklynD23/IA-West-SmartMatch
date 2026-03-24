@@ -28,6 +28,7 @@ from src.ui.discovery_tab import render_discovery_tab  # noqa: E402
 from src.ui.pipeline_tab import render_pipeline_tab  # noqa: E402
 from src.ui.expansion_map import render_expansion_map  # noqa: E402
 from src.ui.volunteer_dashboard import render_volunteer_dashboard  # noqa: E402
+from src.ui.command_center import render_command_center_tab  # noqa: E402
 from src.ui.landing_page import render_landing_page  # noqa: E402
 from src.feedback.acceptance import render_feedback_sidebar  # noqa: E402
 from src.demo_mode import init_demo_mode  # noqa: E402
@@ -316,13 +317,17 @@ def main() -> None:
         return
 
     # ── CRM Tab Layout ─────────────────────────────────────────────────
-    tab_matches, tab_discovery, tab_pipeline, tab_expansion, tab_volunteers = st.tabs([
+    tab_command, tab_matches, tab_discovery, tab_pipeline, tab_expansion, tab_volunteers = st.tabs([
+        "🤖 Command Center",
         "🎯 Matches",
         "🔍 Discovery",
         "📊 Pipeline",
         "🗺️ Expansion",
         "👥 Volunteers",
     ])
+
+    with tab_command:
+        render_command_center_tab()
 
     with tab_matches:
         if embedding_issues:

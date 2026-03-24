@@ -1,6 +1,6 @@
 """Tests for app-level embedding cache bootstrap behavior."""
 
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -108,31 +108,28 @@ class TestMainMatchesAvailability:
         error_mock = MagicMock()
         render_matches_mock = MagicMock()
 
-        with (
-            patch("streamlit.session_state", new={"demo_mode": demo_mode, "current_view": "crm"}),
-            patch("src.app.init_runtime_state"),
-            patch("src.app.validate_config", return_value=[]),
-            patch("src.app.render_sidebar", return_value=_noop_context()),
-            patch("src.app.load_all", return_value=_sample_datasets()),
-            patch(
-                "src.app._resolve_embedding_lookup_dicts",
-                return_value=({}, {}, {}, embedding_issues, None, False),
-            ),
-            patch("src.app.has_gemini_api_key", return_value=has_gemini_key),
-            patch("src.app.render_matches_tab_ui", render_matches_mock),
-            patch("src.app.render_discovery_tab"),
-            patch("src.app.render_pipeline_tab"),
-            patch("src.app.render_expansion_map", return_value=object()),
-            patch("src.app.render_volunteer_dashboard"),
-            patch("src.feedback.acceptance.init_feedback_state"),
-            patch("src.app.render_feedback_sidebar"),
-            patch("src.app.get_match_results_df", return_value=pd.DataFrame()),
-            patch.object(app.st, "tabs", return_value=tuple(_noop_context() for _ in range(5))),
-            patch.object(app.st, "expander", side_effect=lambda *args, **kwargs: _noop_context()),
-            patch.object(app.st, "slider", return_value=0.30),
-            patch.object(app.st, "warning", new=warning_mock),
-            patch.object(app.st, "error", new=error_mock),
-        ):
+        with ExitStack() as stack:
+            stack.enter_context(patch("streamlit.session_state", new={"demo_mode": demo_mode, "current_view": "crm"}))
+            stack.enter_context(patch("src.app.init_runtime_state"))
+            stack.enter_context(patch("src.app.validate_config", return_value=[]))
+            stack.enter_context(patch("src.app.render_sidebar", return_value=_noop_context()))
+            stack.enter_context(patch("src.app.load_all", return_value=_sample_datasets()))
+            stack.enter_context(patch("src.app._resolve_embedding_lookup_dicts", return_value=({}, {}, {}, embedding_issues, None, False)))
+            stack.enter_context(patch("src.app.has_gemini_api_key", return_value=has_gemini_key))
+            stack.enter_context(patch("src.app.render_command_center_tab"))
+            stack.enter_context(patch("src.app.render_matches_tab_ui", render_matches_mock))
+            stack.enter_context(patch("src.app.render_discovery_tab"))
+            stack.enter_context(patch("src.app.render_pipeline_tab"))
+            stack.enter_context(patch("src.app.render_expansion_map", return_value=object()))
+            stack.enter_context(patch("src.app.render_volunteer_dashboard"))
+            stack.enter_context(patch("src.feedback.acceptance.init_feedback_state"))
+            stack.enter_context(patch("src.app.render_feedback_sidebar"))
+            stack.enter_context(patch("src.app.get_match_results_df", return_value=pd.DataFrame()))
+            stack.enter_context(patch.object(app.st, "tabs", return_value=tuple(_noop_context() for _ in range(6))))
+            stack.enter_context(patch.object(app.st, "expander", side_effect=lambda *args, **kwargs: _noop_context()))
+            stack.enter_context(patch.object(app.st, "slider", return_value=0.30))
+            stack.enter_context(patch.object(app.st, "warning", new=warning_mock))
+            stack.enter_context(patch.object(app.st, "error", new=error_mock))
             app.main()
 
         return render_matches_mock, warning_mock, error_mock
@@ -178,46 +175,40 @@ class TestMainMatchesAvailability:
         def capture_dashboard(**kwargs) -> None:
             captured_events["events_df"] = kwargs["events_df"].copy()
 
-        with (
-            patch(
-                "streamlit.session_state",
-                new={
-                    "demo_mode": True,
-                    "current_view": "crm",
-                    "matching_discovered_events": [
-                        {
-                            "event_id": "disc-1",
-                            "Event / Program": "Fresh Discovery Event",
-                            "Category": "career_fair",
-                            "Host / Unit": "USC",
-                            "Event Region": "Los Angeles",
-                        }
-                    ],
-                },
-            ),
-            patch("src.app.init_runtime_state"),
-            patch("src.app.validate_config", return_value=[]),
-            patch("src.app.render_sidebar", return_value=_noop_context()),
-            patch("src.app.load_all", return_value=_sample_datasets()),
-            patch(
-                "src.app._resolve_embedding_lookup_dicts",
-                return_value=({}, {}, {}, [], None, False),
-            ),
-            patch("src.app.has_gemini_api_key", return_value=False),
-            patch("src.app.render_matches_tab_ui"),
-            patch("src.app.render_discovery_tab"),
-            patch("src.app.render_pipeline_tab"),
-            patch("src.app.render_expansion_map", return_value=object()),
-            patch("src.app.render_volunteer_dashboard", side_effect=capture_dashboard),
-            patch("src.feedback.acceptance.init_feedback_state"),
-            patch("src.app.render_feedback_sidebar"),
-            patch("src.app.get_match_results_df", return_value=pd.DataFrame()),
-            patch.object(app.st, "tabs", return_value=tuple(_noop_context() for _ in range(5))),
-            patch.object(app.st, "expander", side_effect=lambda *args, **kwargs: _noop_context()),
-            patch.object(app.st, "slider", return_value=0.30),
-            patch.object(app.st, "warning"),
-            patch.object(app.st, "error"),
-        ):
+        with ExitStack() as stack:
+            stack.enter_context(patch("streamlit.session_state", new={
+                "demo_mode": True,
+                "current_view": "crm",
+                "matching_discovered_events": [
+                    {
+                        "event_id": "disc-1",
+                        "Event / Program": "Fresh Discovery Event",
+                        "Category": "career_fair",
+                        "Host / Unit": "USC",
+                        "Event Region": "Los Angeles",
+                    }
+                ],
+            }))
+            stack.enter_context(patch("src.app.init_runtime_state"))
+            stack.enter_context(patch("src.app.validate_config", return_value=[]))
+            stack.enter_context(patch("src.app.render_sidebar", return_value=_noop_context()))
+            stack.enter_context(patch("src.app.load_all", return_value=_sample_datasets()))
+            stack.enter_context(patch("src.app._resolve_embedding_lookup_dicts", return_value=({}, {}, {}, [], None, False)))
+            stack.enter_context(patch("src.app.has_gemini_api_key", return_value=False))
+            stack.enter_context(patch("src.app.render_command_center_tab"))
+            stack.enter_context(patch("src.app.render_matches_tab_ui"))
+            stack.enter_context(patch("src.app.render_discovery_tab"))
+            stack.enter_context(patch("src.app.render_pipeline_tab"))
+            stack.enter_context(patch("src.app.render_expansion_map", return_value=object()))
+            stack.enter_context(patch("src.app.render_volunteer_dashboard", side_effect=capture_dashboard))
+            stack.enter_context(patch("src.feedback.acceptance.init_feedback_state"))
+            stack.enter_context(patch("src.app.render_feedback_sidebar"))
+            stack.enter_context(patch("src.app.get_match_results_df", return_value=pd.DataFrame()))
+            stack.enter_context(patch.object(app.st, "tabs", return_value=tuple(_noop_context() for _ in range(6))))
+            stack.enter_context(patch.object(app.st, "expander", side_effect=lambda *args, **kwargs: _noop_context()))
+            stack.enter_context(patch.object(app.st, "slider", return_value=0.30))
+            stack.enter_context(patch.object(app.st, "warning"))
+            stack.enter_context(patch.object(app.st, "error"))
             app.main()
 
         merged_events = captured_events["events_df"]
