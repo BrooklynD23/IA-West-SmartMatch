@@ -61,6 +61,7 @@ if "streamlit" not in sys.modules:
     _mock_st.audio = MagicMock()  # type: ignore[attr-defined]
     _mock_st.chat_input = MagicMock()  # type: ignore[attr-defined]
     _mock_st.chat_message = MagicMock()  # type: ignore[attr-defined]
+    _mock_st.fragment = lambda **kw: (lambda f: f)  # type: ignore[attr-defined]
 
     sys.modules["streamlit"] = _mock_st
 
