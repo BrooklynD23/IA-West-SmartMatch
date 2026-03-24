@@ -18,13 +18,20 @@ if "streamlit" not in sys.modules:
     _mock_st.code = MagicMock()  # type: ignore[attr-defined]
     _mock_st.set_page_config = MagicMock()  # type: ignore[attr-defined]
     _mock_st.sidebar = MagicMock()  # type: ignore[attr-defined]
-    _mock_st.columns = MagicMock()  # type: ignore[attr-defined]
+    # columns() returns a list of MagicMocks so callers can unpack: a, b = st.columns(2)
+    def _fake_columns(n, *args, **kwargs):
+        count = n if isinstance(n, int) else len(n)
+        return [MagicMock() for _ in range(count)]
+    _mock_st.columns = MagicMock(side_effect=_fake_columns)  # type: ignore[attr-defined]
     _mock_st.tabs = MagicMock()  # type: ignore[attr-defined]
     _mock_st.metric = MagicMock()  # type: ignore[attr-defined]
-    _mock_st.expander = MagicMock()  # type: ignore[attr-defined]
+    @contextmanager
+    def _fake_expander(*args, **kwargs):
+        yield MagicMock()
+    _mock_st.expander = MagicMock(side_effect=_fake_expander)  # type: ignore[attr-defined]
     _mock_st.selectbox = MagicMock()  # type: ignore[attr-defined]
     _mock_st.text_input = MagicMock()  # type: ignore[attr-defined]
-    _mock_st.button = MagicMock()  # type: ignore[attr-defined]
+    _mock_st.button = MagicMock(return_value=False)  # type: ignore[attr-defined]
     _mock_st.download_button = MagicMock()  # type: ignore[attr-defined]
     _mock_st.radio = MagicMock()  # type: ignore[attr-defined]
     _mock_st.session_state = {}  # type: ignore[attr-defined]
@@ -34,7 +41,11 @@ if "streamlit" not in sys.modules:
     _mock_st.header = MagicMock()  # type: ignore[attr-defined]
     _mock_st.slider = MagicMock()  # type: ignore[attr-defined]
     _mock_st.checkbox = MagicMock()  # type: ignore[attr-defined]
-    _mock_st.container = MagicMock()  # type: ignore[attr-defined]
+    # container() and expander() must support 'with' context manager usage
+    @contextmanager
+    def _fake_container(*args, **kwargs):
+        yield MagicMock()
+    _mock_st.container = MagicMock(side_effect=_fake_container)  # type: ignore[attr-defined]
     _mock_st.divider = MagicMock()  # type: ignore[attr-defined]
     _mock_st.stop = MagicMock()  # type: ignore[attr-defined]
     _mock_st.dataframe = MagicMock()  # type: ignore[attr-defined]
