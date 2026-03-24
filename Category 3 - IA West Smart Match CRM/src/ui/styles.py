@@ -291,6 +291,36 @@ button[kind="primary"]:hover {
     animation: mic-pulse 1.5s ease-out infinite;
     border: 2px solid var(--primary);
 }
+
+/* ---------- Swimlane Dashboard ---------- */
+.swimlane-card {
+    border: 1px solid var(--outline-variant);
+    border-radius: 8px;
+    padding: 8px;
+    background-color: var(--surface-container-lowest);
+    box-shadow: var(--ambient-shadow);
+    min-height: 80px;
+}
+
+.swimlane-card.status-running  { border-color: var(--primary); }
+.swimlane-card.status-awaiting { border-color: var(--accent); }
+.swimlane-card.status-completed { border-color: var(--success); }
+.swimlane-card.status-failed    { border-color: var(--danger); }
+
+.swimlane-status {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.swimlane-compact {
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: var(--success);
+    padding: 4px 8px;
+}
 </style>
 """
 
