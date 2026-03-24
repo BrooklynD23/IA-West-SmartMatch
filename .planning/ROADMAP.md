@@ -139,7 +139,11 @@ Plans:
   2. Dashboard updates visibly (within 2 seconds) when any agent changes state — no manual page refresh required.
   3. Command Center is accessible as a distinct tab in the existing Streamlit app alongside the current Discovery, Matches, and Outreach tabs.
   4. Jarvis surfaces overdue POC follow-up contacts as proactive action suggestions in the Command Center, gated by the same approve/reject HITL flow.
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — NemoClaw adapter, swimlane dashboard module, overdue contacts suggestion, multi-step intent, session state extension, CSS rules, and all tests
+- [ ] 07-02-PLAN.md — Wire all Phase 7 modules into Command Center: swimlane polling, TTS on completion, demo hints, overdue contacts injection, multi-step dispatch, and integration tests
 
 ## Progress
 
@@ -154,4 +158,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 4. Voice I/O Foundation | 2/3 | In Progress|  |
 | 5. Coordinator Core and HITL Approval Gate | 2/2 | Complete   | 2026-03-24 |
 | 6. Agent Tool Wrappers and Result Bus | 2/2 | Complete   | 2026-03-24 |
-| 7. NemoClaw Lead Agent and Live Dashboard | 0/TBD | Not started | - |
+| 7. NemoClaw Lead Agent and Live Dashboard | 0/2 | Not started | - |
