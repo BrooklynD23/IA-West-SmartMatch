@@ -142,7 +142,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 07-01-PLAN.md — NemoClaw adapter, swimlane dashboard module, overdue contacts suggestion, multi-step intent, session state extension, CSS rules, and all tests
+- [x] 07-01-PLAN.md — NemoClaw adapter, swimlane dashboard module, overdue contacts suggestion, multi-step intent, session state extension, CSS rules, and all tests
 - [ ] 07-02-PLAN.md — Wire all Phase 7 modules into Command Center: swimlane polling, TTS on completion, demo hints, overdue contacts injection, multi-step dispatch, and integration tests
 
 ## Progress
@@ -158,4 +158,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 4. Voice I/O Foundation | 2/3 | In Progress|  |
 | 5. Coordinator Core and HITL Approval Gate | 2/2 | Complete   | 2026-03-24 |
 | 6. Agent Tool Wrappers and Result Bus | 2/2 | Complete   | 2026-03-24 |
-| 7. NemoClaw Lead Agent and Live Dashboard | 0/2 | Not started | - |
+| 7. NemoClaw Lead Agent and Live Dashboard | 1/2 | In Progress|  |

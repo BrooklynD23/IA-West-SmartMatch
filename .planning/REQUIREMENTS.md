@@ -35,9 +35,9 @@
 
 ### Agent Orchestration
 
-- [ ] **ORCH-01**: Existing SmartMatch discovery, matching, and outreach functions are wrapped as agent-callable tool services
-- [ ] **ORCH-02**: NemoClaw/OpenClaw dispatches sub-agents for webscraping, matching, and outreach tasks
-- [ ] **ORCH-03**: Sub-agents can run in parallel with independent status tracking
+- [x] **ORCH-01**: Existing SmartMatch discovery, matching, and outreach functions are wrapped as agent-callable tool services
+- [x] **ORCH-02**: NemoClaw/OpenClaw dispatches sub-agents for webscraping, matching, and outreach tasks
+- [x] **ORCH-03**: Sub-agents can run in parallel with independent status tracking
 - [x] **ORCH-04**: Jarvis proactively suggests actions when data is stale or follow-ups are overdue
 
 ### Human-in-the-Loop
@@ -48,15 +48,15 @@
 
 ### Dashboard
 
-- [ ] **DASH-01**: Visual command center shows per-agent swimlane cards with idle/running/awaiting/complete status
-- [ ] **DASH-02**: Dashboard updates in real-time as agents dispatch, execute, and return results
+- [x] **DASH-01**: Visual command center shows per-agent swimlane cards with idle/running/awaiting/complete status
+- [x] **DASH-02**: Dashboard updates in real-time as agents dispatch, execute, and return results
 - [ ] **DASH-03**: Command center integrates into existing Streamlit app as a new tab
 
 ### Contact Management
 
-- [ ] **POC-01**: Coordinator can view and manage POC contacts with communication history
-- [ ] **POC-02**: Coordinator can track follow-up reminders and see overdue contacts
-- [ ] **POC-03**: Jarvis surfaces POC follow-up status as part of proactive suggestions
+- [x] **POC-01**: Coordinator can view and manage POC contacts with communication history
+- [x] **POC-02**: Coordinator can track follow-up reminders and see overdue contacts
+- [x] **POC-03**: Jarvis surfaces POC follow-up status as part of proactive suggestions
 
 ## Future Requirements
 
@@ -105,15 +105,15 @@
 | HITL-02 | Phase 5 | Complete |
 | HITL-03 | Phase 5 | Complete |
 | ORCH-04 | Phase 5 | Complete |
-| ORCH-01 | Phase 6 | Pending |
-| ORCH-02 | Phase 6 | Pending |
-| ORCH-03 | Phase 6 | Pending |
-| POC-01 | Phase 6 | Pending |
-| POC-02 | Phase 6 | Pending |
-| DASH-01 | Phase 7 | Pending |
-| DASH-02 | Phase 7 | Pending |
+| ORCH-01 | Phase 6 | Complete |
+| ORCH-02 | Phase 6 | Complete |
+| ORCH-03 | Phase 6 | Complete |
+| POC-01 | Phase 6 | Complete |
+| POC-02 | Phase 6 | Complete |
+| DASH-01 | Phase 7 | Complete |
+| DASH-02 | Phase 7 | Complete |
 | DASH-03 | Phase 7 | Pending |
-| POC-03 | Phase 7 | Pending |
+| POC-03 | Phase 7 | Complete |
 
 **Coverage:**
 - v1 requirements: 9 total (9 complete)
