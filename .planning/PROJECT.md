@@ -39,8 +39,8 @@ A coordinator can use voice or text to command an AI assistant that orchestrates
 - [ ] NemoClaw sub-agent orchestration for webscraping, matching, outreach, and POC management
 - [x] Human-in-the-loop approval workflow — all agent actions require coordinator sign-off — Validated in Phase 5: Coordinator Core and HITL Approval Gate (stub execution, human UAT deferred)
 - [x] Visual multi-agent orchestration dashboard ("command center") in Streamlit — Validated in Phase 4: Voice I/O Foundation (Command Center tab)
-- [ ] Existing SmartMatch capabilities wrapped as agent-callable services
-- [ ] POC contact management with communication history and follow-up tracking
+- [x] Existing SmartMatch capabilities wrapped as agent-callable services — Validated in Phase 6: Agent Tool Wrappers and Result Bus (direct dispatch, human UAT deferred)
+- [x] POC contact management with communication history and follow-up tracking — Validated in Phase 6: Agent Tool Wrappers and Result Bus (5 seed contacts, overdue badges)
 
 ### Out of Scope
 
