@@ -12,9 +12,12 @@ import streamlit as st
 
 from src.coordinator.approval import ActionProposal
 from src.coordinator.intent_parser import ParsedIntent
+from src.coordinator.tools import TOOL_REGISTRY
 from src.ui.command_center import (
+    _format_result,
     _handle_text_command,
     _inject_proactive_suggestions,
+    _poll_result_bus,
     _render_action_card,
     _render_conversation_history,
 )
@@ -144,6 +147,8 @@ class TestRenderActionCard:
     def setup_method(self) -> None:
         _reset_history()
         st.button.reset_mock()  # type: ignore[attr-defined]
+        st.button.side_effect = None  # type: ignore[attr-defined]
+        st.button.return_value = False  # type: ignore[attr-defined]
         st.success.reset_mock()  # type: ignore[attr-defined]
         st.warning.reset_mock()  # type: ignore[attr-defined]
         st.info.reset_mock()  # type: ignore[attr-defined]
@@ -306,3 +311,138 @@ class TestRenderConversationHistory:
         all_calls = st.markdown.call_args_list
         rendered_html = " ".join(str(c) for c in all_calls)
         assert "No conversation yet" not in rendered_html
+
+
+# ── Tests: dispatch wiring ───────────────────────────────────────────────────
+
+
+class TestDispatchWiring:
+    def setup_method(self) -> None:
+        _reset_history()
+        st.button.reset_mock()  # type: ignore[attr-defined]
+        st.button.side_effect = None  # type: ignore[attr-defined]
+        st.button.return_value = False  # type: ignore[attr-defined]
+        st.success.reset_mock()  # type: ignore[attr-defined]
+        st.info.reset_mock()  # type: ignore[attr-defined]
+        st.error.reset_mock()  # type: ignore[attr-defined]
+        st.container.reset_mock()  # type: ignore[attr-defined]
+        st.columns.reset_mock()  # type: ignore[attr-defined]
+        st.expander.reset_mock()  # type: ignore[attr-defined]
+
+    @patch("src.ui.command_center.dispatch")
+    def test_approve_dispatches_real_tool(self, mock_dispatch: MagicMock) -> None:
+        """Approve button calls dispatch() with correct args for known intent."""
+        p = ActionProposal(
+            intent="discover_events",
+            agent="Discovery Agent",
+            description="Find events",
+            reasoning="test",
+            params={"university": "CPP"},
+        )
+        st.session_state["action_proposals"] = {p.id: p}
+        # Return True only for the approve button key, False for reject
+        def _button_side_effect(label, key=None, **kwargs):
+            return key == f"approve_{p.id}"
+        st.button.side_effect = _button_side_effect  # type: ignore[attr-defined]
+        _render_action_card(p)
+        mock_dispatch.assert_called_once_with(
+            p.id, TOOL_REGISTRY["discover_events"], p.params
+        )
+        assert p.status == "executing"
+
+    @patch("src.ui.command_center.dispatch")
+    def test_approve_unknown_intent_uses_stub(self, mock_dispatch: MagicMock) -> None:
+        """Approve button falls back to stub_execute() for unknown intents."""
+        p = ActionProposal(
+            intent="unknown_intent_xyz",
+            agent="Jarvis",
+            description="Unknown action",
+            reasoning="test",
+            params={},
+        )
+        st.session_state["action_proposals"] = {p.id: p}
+        # Return True only for the approve button key, False for reject
+        def _button_side_effect(label, key=None, **kwargs):
+            return key == f"approve_{p.id}"
+        st.button.side_effect = _button_side_effect  # type: ignore[attr-defined]
+        _render_action_card(p)
+        mock_dispatch.assert_not_called()
+        assert p.status == "completed"
+
+
+# ── Tests: _format_result ────────────────────────────────────────────────────
+
+
+class TestFormatResult:
+    def test_format_result_events(self) -> None:
+        """Events result returns count and source."""
+        result = _format_result({"status": "ok", "events": [{"name": "Fair"}], "source": "cache"})
+        assert "1 event(s)" in result
+        assert "cache" in result
+
+    def test_format_result_rankings(self) -> None:
+        """Rankings result returns speaker count."""
+        result = _format_result({"status": "ok", "rankings": [{}, {}]})
+        assert "2 speaker(s)" in result
+
+    def test_format_result_contacts(self) -> None:
+        """Contacts result returns total and overdue count."""
+        result = _format_result({"status": "ok", "contacts": [], "total": 5, "overdue_count": 2})
+        assert "5 contacts" in result
+        assert "2 overdue" in result
+
+    def test_format_result_email(self) -> None:
+        """Email result returns subject line."""
+        result = _format_result({"status": "ok", "email": {"subject": "Hello CPP"}})
+        assert "Hello CPP" in result
+
+    def test_format_result_error(self) -> None:
+        """Error key returns error message."""
+        result = _format_result({"error": "timeout"})
+        assert "timeout" in result
+
+
+# ── Tests: _poll_result_bus ──────────────────────────────────────────────────
+
+
+class TestPollResultBus:
+    def setup_method(self) -> None:
+        _reset_history()
+
+    @patch("src.ui.command_center.poll_results")
+    def test_poll_result_bus_updates_proposal(self, mock_poll: MagicMock) -> None:
+        """Polling completed result sets proposal status to completed."""
+        p = ActionProposal(
+            intent="discover_events",
+            agent="Discovery Agent",
+            description="Find events",
+            reasoning="test",
+            params={},
+        )
+        p.status = "executing"  # type: ignore[assignment]
+        st.session_state["action_proposals"] = {p.id: p}
+        mock_poll.return_value = [
+            (p.id, {"status": "completed", "result": {"events": [], "source": "cache"}})
+        ]
+        _poll_result_bus()
+        assert p.status == "completed"
+        assert "event(s)" in p.result
+
+    @patch("src.ui.command_center.poll_results")
+    def test_poll_result_bus_handles_failure(self, mock_poll: MagicMock) -> None:
+        """Polling failed result sets proposal status to failed with error in result."""
+        p = ActionProposal(
+            intent="discover_events",
+            agent="Discovery Agent",
+            description="Find events",
+            reasoning="test",
+            params={},
+        )
+        p.status = "executing"  # type: ignore[assignment]
+        st.session_state["action_proposals"] = {p.id: p}
+        mock_poll.return_value = [
+            (p.id, {"status": "failed", "error": "timeout"})
+        ]
+        _poll_result_bus()
+        assert p.status == "failed"
+        assert "timeout" in p.result
