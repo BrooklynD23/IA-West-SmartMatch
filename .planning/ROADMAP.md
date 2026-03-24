@@ -27,7 +27,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Voice I/O Foundation** - Validate KittenTTS (TTS) and faster-whisper (STT) on demo hardware; deliver a working voice panel with text fallback before any agent complexity is added.
 - [x] **Phase 5: Coordinator Core and HITL Approval Gate** - Implement the Gemini-powered intent parser and the approval state machine; prove the full voice → intent → propose → approve/reject cycle with stubbed agent execution. (completed 2026-03-24)
 - [x] **Phase 6: Agent Tool Wrappers and Result Bus** - Wrap existing SmartMatch services as OpenClaw-callable tools; establish background-threading safety; add POC contact data layer; deliver direct-dispatch fallback path. (completed 2026-03-24)
-- [ ] **Phase 7: NemoClaw Lead Agent and Live Dashboard** - Integrate NemoClaw orchestrator; complete the Command Center with real-time per-agent status; add proactive Jarvis suggestions; deliver end-to-end demo.
+- [x] **Phase 7: NemoClaw Lead Agent and Live Dashboard** - Integrate NemoClaw orchestrator; complete the Command Center with real-time per-agent status; add proactive Jarvis suggestions; deliver end-to-end demo. (completed 2026-03-24)
 
 ## Phase Details
 
@@ -143,7 +143,7 @@ Plans:
 
 Plans:
 - [x] 07-01-PLAN.md — NemoClaw adapter, swimlane dashboard module, overdue contacts suggestion, multi-step intent, session state extension, CSS rules, and all tests
-- [ ] 07-02-PLAN.md — Wire all Phase 7 modules into Command Center: swimlane polling, TTS on completion, demo hints, overdue contacts injection, multi-step dispatch, and integration tests
+- [x] 07-02-PLAN.md — Wire all Phase 7 modules into Command Center: swimlane polling, TTS on completion, demo hints, overdue contacts injection, multi-step dispatch, and integration tests
 
 ## Progress
 
@@ -158,4 +158,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 4. Voice I/O Foundation | 2/3 | In Progress|  |
 | 5. Coordinator Core and HITL Approval Gate | 2/2 | Complete   | 2026-03-24 |
 | 6. Agent Tool Wrappers and Result Bus | 2/2 | Complete   | 2026-03-24 |
-| 7. NemoClaw Lead Agent and Live Dashboard | 1/2 | In Progress|  |
+| 7. NemoClaw Lead Agent and Live Dashboard | 2/2 | Complete   | 2026-03-24 |
