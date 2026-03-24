@@ -94,7 +94,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Voice service modules (TTS + STT) with tests and dependencies
+- [x] 04-01-PLAN.md — Voice service modules (TTS + STT) with tests and dependencies
 - [x] 04-02-PLAN.md — Command Center UI tab with text input, echo replies, and conversation history
 - [ ] 04-03-PLAN.md — Integration wiring: TTS + STT + push-to-talk into Command Center tab in app.py
 
@@ -143,7 +143,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 1. Runtime Fixes and Clean Outputs | 3/3 | Complete | 2026-03-20 |
 | 2. Documentation and Governance Reconciliation | 2/2 | Complete | 2026-03-20 |
 | 3. Adversarial Audit and Sprint Closure | 3/3 | Complete | 2026-03-21 |
-| 4. Voice I/O Foundation | 1/3 | In Progress|  |
+| 4. Voice I/O Foundation | 2/3 | In Progress|  |
 | 5. Coordinator Core and HITL Approval Gate | 0/TBD | Not started | - |
 | 6. Agent Tool Wrappers and Result Bus | 0/TBD | Not started | - |
 | 7. NemoClaw Lead Agent and Live Dashboard | 0/TBD | Not started | - |

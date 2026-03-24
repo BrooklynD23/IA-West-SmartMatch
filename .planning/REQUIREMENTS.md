@@ -29,8 +29,8 @@
 ### Voice I/O
 
 - [x] **VOICE-01**: Coordinator can type text commands in a Command Center tab and receive parsed intent responses
-- [ ] **VOICE-02**: Coordinator can hear Jarvis speak responses via KittenTTS voice synthesis
-- [ ] **VOICE-03**: Coordinator can use push-to-talk to speak commands, transcribed via faster-whisper STT
+- [x] **VOICE-02**: Coordinator can hear Jarvis speak responses via KittenTTS voice synthesis
+- [x] **VOICE-03**: Coordinator can use push-to-talk to speak commands, transcribed via faster-whisper STT
 - [x] **VOICE-04**: Coordinator can see full conversation history (voice + text) in the Command Center
 
 ### Agent Orchestration
@@ -98,8 +98,8 @@
 | REV-01 | Phase 3 (v1) | Complete |
 | REV-02 | Phase 3 (v1) | Complete |
 | VOICE-01 | Phase 4 | Complete |
-| VOICE-02 | Phase 4 | Pending |
-| VOICE-03 | Phase 4 | Pending |
+| VOICE-02 | Phase 4 | Complete |
+| VOICE-03 | Phase 4 | Complete |
 | VOICE-04 | Phase 4 | Complete |
 | HITL-01 | Phase 5 | Pending |
 | HITL-02 | Phase 5 | Pending |
