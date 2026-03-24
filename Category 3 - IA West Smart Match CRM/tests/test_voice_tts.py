@@ -1,10 +1,28 @@
 """Unit tests for TTS service module (src/voice/tts.py)."""
 
 import io
+import wave
 from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
+
+
+def _make_real_wav_bytes(num_frames: int = 4800, sample_rate: int = 24000) -> bytes:
+    """Build a minimal valid WAV file in memory for testing."""
+    buf = io.BytesIO()
+    with wave.open(buf, "wb") as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)  # 16-bit
+        wf.setframerate(sample_rate)
+        wf.writeframes(b"\x00\x00" * num_frames)
+    return buf.getvalue()
+
+
+def _sf_write_side_effect(buffer: io.BytesIO, audio: np.ndarray, samplerate: int, format: str) -> None:
+    """Side effect for soundfile.write mock: writes a real WAV header."""
+    wav_bytes = _make_real_wav_bytes(len(audio), samplerate)
+    buffer.write(wav_bytes)
 
 
 class TestSynthesizeToWavBytes:
@@ -17,7 +35,9 @@ class TestSynthesizeToWavBytes:
         mock_model = MagicMock()
         mock_model.generate.return_value = np.zeros(4800, dtype=np.float32)
 
-        result = synthesize_to_wav_bytes("Hello world.", mock_model, voice="Bella")
+        with patch("src.voice.tts.sf") as mock_sf:
+            mock_sf.write.side_effect = _sf_write_side_effect
+            result = synthesize_to_wav_bytes("Hello world.", mock_model, voice="Bella")
 
         assert isinstance(result, bytes)
         assert result[:4] == b"RIFF"
@@ -45,7 +65,9 @@ class TestSynthesizeToWavBytes:
         mock_model = MagicMock()
         mock_model.generate.return_value = np.zeros(4800, dtype=np.float32)
 
-        synthesize_to_wav_bytes("Test sentence.", mock_model, voice="Bella")
+        with patch("src.voice.tts.sf") as mock_sf:
+            mock_sf.write.side_effect = _sf_write_side_effect
+            synthesize_to_wav_bytes("Test sentence.", mock_model, voice="Bella")
 
         mock_model.generate.assert_called_once_with("Test sentence.", voice="Bella")
 
