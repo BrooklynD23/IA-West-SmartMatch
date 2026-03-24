@@ -38,11 +38,11 @@ created: 2026-03-23
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 04-01-01 | 01 | 1 | VOICE-01 | unit | `pytest tests/test_command_center.py -x` | W0 in plan | ⬜ pending |
-| 04-01-02 | 01 | 1 | VOICE-04 | unit | `pytest tests/test_command_center.py -x` | W0 in plan | ⬜ pending |
-| 04-02-01 | 02 | 1 | VOICE-02 | unit | `pytest tests/test_voice_tts.py -x` | W0 in plan | ⬜ pending |
+| 04-01-01 | 01 | 1 | VOICE-01 | unit | `pytest tests/test_voice_tts.py -x` | W0 in plan | ⬜ pending |
+| 04-01-02 | 01 | 1 | VOICE-04 | unit | `pytest tests/test_voice_stt.py -x` | W0 in plan | ⬜ pending |
+| 04-02-01 | 02 | 1 | VOICE-02 | unit | `pytest tests/test_command_center.py -x` | W0 in plan | ⬜ pending |
 | 04-02-02 | 02 | 1 | VOICE-02 | manual | Browser TTS playback | N/A | ⬜ pending |
-| 04-03-01 | 03 | 2 | VOICE-03 | unit | `pytest tests/test_voice_stt.py -x` | W0 in plan | ⬜ pending |
+| 04-03-01 | 03 | 2 | VOICE-03 | unit | `pytest tests/test_command_center.py -x` | W0 in plan | ⬜ pending |
 | 04-03-02 | 03 | 2 | VOICE-03 | manual | Browser mic capture | N/A | ⬜ pending |
 | 04-ALL | ALL | ALL | baseline | regression | `pytest tests/ -x` (392 pass) | yes | ⬜ pending |
 
