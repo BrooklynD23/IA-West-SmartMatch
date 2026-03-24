@@ -35,10 +35,10 @@ A coordinator can use voice or text to command an AI assistant that orchestrates
 
 ### Active
 
-- [ ] Full-duplex voice + text coordinator interface via KittenTTS
+- [x] Full-duplex voice + text coordinator interface via KittenTTS — Validated in Phase 4: Voice I/O Foundation (human UAT deferred)
 - [ ] NemoClaw sub-agent orchestration for webscraping, matching, outreach, and POC management
 - [ ] Human-in-the-loop approval workflow — all agent actions require coordinator sign-off
-- [ ] Visual multi-agent orchestration dashboard ("command center") in Streamlit
+- [x] Visual multi-agent orchestration dashboard ("command center") in Streamlit — Validated in Phase 4: Voice I/O Foundation (Command Center tab)
 - [ ] Existing SmartMatch capabilities wrapped as agent-callable services
 - [ ] POC contact management with communication history and follow-up tracking
 
@@ -93,4 +93,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-23 after v2.0 Jarvis Agent Coordinator milestone start*
+*Last updated: 2026-03-24 after Phase 4 Voice I/O Foundation completion*
