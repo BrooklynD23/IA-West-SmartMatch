@@ -446,3 +446,288 @@ class TestPollResultBus:
         _poll_result_bus()
         assert p.status == "failed"
         assert "timeout" in p.result
+
+
+# ── Tests: swimlane poll wiring ───────────────────────────────────────────────
+
+
+class TestSwimlanePollWiring:
+    def setup_method(self) -> None:
+        _reset_history()
+        st.session_state["agent_swimlanes"] = {}
+
+    @patch("src.ui.command_center.render_swimlane_dashboard")
+    @patch("src.ui.command_center._update_swimlane")
+    @patch("src.ui.command_center._speak_text")
+    @patch("src.ui.command_center.poll_results")
+    def test_poll_updates_swimlane_on_completed(
+        self,
+        mock_poll: MagicMock,
+        mock_speak: MagicMock,
+        mock_update: MagicMock,
+        mock_render: MagicMock,
+    ) -> None:
+        """_poll_result_bus with a completed payload calls _update_swimlane with status='completed'."""
+        p = ActionProposal(
+            intent="discover_events",
+            agent="Discovery Agent",
+            description="Find events",
+            reasoning="test",
+            params={},
+        )
+        p.status = "executing"  # type: ignore[assignment]
+        st.session_state["action_proposals"] = {p.id: p}
+        mock_poll.return_value = [
+            (p.id, {"status": "completed", "result": {"events": [1, 2], "source": "cache"}})
+        ]
+        _poll_result_bus()
+        mock_update.assert_called_once_with(
+            p.id, "completed", p.result, agent_name=p.agent
+        )
+
+    @patch("src.ui.command_center.render_swimlane_dashboard")
+    @patch("src.ui.command_center._update_swimlane")
+    @patch("src.ui.command_center._speak_text")
+    @patch("src.ui.command_center.poll_results")
+    def test_poll_updates_swimlane_on_failed(
+        self,
+        mock_poll: MagicMock,
+        mock_speak: MagicMock,
+        mock_update: MagicMock,
+        mock_render: MagicMock,
+    ) -> None:
+        """_poll_result_bus with a failed payload calls _update_swimlane with status='failed'."""
+        p = ActionProposal(
+            intent="discover_events",
+            agent="Discovery Agent",
+            description="Find events",
+            reasoning="test",
+            params={},
+        )
+        p.status = "executing"  # type: ignore[assignment]
+        st.session_state["action_proposals"] = {p.id: p}
+        mock_poll.return_value = [
+            (p.id, {"status": "failed", "error": "boom"})
+        ]
+        _poll_result_bus()
+        mock_update.assert_called_once_with(p.id, "failed", p.result, agent_name=p.agent)
+
+    @patch("src.ui.command_center.render_swimlane_dashboard")
+    @patch("src.ui.command_center._update_swimlane")
+    @patch("src.ui.command_center._speak_text")
+    @patch("src.ui.command_center.poll_results")
+    def test_poll_calls_speak_on_completed(
+        self,
+        mock_poll: MagicMock,
+        mock_speak: MagicMock,
+        mock_update: MagicMock,
+        mock_render: MagicMock,
+    ) -> None:
+        """_poll_result_bus with completed payload calls _speak_text with the formatted result."""
+        p = ActionProposal(
+            intent="discover_events",
+            agent="Discovery Agent",
+            description="Find events",
+            reasoning="test",
+            params={},
+        )
+        p.status = "executing"  # type: ignore[assignment]
+        st.session_state["action_proposals"] = {p.id: p}
+        mock_poll.return_value = [
+            (p.id, {"status": "completed", "result": {"events": [1, 2], "source": "cache"}})
+        ]
+        _poll_result_bus()
+        mock_speak.assert_called_once_with(p.result)
+
+    @patch("src.ui.command_center.render_swimlane_dashboard")
+    @patch("src.ui.command_center._update_swimlane")
+    @patch("src.ui.command_center.poll_results")
+    def test_poll_renders_swimlane(
+        self,
+        mock_poll: MagicMock,
+        mock_update: MagicMock,
+        mock_render: MagicMock,
+    ) -> None:
+        """After _poll_result_bus(), render_swimlane_dashboard is always called."""
+        mock_poll.return_value = []
+        _poll_result_bus()
+        mock_render.assert_called_once()
+
+
+# ── Tests: overdue contacts injection ────────────────────────────────────────
+
+
+class TestOverdueContactsInjection:
+    def setup_method(self) -> None:
+        _reset_history()
+        st.session_state["poc_contacts"] = []
+
+    def test_injects_overdue_when_no_staleness(self) -> None:
+        """Overdue contacts injected when events are fresh but contacts are overdue."""
+        import datetime
+        st.session_state["scraped_events"] = [{"name": "Event 1"}]
+        st.session_state["scraped_events_timestamp"] = datetime.datetime.now().isoformat()
+        st.session_state["poc_contacts"] = [{"name": "Dr. Smith", "follow_up_due": "2020-01-01"}]
+        _inject_proactive_suggestions()
+        proposals = st.session_state["action_proposals"]
+        assert len(proposals) == 1
+        proposal = list(proposals.values())[0]
+        assert proposal.intent == "check_contacts"
+
+    def test_skips_overdue_when_stale(self) -> None:
+        """Staleness suggestion takes priority — overdue contacts NOT injected when data is stale."""
+        st.session_state["scraped_events"] = []  # triggers staleness
+        st.session_state["scraped_events_timestamp"] = None
+        st.session_state["poc_contacts"] = [{"name": "Dr. Smith", "follow_up_due": "2020-01-01"}]
+        _inject_proactive_suggestions()
+        proposals = st.session_state["action_proposals"]
+        assert len(proposals) == 1
+        proposal = list(proposals.values())[0]
+        assert proposal.intent == "discover_events"
+
+    def test_guard_prevents_duplicate(self) -> None:
+        """Active proactive proposal blocks injection of new overdue contacts suggestion."""
+        import datetime
+        existing = ActionProposal(
+            intent="check_contacts",
+            agent="Contacts Agent",
+            description="overdue contacts",
+            reasoning="overdue",
+            source="proactive",
+        )
+        st.session_state["action_proposals"] = {existing.id: existing}
+        st.session_state["scraped_events"] = [{"name": "Event 1"}]
+        st.session_state["scraped_events_timestamp"] = datetime.datetime.now().isoformat()
+        st.session_state["poc_contacts"] = [{"name": "Dr. Smith", "follow_up_due": "2020-01-01"}]
+        _inject_proactive_suggestions()
+        # No new proposals should have been added
+        assert len(st.session_state["action_proposals"]) == 1
+
+
+# ── Tests: demo hint chips ────────────────────────────────────────────────────
+
+
+class TestDemoHintChips:
+    def setup_method(self) -> None:
+        _reset_history()
+        st.button.reset_mock()  # type: ignore[attr-defined]
+        st.button.side_effect = None  # type: ignore[attr-defined]
+        st.button.return_value = False  # type: ignore[attr-defined]
+        st.markdown.reset_mock()  # type: ignore[attr-defined]
+        st.columns.reset_mock()  # type: ignore[attr-defined]
+
+    def test_hints_shown_empty_history(self) -> None:
+        """Empty conversation history renders demo hint buttons."""
+        st.session_state["conversation_history"] = []
+        _render_conversation_history()
+        # Check that st.button was called with hint labels
+        call_args_labels = [c[0][0] for c in st.button.call_args_list if c[0]]
+        assert "Find new events" in call_args_labels
+        assert "Rank speakers for CPP Career Fair" in call_args_labels
+        assert "Prepare full outreach campaign" in call_args_labels
+
+    def test_hints_hidden_nonempty_history(self) -> None:
+        """Non-empty history does NOT render hint buttons."""
+        st.session_state["conversation_history"] = [
+            {"role": "user", "text": "hi", "intent": None, "timestamp": "12:00:00"}
+        ]
+        _render_conversation_history()
+        call_args_labels = [c[0][0] for c in st.button.call_args_list if c[0]]
+        assert "Find new events" not in call_args_labels
+        assert "Rank speakers for CPP Career Fair" not in call_args_labels
+        assert "Prepare full outreach campaign" not in call_args_labels
+
+
+# ── Tests: multi-step intent ──────────────────────────────────────────────────
+
+
+class TestMultiStepIntent:
+    def setup_method(self) -> None:
+        _reset_history()
+        st.rerun.reset_mock()  # type: ignore[attr-defined]
+
+    @patch("src.ui.command_center.parse_intent")
+    def test_prepare_campaign_creates_3_proposals(self, mock_parse: MagicMock) -> None:
+        """prepare_campaign intent creates 3 sub-proposals in action_proposals."""
+        mock_parse.return_value = ParsedIntent(
+            intent="prepare_campaign",
+            agent="Campaign Orchestrator",
+            params={},
+            reasoning="campaign",
+            raw_text="prepare",
+        )
+        _handle_text_command("prepare for CPP")
+        proposals = st.session_state["action_proposals"]
+        assert len(proposals) == 3
+
+    @patch("src.ui.command_center.parse_intent")
+    def test_prepare_campaign_3_history_entries(self, mock_parse: MagicMock) -> None:
+        """prepare_campaign intent creates 3 role='proposal' entries plus 1 user entry."""
+        mock_parse.return_value = ParsedIntent(
+            intent="prepare_campaign",
+            agent="Campaign Orchestrator",
+            params={},
+            reasoning="campaign",
+            raw_text="prepare",
+        )
+        _handle_text_command("prepare for CPP")
+        history = st.session_state["conversation_history"]
+        # 1 user entry + 3 proposal entries
+        assert len(history) == 4
+        proposal_entries = [e for e in history if e["role"] == "proposal"]
+        assert len(proposal_entries) == 3
+
+    @patch("src.ui.command_center.parse_intent")
+    def test_prepare_campaign_sub_intents_correct(self, mock_parse: MagicMock) -> None:
+        """The 3 sub-proposals have the expected sub-intents."""
+        mock_parse.return_value = ParsedIntent(
+            intent="prepare_campaign",
+            agent="Campaign Orchestrator",
+            params={},
+            reasoning="campaign",
+            raw_text="prepare",
+        )
+        _handle_text_command("prepare for CPP")
+        proposals = st.session_state["action_proposals"]
+        intents = {p.intent for p in proposals.values()}
+        assert intents == {"discover_events", "rank_speakers", "generate_outreach"}
+
+
+# ── Tests: swimlane on approve ────────────────────────────────────────────────
+
+
+class TestSwimlanOnApprove:
+    def setup_method(self) -> None:
+        _reset_history()
+        st.button.reset_mock()  # type: ignore[attr-defined]
+        st.button.side_effect = None  # type: ignore[attr-defined]
+        st.button.return_value = False  # type: ignore[attr-defined]
+        st.container.reset_mock()  # type: ignore[attr-defined]
+        st.columns.reset_mock()  # type: ignore[attr-defined]
+        st.expander.reset_mock()  # type: ignore[attr-defined]
+        st.markdown.reset_mock()  # type: ignore[attr-defined]
+        st.caption.reset_mock()  # type: ignore[attr-defined]
+
+    @patch("src.ui.command_center._update_swimlane")
+    @patch("src.ui.command_center.dispatch")
+    def test_approve_sets_swimlane_executing(
+        self,
+        mock_dispatch: MagicMock,
+        mock_update: MagicMock,
+    ) -> None:
+        """Approve button sets swimlane entry to status 'executing' before dispatch."""
+        p = ActionProposal(
+            intent="discover_events",
+            agent="Discovery Agent",
+            description="Find events",
+            reasoning="test",
+            params={"university": "CPP"},
+        )
+        st.session_state["action_proposals"] = {p.id: p}
+
+        def _button_side_effect(label, key=None, **kwargs):
+            return key == f"approve_{p.id}"
+
+        st.button.side_effect = _button_side_effect  # type: ignore[attr-defined]
+        _render_action_card(p)
+        mock_update.assert_called_with(p.id, "executing", "Running...", agent_name=p.agent)
