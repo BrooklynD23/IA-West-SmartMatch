@@ -108,7 +108,11 @@ Plans:
   3. Coordinator can click Reject on a proposed action card and confirm that no agent execution is triggered.
   4. Coordinator can edit the parameters of a proposed action before approving it, and the edited values are what gets executed.
   5. Jarvis proactively surfaces a suggested action (e.g. "discovery data is stale — re-run scraper?") when a data staleness condition is detected, and that suggestion follows the same approve/reject flow.
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [x] 05-01-PLAN.md — Coordinator core modules: approval state machine, intent parser, proactive suggestions (pure Python + tests)
+- [ ] 05-02-PLAN.md — UI integration: action cards, approve/reject buttons, proactive injection into Command Center
 
 ### Phase 6: Agent Tool Wrappers and Result Bus
 **Goal**: Approved actions dispatch to real SmartMatch services running in background threads, results return to the Command Center without blocking the Streamlit script thread, and all 392 existing tests still pass with zero signature changes to existing functions.
@@ -144,6 +148,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 2. Documentation and Governance Reconciliation | 2/2 | Complete | 2026-03-20 |
 | 3. Adversarial Audit and Sprint Closure | 3/3 | Complete | 2026-03-21 |
 | 4. Voice I/O Foundation | 2/3 | In Progress|  |
-| 5. Coordinator Core and HITL Approval Gate | 0/TBD | Not started | - |
+| 5. Coordinator Core and HITL Approval Gate | 1/2 | In Progress|  |
 | 6. Agent Tool Wrappers and Result Bus | 0/TBD | Not started | - |
 | 7. NemoClaw Lead Agent and Live Dashboard | 0/TBD | Not started | - |

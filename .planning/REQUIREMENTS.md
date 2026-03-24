@@ -38,13 +38,13 @@
 - [ ] **ORCH-01**: Existing SmartMatch discovery, matching, and outreach functions are wrapped as agent-callable tool services
 - [ ] **ORCH-02**: NemoClaw/OpenClaw dispatches sub-agents for webscraping, matching, and outreach tasks
 - [ ] **ORCH-03**: Sub-agents can run in parallel with independent status tracking
-- [ ] **ORCH-04**: Jarvis proactively suggests actions when data is stale or follow-ups are overdue
+- [x] **ORCH-04**: Jarvis proactively suggests actions when data is stale or follow-ups are overdue
 
 ### Human-in-the-Loop
 
-- [ ] **HITL-01**: Every agent action displays a proposed action card with agent name, action description, and reasoning
-- [ ] **HITL-02**: Coordinator can approve, reject, or edit parameters on any proposed action before execution
-- [ ] **HITL-03**: No agent action executes without explicit coordinator approval
+- [x] **HITL-01**: Every agent action displays a proposed action card with agent name, action description, and reasoning
+- [x] **HITL-02**: Coordinator can approve, reject, or edit parameters on any proposed action before execution
+- [x] **HITL-03**: No agent action executes without explicit coordinator approval
 
 ### Dashboard
 
@@ -101,10 +101,10 @@
 | VOICE-02 | Phase 4 | Complete |
 | VOICE-03 | Phase 4 | Complete |
 | VOICE-04 | Phase 4 | Complete |
-| HITL-01 | Phase 5 | Pending |
-| HITL-02 | Phase 5 | Pending |
-| HITL-03 | Phase 5 | Pending |
-| ORCH-04 | Phase 5 | Pending |
+| HITL-01 | Phase 5 | Complete |
+| HITL-02 | Phase 5 | Complete |
+| HITL-03 | Phase 5 | Complete |
+| ORCH-04 | Phase 5 | Complete |
 | ORCH-01 | Phase 6 | Pending |
 | ORCH-02 | Phase 6 | Pending |
 | ORCH-03 | Phase 6 | Pending |
