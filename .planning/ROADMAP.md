@@ -26,7 +26,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 4: Voice I/O Foundation** - Validate KittenTTS (TTS) and faster-whisper (STT) on demo hardware; deliver a working voice panel with text fallback before any agent complexity is added.
 - [x] **Phase 5: Coordinator Core and HITL Approval Gate** - Implement the Gemini-powered intent parser and the approval state machine; prove the full voice → intent → propose → approve/reject cycle with stubbed agent execution. (completed 2026-03-24)
-- [ ] **Phase 6: Agent Tool Wrappers and Result Bus** - Wrap existing SmartMatch services as OpenClaw-callable tools; establish background-threading safety; add POC contact data layer; deliver direct-dispatch fallback path.
+- [x] **Phase 6: Agent Tool Wrappers and Result Bus** - Wrap existing SmartMatch services as OpenClaw-callable tools; establish background-threading safety; add POC contact data layer; deliver direct-dispatch fallback path. (completed 2026-03-24)
 - [ ] **Phase 7: NemoClaw Lead Agent and Live Dashboard** - Integrate NemoClaw orchestrator; complete the Command Center with real-time per-agent status; add proactive Jarvis suggestions; deliver end-to-end demo.
 
 ## Phase Details
@@ -128,7 +128,7 @@ Plans:
 
 Plans:
 - [x] 06-01-PLAN.md — Tool wrappers (discovery, matching, outreach, contacts), TOOL_REGISTRY, result bus, POC seed data, and all tests
-- [ ] 06-02-PLAN.md — Wire real dispatch into Command Center UI: polling fragment, result formatting, POC contact display
+- [x] 06-02-PLAN.md — Wire real dispatch into Command Center UI: polling fragment, result formatting, POC contact display
 
 ### Phase 7: NemoClaw Lead Agent and Live Dashboard
 **Goal**: Coordinator experiences the full end-to-end demo: voice command → Jarvis intent → approve → NemoClaw dispatches parallel sub-agents → live per-agent status updates appear in the Command Center → Jarvis speaks the summary result — with a direct-dispatch fallback that activates automatically if NemoClaw is unavailable.
@@ -153,5 +153,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 3. Adversarial Audit and Sprint Closure | 3/3 | Complete | 2026-03-21 |
 | 4. Voice I/O Foundation | 2/3 | In Progress|  |
 | 5. Coordinator Core and HITL Approval Gate | 2/2 | Complete   | 2026-03-24 |
-| 6. Agent Tool Wrappers and Result Bus | 1/2 | In Progress|  |
+| 6. Agent Tool Wrappers and Result Bus | 2/2 | Complete   | 2026-03-24 |
 | 7. NemoClaw Lead Agent and Live Dashboard | 0/TBD | Not started | - |
