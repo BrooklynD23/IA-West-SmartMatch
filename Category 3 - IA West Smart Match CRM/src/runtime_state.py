@@ -46,6 +46,10 @@ def init_runtime_state() -> None:
         st.session_state["generated_email_keys"] = []
     if "conversation_history" not in st.session_state:
         st.session_state["conversation_history"] = []
+    if "action_proposals" not in st.session_state:
+        st.session_state["action_proposals"] = {}
+    if "scraped_events_timestamp" not in st.session_state:
+        st.session_state["scraped_events_timestamp"] = None
     if "tts_model" not in st.session_state:
         st.session_state["tts_model"] = None
     if "stt_model" not in st.session_state:

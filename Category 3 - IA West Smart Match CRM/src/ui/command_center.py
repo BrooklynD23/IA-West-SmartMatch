@@ -9,6 +9,10 @@ import numpy as np
 import soundfile as sf
 import streamlit as st
 
+from src.coordinator.approval import ActionProposal
+from src.coordinator.intent_parser import ACTION_REGISTRY, ParsedIntent, parse_intent
+from src.coordinator.suggestions import check_staleness_conditions
+
 logger = logging.getLogger(__name__)
 
 
@@ -39,6 +43,9 @@ def render_command_center_tab() -> None:
             logger.error("STT model load failed: %s", exc)
             st.warning("Speech recognition unavailable. Please use text commands.")
 
+    # Proactive suggestions
+    _inject_proactive_suggestions()
+
     # Voice panel
     st.markdown('<div class="voice-panel">', unsafe_allow_html=True)
     col_input, col_mic = st.columns([6, 1])
@@ -62,7 +69,7 @@ def render_command_center_tab() -> None:
 
 
 def _handle_text_command(text: str, source: str = "text") -> None:
-    """Add command to history with hardcoded echo reply (Phase 4)."""
+    """Parse intent from command text and create an ActionProposal or unknown reply."""
     ts = datetime.datetime.now().strftime("%H:%M:%S")
 
     history: list[dict] = st.session_state.get("conversation_history", [])
@@ -75,29 +82,128 @@ def _handle_text_command(text: str, source: str = "text") -> None:
         "source": source,
     })
 
-    jarvis_reply = f"Received: {text}"
+    parsed: ParsedIntent = parse_intent(text)
+
+    if parsed.intent == "unknown":
+        unknown_reply = (
+            f"I couldn't understand that command. You said: '{text}'. "
+            "Try rephrasing — for example, 'find new events' or 'rank speakers for event X'."
+        )
+        history.append({
+            "role": "assistant",
+            "text": unknown_reply,
+            "intent": "unknown",
+            "timestamp": ts,
+        })
+        st.session_state["conversation_history"] = history
+
+        # TTS playback for unknown reply
+        _speak_text(unknown_reply)
+
+        st.rerun()
+        return
+
+    # Known intent: create and store action proposal
+    description = next(
+        (a["description"] for a in ACTION_REGISTRY if a["intent"] == parsed.intent),
+        parsed.agent,
+    )
+    proposal = ActionProposal(
+        intent=parsed.intent,
+        agent=parsed.agent,
+        description=description,
+        reasoning=parsed.reasoning,
+        params=parsed.params,
+    )
+    st.session_state["action_proposals"][proposal.id] = proposal
     history.append({
-        "role": "assistant",
-        "text": jarvis_reply,
-        "intent": "echo",
+        "role": "proposal",
+        "action_id": proposal.id,
         "timestamp": ts,
     })
-
     st.session_state["conversation_history"] = history
 
-    # TTS playback -- sentence-chunked per D-02 (split_into_sentences reduces latency)
+    st.rerun()
+
+
+def _speak_text(text: str) -> None:
+    """Speak text via TTS if model is available. Silently skips if unavailable."""
     tts_model = st.session_state.get("tts_model")
     if tts_model:
         try:
             from src.voice.tts import split_into_sentences, synthesize_to_wav_bytes
-            for sentence in split_into_sentences(jarvis_reply):
+            for sentence in split_into_sentences(text):
                 wav_bytes = synthesize_to_wav_bytes(sentence, tts_model, voice="Bella")
                 st.audio(wav_bytes, format="audio/wav", autoplay=True)
         except Exception as exc:
             logger.error("TTS failed: %s", exc)
             st.info("Voice synthesis unavailable. Jarvis response shown as text above.")
 
-    st.rerun()
+
+def _render_action_card(proposal: ActionProposal) -> None:
+    """Render an action card with agent info, status, and approve/reject/edit controls."""
+    with st.container():
+        st.markdown(
+            f"**{proposal.agent}** | Status: `{proposal.status}`",
+            unsafe_allow_html=True,
+        )
+        st.markdown(proposal.description)
+        st.caption(f"Reasoning: {proposal.reasoning}")
+
+        if proposal.status == "proposed":
+            with st.expander("Edit Parameters", expanded=False):
+                for k in list(proposal.params.keys()):
+                    new_val = st.text_input(
+                        k,
+                        value=str(proposal.params[k]),
+                        key=f"param_{proposal.id}_{k}",
+                    )
+                    proposal.params[k] = new_val
+
+            col_approve, col_reject = st.columns(2)
+            with col_approve:
+                if st.button("Approve", key=f"approve_{proposal.id}", type="primary"):
+                    proposal.approve()
+                    proposal.stub_execute()
+                    if proposal.result:
+                        _speak_text(proposal.result)
+                    st.rerun()
+            with col_reject:
+                if st.button("Reject", key=f"reject_{proposal.id}"):
+                    proposal.reject()
+                    st.rerun()
+
+        elif proposal.status == "completed":
+            st.success(f"Result: {proposal.result}")
+
+        elif proposal.status == "rejected":
+            st.warning("Action rejected by coordinator.")
+
+        elif proposal.status in ("approved", "executing"):
+            st.info(f"Status: {proposal.status}...")
+
+
+def _inject_proactive_suggestions() -> None:
+    """Inject proactive suggestions into the conversation if data is stale or empty."""
+    proposals: dict = st.session_state.get("action_proposals", {})
+
+    # Guard: at most one active proactive suggestion
+    for p in proposals.values():
+        if p.source == "proactive" and p.status in ("proposed", "approved"):
+            return
+
+    suggestions = check_staleness_conditions(
+        st.session_state.get("scraped_events", []),
+        st.session_state.get("scraped_events_timestamp"),
+    )
+
+    for suggestion in suggestions:
+        st.session_state["action_proposals"][suggestion.id] = suggestion
+        st.session_state.setdefault("conversation_history", []).append({
+            "role": "proposal",
+            "action_id": suggestion.id,
+            "timestamp": suggestion.created_at,
+        })
 
 
 def _render_push_to_talk() -> None:
@@ -175,6 +281,14 @@ def _render_conversation_history() -> None:
     st.markdown('<div class="chat-container">', unsafe_allow_html=True)
     for entry in history:
         role = entry.get("role", "user")
+
+        if role == "proposal":
+            proposal_id = entry.get("action_id")
+            proposal = st.session_state.get("action_proposals", {}).get(proposal_id)
+            if proposal:
+                _render_action_card(proposal)
+            continue
+
         text = entry.get("text", "")
         intent = entry.get("intent")
         timestamp = entry.get("timestamp", "")
