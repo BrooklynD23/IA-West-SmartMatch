@@ -73,7 +73,7 @@ def _build_body(specialist: dict[str, str]) -> str:
   <div class="flex gap-4">
     <button class="text-slate-600 font-medium px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-all"
             onclick="window.iaSmartMatch.navigate('login'); return false;">Sign in</button>
-    <button class="hero-gradient text-white px-6 py-2 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-[0.98] transition-all"
+    <button class="hero-gradient text-white px-6 py-2 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-[0.98] transition-all whitespace-nowrap text-sm md:text-base"
             onclick="window.iaSmartMatch.navigate('matches', {{role: 'coordinator', demo: true}}); return false;">Add Specialist</button>
   </div>
 </nav>

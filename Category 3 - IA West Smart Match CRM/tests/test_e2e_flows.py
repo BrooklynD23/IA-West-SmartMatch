@@ -121,7 +121,7 @@ def test_workspace_navigation_reaches_all_routed_pages(page: Page) -> None:
         ("Discovery", "discovery", ["University Event Discovery"]),
         ("Pipeline", "pipeline", ["Engagement Pipeline"]),
         ("Analytics", "analytics", ["Analytics", "Coverage, expansion readiness, and volunteer engagement analytics."]),
-        ("Match Engine", "match_engine", ["Match workspace is embedded below.", "< Back to Dashboard"]),
+        ("Match Engine", "match_engine", ["Internal Specialist Matches", "< Back to Dashboard"]),
     ]
 
     for button_name, expected_route, expected_text in nav_expectations:

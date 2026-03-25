@@ -79,42 +79,88 @@ def _strip_markdown_fence(text: str) -> str:
     return stripped
 
 
+_KEYWORD_PATTERNS: list[tuple[list[str], str]] = [
+    (["find event", "discover event", "scrape", "new event", "find new"],
+     "discover_events"),
+    (["rank speaker", "match speaker", "best speaker", "rank specialist",
+      "who should", "top speaker"],
+     "rank_speakers"),
+    (["outreach", "email", "draft email", "send email", "generate email",
+      "write email"],
+     "generate_outreach"),
+    (["contact", "poc", "follow up", "check contact"],
+     "check_contacts"),
+    (["campaign", "full outreach", "prepare campaign", "launch campaign"],
+     "prepare_campaign"),
+]
+
+
+def _keyword_fallback(text: str) -> ParsedIntent | None:
+    """Simple keyword-based intent matching for offline / demo mode.
+
+    Returns None if no keyword pattern matches.
+    """
+    lower = text.lower()
+    for keywords, intent in _KEYWORD_PATTERNS:
+        if any(kw in lower for kw in keywords):
+            entry = next(
+                (a for a in ACTION_REGISTRY if a["intent"] == intent),
+                None,
+            )
+            return ParsedIntent(
+                intent=intent,
+                agent=entry["agent"] if entry else "Jarvis",
+                params={},
+                reasoning=f"Matched keyword in: {text!r}",
+                raw_text=text,
+            )
+    return None
+
+
 def parse_intent(text: str) -> ParsedIntent:
     """Parse coordinator text into a structured intent. Never raises.
 
-    On any exception (GeminiAPIError, JSONDecodeError, KeyError, TypeError),
-    returns ParsedIntent with intent="unknown".
+    Uses Gemini LLM when an API key is available; falls back to keyword
+    matching for offline / demo operation.
     """
-    actions_str = json.dumps(ACTION_REGISTRY, indent=2)
-    system = _SYSTEM_PROMPT.format(actions=actions_str)
-    try:
-        raw = generate_text(
-            messages=[{"role": "user", "content": text}],
-            api_key=GEMINI_API_KEY,
-            model=GEMINI_TEXT_MODEL,
-            system_instruction=system,
-            temperature=0.1,
-            max_output_tokens=300,
-            timeout=10.0,
-        )
-        cleaned = _strip_markdown_fence(raw)
-        data = json.loads(cleaned)
-        intent = data.get("intent", "unknown")
-        if intent not in SUPPORTED_INTENTS:
-            intent = "unknown"
-        return ParsedIntent(
-            intent=intent,
-            agent=data.get("agent", "Jarvis"),
-            params=data.get("params", {}),
-            reasoning=data.get("reasoning", ""),
-            raw_text=text,
-        )
-    except (GeminiAPIError, json.JSONDecodeError, KeyError, TypeError) as exc:
-        logger.warning("Intent parsing failed: %s", exc)
-        return ParsedIntent(
-            intent="unknown",
-            agent="Jarvis",
-            params={},
-            reasoning="",
-            raw_text=text,
-        )
+    # Try LLM parsing when API key is configured
+    if GEMINI_API_KEY and GEMINI_API_KEY != "AIza...":
+        actions_str = json.dumps(ACTION_REGISTRY, indent=2)
+        system = _SYSTEM_PROMPT.format(actions=actions_str)
+        try:
+            raw = generate_text(
+                messages=[{"role": "user", "content": text}],
+                api_key=GEMINI_API_KEY,
+                model=GEMINI_TEXT_MODEL,
+                system_instruction=system,
+                temperature=0.1,
+                max_output_tokens=300,
+                timeout=10.0,
+            )
+            cleaned = _strip_markdown_fence(raw)
+            data = json.loads(cleaned)
+            intent = data.get("intent", "unknown")
+            if intent not in SUPPORTED_INTENTS:
+                intent = "unknown"
+            return ParsedIntent(
+                intent=intent,
+                agent=data.get("agent", "Jarvis"),
+                params=data.get("params", {}),
+                reasoning=data.get("reasoning", ""),
+                raw_text=text,
+            )
+        except (GeminiAPIError, json.JSONDecodeError, KeyError, TypeError) as exc:
+            logger.warning("LLM intent parsing failed, trying keyword fallback: %s", exc)
+
+    # Keyword fallback for offline / demo mode
+    fallback = _keyword_fallback(text)
+    if fallback is not None:
+        return fallback
+
+    return ParsedIntent(
+        intent="unknown",
+        agent="Jarvis",
+        params={},
+        reasoning="",
+        raw_text=text,
+    )

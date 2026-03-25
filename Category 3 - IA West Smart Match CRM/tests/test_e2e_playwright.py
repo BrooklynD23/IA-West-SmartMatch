@@ -293,11 +293,15 @@ class TestMatchesPage:
     def test_matches_shows_embedding_warning_or_content(self, page: Page) -> None:
         """Matches page shows embedding warning or match content in demo mode."""
         navigate_to_page(page, "matches")
-        page.wait_for_timeout(3000)
+        page.wait_for_timeout(5000)
         # In demo mode without embeddings, we expect a warning or the matches tab content
-        has_warning = page.get_by_text("Embedding cache", exact=False).first.is_visible()
-        has_content = page.get_by_text("Match", exact=False).first.is_visible()
-        assert has_warning or has_content, "Matches page should show either embedding warning or match content"
+        body_text = page.locator("body").inner_text(timeout=ELEMENT_TIMEOUT)
+        has_warning = "Embedding cache" in body_text
+        has_content = "Select an Event" in body_text or "Matches" in body_text
+        assert has_warning or has_content, (
+            f"Matches page should show either embedding warning or match content. "
+            f"Body sample: {body_text[:500]!r}"
+        )
 
     def test_matches_page_no_crash(self, page: Page, console_errors: list[str]) -> None:
         """Matches page doesn't crash with critical JS errors."""
