@@ -14,7 +14,7 @@ import pandas as pd
 import streamlit as st
 
 from src.demo_mode import demo_or_live
-from src.extraction.llm_extractor import extract_events
+from src.extraction.llm_extractor import _HAS_BS4, extract_events
 from src.runtime_state import init_runtime_state
 from src.scraping.scraper import (
     UNIVERSITY_TARGETS,
@@ -320,6 +320,14 @@ def render_discovery_tab(datasets: Any) -> None:
     """
     st.header("University Event Discovery")
     init_runtime_state()
+
+    if not _HAS_BS4:
+        st.warning(
+            "**beautifulsoup4** is not installed. Discovery will still work but "
+            "HTML pre-processing is degraded. Run `pip install beautifulsoup4` "
+            "to restore full extraction quality."
+        )
+
     flash_message = st.session_state.pop(MATCHING_POOL_FLASH_KEY, None)
     if flash_message:
         st.success(str(flash_message))

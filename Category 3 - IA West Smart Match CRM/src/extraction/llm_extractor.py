@@ -13,7 +13,13 @@ import logging
 import os
 from typing import Any
 
-from bs4 import BeautifulSoup
+try:
+    from bs4 import BeautifulSoup  # type: ignore[import-untyped]
+
+    _HAS_BS4 = True
+except ImportError:
+    BeautifulSoup = None  # type: ignore[assignment,misc]
+    _HAS_BS4 = False
 
 from src.config import (
     EXTRACTION_CACHE_DIR,
@@ -198,14 +204,21 @@ def preprocess_html(raw_html: str, max_chars: int = 12_000) -> str:
     str
         Cleaned text content suitable for LLM extraction.
     """
-    soup = BeautifulSoup(raw_html, "html.parser")
+    if not _HAS_BS4:
+        logger.warning(
+            "beautifulsoup4 is not installed; falling back to raw text truncation. "
+            "Install it with: pip install beautifulsoup4"
+        )
+        text = raw_html
+    else:
+        soup = BeautifulSoup(raw_html, "html.parser")
 
-    for tag in soup.find_all(
-        ["script", "style", "nav", "footer", "header", "noscript", "iframe"]
-    ):
-        tag.decompose()
+        for tag in soup.find_all(
+            ["script", "style", "nav", "footer", "header", "noscript", "iframe"]
+        ):
+            tag.decompose()
 
-    text = soup.get_text(separator="\n", strip=True)
+        text = soup.get_text(separator="\n", strip=True)
 
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     cleaned = "\n".join(lines)

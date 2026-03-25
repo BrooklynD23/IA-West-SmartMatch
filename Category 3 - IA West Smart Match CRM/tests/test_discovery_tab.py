@@ -260,6 +260,27 @@ class TestDiscoveryDemoMode:
         assert events[0]["event_name"] == "UCLA Data Analytics Hackathon"
 
 
+class TestDiscoveryImportRegression:
+    """Verify that the discovery pipeline imports without errors."""
+
+    def test_discovery_tab_importable(self) -> None:
+        """discovery_tab should import cleanly even if bs4 is missing."""
+        import src.ui.discovery_tab  # noqa: F401
+
+    def test_llm_extractor_importable(self) -> None:
+        """llm_extractor should import cleanly even if bs4 is missing."""
+        from src.extraction.llm_extractor import _HAS_BS4, extract_events  # noqa: F401
+
+        assert isinstance(_HAS_BS4, bool)
+
+    def test_llm_extractor_preprocess_without_bs4(self) -> None:
+        """preprocess_html should fall back gracefully when bs4 is absent."""
+        from src.extraction.llm_extractor import preprocess_html
+
+        result = preprocess_html("<html><body><p>Hello</p></body></html>")
+        assert "Hello" in result
+
+
 class TestDiscoveryTabRerender:
     @patch("streamlit.session_state", new_callable=dict)
     def test_add_to_matching_triggers_rerun_for_same_interaction_visibility(

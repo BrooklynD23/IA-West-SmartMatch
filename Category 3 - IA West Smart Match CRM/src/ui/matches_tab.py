@@ -82,6 +82,21 @@ def render_matches_tab(
     """Render the Matches tab in the Streamlit app."""
     init_runtime_state()
     available_events = get_matching_events_df(events)
+
+    # ── KPI Summary Row ──────────────────────────────────────────────────────
+    kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+    with kpi1:
+        st.metric("Speakers", len(speakers))
+    with kpi2:
+        st.metric("Events", len(available_events))
+    with kpi3:
+        st.metric("Courses", len(courses))
+    with kpi4:
+        discovered_count = len(
+            st.session_state.get("matching_discovered_events", [])
+        )
+        st.metric("Discovered Events", discovered_count)
+
     weight_error = _render_weight_sliders()
     if weight_error:
         st.error(weight_error)
