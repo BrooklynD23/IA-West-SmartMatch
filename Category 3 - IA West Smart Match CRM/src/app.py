@@ -10,7 +10,7 @@ st.set_page_config(
     page_title="IA SmartMatch CRM",
     page_icon="🔗",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 from src.ui.styles import inject_custom_css  # noqa: E402
@@ -229,6 +229,32 @@ def main() -> None:
         for error in config_errors:
             st.error(f"  - {error}")
         st.stop()
+
+    # ── V2 Page Routing ──────────────────────────────────────────────────────
+    from src.ui.page_router import init_page_state, get_current_page  # noqa: E402
+    init_page_state()
+    current_page = get_current_page()
+
+    if current_page == "landing":
+        from src.ui.landing_page_v2 import render_landing_page_v2  # noqa: E402
+        render_landing_page_v2()
+        return
+
+    if current_page == "login":
+        from src.ui.login_page import render_login_page  # noqa: E402
+        render_login_page()
+        return
+
+    if current_page == "coordinator":
+        from src.ui.coordinator_dashboard import render_coordinator_dashboard  # noqa: E402
+        render_coordinator_dashboard()
+        return
+
+    if current_page == "match_engine":
+        from src.ui.match_engine_page import render_match_engine_page  # noqa: E402
+        render_match_engine_page()
+        return
+    # ── End V2 Page Routing ──────────────────────────────────────────────────
 
     sidebar_container = render_sidebar()
 
