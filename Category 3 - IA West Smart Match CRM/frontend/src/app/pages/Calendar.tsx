@@ -62,6 +62,12 @@ function getFirstDayOfMonth(year: number, month: number) {
   return new Date(year, month, 1).getDay();
 }
 
+/** Parse "YYYY-MM-DD" as local-timezone midnight (avoids UTC shift). */
+function parseLocalDate(iso: string): Date {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
 export function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1));
   const [view, setView] = useState<CalendarView>("month");
@@ -81,7 +87,7 @@ export function Calendar() {
         const mapped = data.map(mapCalendarRecord);
         setEvents(mapped);
         if (mapped[0]?.date) {
-          const firstDate = new Date(mapped[0].date);
+          const firstDate = parseLocalDate(mapped[0].date);
           if (!Number.isNaN(firstDate.getTime())) {
             setCurrentDate(new Date(firstDate.getFullYear(), firstDate.getMonth(), 1));
           }
@@ -133,6 +139,7 @@ export function Calendar() {
             <button
               onClick={() => setCurrentDate(new Date(year, month - 1, 1))}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label="Previous month"
             >
               <ChevronLeft className="w-5 h-5 text-gray-700" />
             </button>
@@ -142,6 +149,7 @@ export function Calendar() {
             <button
               onClick={() => setCurrentDate(new Date(year, month + 1, 1))}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label="Next month"
             >
               <ChevronRight className="w-5 h-5 text-gray-700" />
             </button>
@@ -153,7 +161,7 @@ export function Calendar() {
                 onClick={() => setView("month")}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   view === "month"
-                    ? "bg-purple-600 text-white"
+                    ? "bg-blue-600 text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
@@ -163,7 +171,7 @@ export function Calendar() {
                 onClick={() => setView("list")}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   view === "list"
-                    ? "bg-purple-600 text-white"
+                    ? "bg-blue-600 text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
@@ -174,7 +182,7 @@ export function Calendar() {
             <select
               value={filterType}
               onChange={(event) => setFilterType(event.target.value as FilterType)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">All Events</option>
               <option value="ia">IA Events</option>
@@ -214,18 +222,19 @@ export function Calendar() {
             {Array.from({ length: daysInMonth }).map((_, index) => {
               const day = index + 1;
               const dayEvents = getEventsForDate(day);
-              const isToday = day === 19 && month === 2 && year === 2026;
+              const now = new Date();
+              const isToday = day === now.getDate() && month === now.getMonth() && year === now.getFullYear();
 
               return (
                 <div
                   key={day}
                   className={`aspect-square border border-gray-200 rounded-lg p-2 ${
-                    isToday ? "bg-purple-50 border-purple-300" : "bg-white"
+                    isToday ? "bg-blue-50 border-blue-300" : "bg-white"
                   }`}
                 >
                   <div
                     className={`text-sm font-medium mb-1 ${
-                      isToday ? "text-purple-600" : "text-gray-900"
+                      isToday ? "text-blue-600" : "text-gray-900"
                     }`}
                   >
                     {day}
@@ -268,7 +277,7 @@ export function Calendar() {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <CalendarDays className="w-4 h-4" />
-                      {new Date(event.date).toLocaleDateString("en-US", {
+                      {parseLocalDate(event.date).toLocaleDateString("en-US", {
                         weekday: "long",
                         year: "numeric",
                         month: "long",

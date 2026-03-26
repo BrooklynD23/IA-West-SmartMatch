@@ -125,7 +125,7 @@ export function Opportunities() {
             Discover and match university engagement opportunities from the live dataset.
           </p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg">
+        <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg">
           <Sparkles className="w-5 h-5" />
           Find Best Matches
         </button>
@@ -139,7 +139,7 @@ export function Opportunities() {
             placeholder="Search opportunities by name or host..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -152,7 +152,7 @@ export function Opportunities() {
           <select
             value={selectedLocation}
             onChange={(event) => setSelectedLocation(event.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
           >
             {locations.map((location) => (
               <option key={location} value={location}>
@@ -164,7 +164,7 @@ export function Opportunities() {
           <select
             value={selectedRole}
             onChange={(event) => setSelectedRole(event.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
           >
             {roles.map((role) => (
               <option key={role} value={role}>
@@ -176,7 +176,7 @@ export function Opportunities() {
           <select
             value={selectedType}
             onChange={(event) => setSelectedType(event.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
           >
             {types.map((type) => (
               <option key={type} value={type}>
@@ -193,7 +193,7 @@ export function Opportunities() {
               onClick={() => toggleTag(tag)}
               className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                 selectedTags.includes(tag)
-                  ? "bg-purple-600 text-white"
+                  ? "bg-blue-600 text-white"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
@@ -243,7 +243,7 @@ export function Opportunities() {
                       {opportunity.university}
                     </div>
                   </div>
-                  <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium">
+                  <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
                     {opportunity.type}
                   </span>
                 </div>
@@ -276,7 +276,7 @@ export function Opportunities() {
                     {opportunity.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="px-2 py-1 bg-purple-50 text-purple-700 text-xs rounded-md"
+                        className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md"
                       >
                         {tag}
                       </span>
@@ -285,7 +285,7 @@ export function Opportunities() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <button className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg font-medium">
+                  <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium">
                     Match Volunteers
                   </button>
                   {opportunity.url ? (

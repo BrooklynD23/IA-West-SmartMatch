@@ -138,7 +138,7 @@ export function AIMatching() {
     <div className="max-w-7xl mx-auto space-y-6">
       <div>
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-500 rounded-lg flex items-center justify-center">
             <Sparkles className="w-6 h-6 text-white" />
           </div>
           <h1 className="text-3xl font-semibold text-gray-900">AI Matching Engine</h1>
@@ -153,7 +153,7 @@ export function AIMatching() {
         <select
           value={selectedEventName}
           onChange={(event) => setSelectedEventName(event.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           {events.map((event) => (
             <option key={event["Event / Program"]} value={event["Event / Program"]}>
@@ -164,7 +164,7 @@ export function AIMatching() {
       </div>
 
       {selectedEvent ? (
-        <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 border border-purple-200">
+        <div className="bg-gradient-to-r from-blue-50 to-blue-50 rounded-xl p-6 border border-blue-200">
           <div className="flex items-start justify-between mb-4">
             <div>
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
@@ -174,31 +174,31 @@ export function AIMatching() {
                 {selectedEvent["Primary Audience"] || "Audience details not provided"}
               </p>
             </div>
-            <span className="px-3 py-1 bg-purple-600 text-white text-sm rounded-full font-medium">
+            <span className="px-3 py-1 bg-blue-600 text-white text-sm rounded-full font-medium">
               Selected
             </span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="flex items-center gap-2 text-sm">
-              <Target className="w-4 h-4 text-purple-600" />
+              <Target className="w-4 h-4 text-blue-600" />
               <span className="text-gray-700">
                 <span className="font-medium">Host:</span>{" "}
                 {selectedEvent["Host / Unit"] || "CPP partner"}
               </span>
             </div>
             <div className="flex items-center gap-2 text-sm">
-              <Calendar className="w-4 h-4 text-purple-600" />
+              <Calendar className="w-4 h-4 text-blue-600" />
               <span className="text-gray-700">
                 <span className="font-medium">Cadence:</span>{" "}
                 {selectedEvent["Recurrence (typical)"] || "TBD"}
               </span>
             </div>
             <div className="flex items-center gap-2 text-sm">
-              <MapPin className="w-4 h-4 text-purple-600" />
+              <MapPin className="w-4 h-4 text-blue-600" />
               <span className="text-gray-700">
-                <span className="font-medium">Location:</span>{" "}
-                {selectedEvent["Host / Unit"] || "Not listed"}
+                <span className="font-medium">Contact:</span>{" "}
+                {selectedEvent["Point(s) of Contact (published)"] || "Not listed"}
               </span>
             </div>
             <div className="flex items-center gap-2 text-sm">
@@ -215,7 +215,7 @@ export function AIMatching() {
               .map((tag) => (
                 <span
                   key={tag}
-                  className="px-3 py-1 bg-purple-600 text-white text-sm rounded-full"
+                  className="px-3 py-1 bg-blue-600 text-white text-sm rounded-full"
                 >
                   {tag}
                 </span>
@@ -233,7 +233,7 @@ export function AIMatching() {
       <div>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-purple-600" />
+            <Sparkles className="w-5 h-5 text-blue-600" />
             <h2 className="text-xl font-semibold text-gray-900">Top Recommended Volunteers</h2>
           </div>
           <span className="text-sm text-gray-600">
@@ -257,7 +257,7 @@ export function AIMatching() {
                 className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="flex items-start gap-6 mb-6">
-                  <div className="w-20 h-20 bg-gradient-to-br from-purple-400 to-blue-400 rounded-full flex items-center justify-center text-white text-2xl font-semibold flex-shrink-0">
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-400 rounded-full flex items-center justify-center text-white text-2xl font-semibold flex-shrink-0">
                     {volunteer.name
                       .split(" ")
                       .map((part) => part[0])
@@ -277,9 +277,9 @@ export function AIMatching() {
                         </div>
                       </div>
                       <div className="text-center flex-shrink-0">
-                        <div className="w-20 h-20 rounded-full border-4 border-purple-600 flex items-center justify-center">
+                        <div className="w-20 h-20 rounded-full border-4 border-blue-600 flex items-center justify-center">
                           <div>
-                            <p className="text-2xl font-bold text-purple-600">
+                            <p className="text-2xl font-bold text-blue-600">
                               {(volunteer.score * 100).toFixed(0)}
                             </p>
                             <p className="text-xs text-gray-600">score</p>
@@ -298,7 +298,7 @@ export function AIMatching() {
                       {Object.entries(volunteer.factor_scores).map(([key, rawValue], index) => {
                         const value = Math.round(rawValue * 100);
                         const colors = [
-                          "bg-purple-600",
+                          "bg-blue-600",
                           "bg-blue-600",
                           "bg-green-600",
                           "bg-orange-600",
@@ -322,7 +322,7 @@ export function AIMatching() {
 
                     <button
                       onClick={() => void openEmailModal(volunteer)}
-                      className="mt-6 w-full px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium flex items-center justify-center gap-2"
+                      className="mt-6 w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center gap-2"
                     >
                       <Mail className="w-5 h-5" />
                       Generate Outreach Email
@@ -339,23 +339,29 @@ export function AIMatching() {
         <div
           className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
           onClick={() => setShowEmailModal(false)}
+          onKeyDown={(event) => { if (event.key === "Escape") setShowEmailModal(false); }}
+          role="presentation"
         >
           <div
             className="bg-white rounded-xl p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="email-modal-title"
           >
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Mail className="w-5 h-5 text-purple-600" />
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <Mail className="w-5 h-5 text-blue-600" />
                 </div>
-                <h2 className="text-2xl font-semibold text-gray-900">
+                <h2 id="email-modal-title" className="text-2xl font-semibold text-gray-900">
                   AI-Generated Outreach Email
                 </h2>
               </div>
               <button
                 onClick={() => setShowEmailModal(false)}
                 className="text-gray-400 hover:text-gray-600"
+                aria-label="Close email modal"
               >
                 Close
               </button>

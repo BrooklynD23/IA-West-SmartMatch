@@ -15,9 +15,8 @@ export const router = createBrowserRouter([
   { path: "/", Component: LandingPage },
   { path: "/login", Component: LoginPage },
 
-  // Coordinator routes (with sidebar layout)
+  // Coordinator routes (with sidebar layout — pathless layout route)
   {
-    path: "/",
     Component: Layout,
     children: [
       { path: "dashboard", Component: Dashboard },

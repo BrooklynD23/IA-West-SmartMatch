@@ -105,8 +105,10 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
 function normalizeRankedMatch(payload: Partial<RankedMatch> & Record<string, unknown>): RankedMatch {
   const factorScores = (payload.factor_scores ?? {}) as Record<string, number>;
   const weightedFactorScores = (payload.weighted_factor_scores ?? {}) as Record<string, number>;
-  const rawScore =
+  const rawScoreValue =
     Number(payload.score ?? payload.match_score ?? payload.total_score ?? 0) || 0;
+  // Normalize to 0-1 range: if backend returned 0-100 scale, convert down.
+  const rawScore = rawScoreValue > 1 ? rawScoreValue / 100 : rawScoreValue;
 
   return {
     rank: Number(payload.rank ?? 0) || 0,

@@ -229,7 +229,7 @@ export function Dashboard() {
           change="Calendar dataset"
           changeType="neutral"
           icon={CalendarDays}
-          iconColor="bg-purple-100 text-purple-600"
+          iconColor="bg-blue-100 text-blue-600"
         />
         <MetricCard
           title="Member Inquiry Rate"
@@ -297,10 +297,10 @@ export function Dashboard() {
       <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-purple-600" />
+            <Sparkles className="w-5 h-5 text-blue-600" />
             <h3 className="font-semibold text-gray-900">Top Recommended Matches</h3>
           </div>
-          <button className="text-sm text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1">
+          <button className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
             View All
             <ArrowRight className="w-4 h-4" />
           </button>
@@ -315,12 +315,12 @@ export function Dashboard() {
             topMatches.map((match) => (
               <div
                 key={`${match.event_name}-${match.name}`}
-                className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-100 hover:shadow-md transition-shadow"
+                className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-blue-50 rounded-lg border border-blue-100 hover:shadow-md transition-shadow"
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <p className="font-semibold text-gray-900">{match.name}</p>
-                    <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full">
+                    <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
                       {splitTags(match.expertise_tags)[0] || match.board_role || "Specialist"}
                     </span>
                   </div>
@@ -331,11 +331,11 @@ export function Dashboard() {
                 <div className="flex items-center gap-3">
                   <div className="text-right">
                     <p className="text-sm text-gray-600">Match Score</p>
-                    <p className="text-2xl font-semibold text-purple-600">
+                    <p className="text-2xl font-semibold text-blue-600">
                       {(match.score * 100).toFixed(0)}%
                     </p>
                   </div>
-                  <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium">
+                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
                     Connect
                   </button>
                 </div>

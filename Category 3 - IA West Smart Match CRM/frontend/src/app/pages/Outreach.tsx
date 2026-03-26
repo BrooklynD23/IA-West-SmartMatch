@@ -193,7 +193,7 @@ export function Outreach() {
     <div className="max-w-7xl mx-auto space-y-6">
       <div>
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-500 rounded-lg flex items-center justify-center">
             <Mail className="w-6 h-6 text-white" />
           </div>
           <h1 className="text-3xl font-semibold text-gray-900">Outreach & Communications</h1>
@@ -212,7 +212,8 @@ export function Outreach() {
               <h3 className="font-semibold text-gray-900">Templates</h3>
               <button
                 onClick={() => setShowNewTemplate(true)}
-                className="p-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 transition-colors"
+                className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
+                aria-label="Add new template"
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -225,7 +226,7 @@ export function Outreach() {
                   onClick={() => handleTemplateSelect(template)}
                   className={`w-full text-left p-3 rounded-lg transition-colors ${
                     selectedTemplate.id === template.id
-                      ? "bg-purple-50 border border-purple-200"
+                      ? "bg-blue-50 border border-blue-200"
                       : "bg-gray-50 border border-transparent hover:bg-gray-100"
                   }`}
                 >
@@ -237,7 +238,7 @@ export function Outreach() {
                         Volunteer
                       </span>
                     ) : template.category === "university" ? (
-                      <span className="flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full">
+                      <span className="flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
                         <Building2 className="w-3 h-3" />
                         University
                       </span>
@@ -258,7 +259,7 @@ export function Outreach() {
               <button
                 onClick={() => void handleGenerateEmail()}
                 disabled={loading || busy}
-                className="w-full flex items-center gap-3 p-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors disabled:opacity-60"
+                className="w-full flex items-center gap-3 p-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-60"
               >
                 <Sparkles className="w-5 h-5" />
                 <span className="font-medium">AI Generate Email</span>
@@ -296,7 +297,7 @@ export function Outreach() {
                 <select
                   value={selectedSpeaker}
                   onChange={(event) => setSelectedSpeaker(event.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   {specialists.map((speaker) => (
                     <option key={speaker.name} value={speaker.name}>
@@ -310,7 +311,7 @@ export function Outreach() {
                 <select
                   value={selectedEvent}
                   onChange={(event) => setSelectedEvent(event.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   {events.map((event) => (
                     <option key={event["Event / Program"]} value={event["Event / Program"]}>
@@ -335,7 +336,7 @@ export function Outreach() {
                   type="text"
                   value={subject}
                   onChange={(event) => setSubject(event.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               ) : (
                 <div className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">{subject}</div>
@@ -348,7 +349,7 @@ export function Outreach() {
                 {editMode ? (
                   <button
                     onClick={handleAIEnhance}
-                    className="flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700"
+                    className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700"
                   >
                     <Sparkles className="w-4 h-4" />
                     AI Enhance
@@ -360,7 +361,7 @@ export function Outreach() {
                   value={body}
                   onChange={(event) => setBody(event.target.value)}
                   rows={16}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-sm"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
                 />
               ) : (
                 <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-900 whitespace-pre-wrap min-h-[400px]">
@@ -383,7 +384,7 @@ export function Outreach() {
               <button
                 onClick={() => void handleGenerateEmail()}
                 disabled={busy || loading}
-                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium disabled:opacity-60"
+                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-60"
               >
                 <Send className="w-5 h-5" />
                 {busy ? "Working..." : "Generate / Refresh"}
@@ -421,7 +422,7 @@ export function Outreach() {
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-1">
                     <p className="font-medium text-gray-900">{email.to}</p>
-                    <span className="px-2 py-0.5 text-xs rounded-full bg-purple-100 text-purple-700">
+                    <span className="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700">
                       {email.status}
                     </span>
                   </div>
@@ -438,12 +439,17 @@ export function Outreach() {
         <div
           className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
           onClick={() => setShowNewTemplate(false)}
+          onKeyDown={(event) => { if (event.key === "Escape") setShowNewTemplate(false); }}
+          role="presentation"
         >
           <div
             className="bg-white rounded-xl p-8 max-w-2xl w-full"
             onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="new-template-title"
           >
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">Create New Template</h2>
+            <h2 id="new-template-title" className="text-2xl font-semibold text-gray-900 mb-6">Create New Template</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Template Name</label>
@@ -454,7 +460,10 @@ export function Outreach() {
                 />
               </div>
               <div className="flex gap-3 pt-4">
-                <button className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg font-medium">
+                <button
+                  onClick={() => setShowNewTemplate(false)}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium"
+                >
                   Create Template
                 </button>
                 <button

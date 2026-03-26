@@ -96,7 +96,7 @@ export function Volunteers() {
             placeholder="Search by name, company, region, or expertise..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </div>
@@ -119,7 +119,7 @@ export function Volunteers() {
                   onClick={() => setSelectedVolunteer(volunteer.name)}
                 >
                   <div className="flex items-start gap-4 mb-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-blue-400 rounded-full flex items-center justify-center text-white text-xl font-semibold">
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-400 rounded-full flex items-center justify-center text-white text-xl font-semibold">
                       {volunteer.initials}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -151,7 +151,7 @@ export function Volunteers() {
                       {expertise.slice(0, 4).map((tag) => (
                         <span
                           key={tag}
-                          className="px-2 py-1 bg-purple-50 text-purple-700 text-xs rounded-md"
+                          className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md"
                         >
                           {tag}
                         </span>
@@ -168,7 +168,7 @@ export function Volunteers() {
                     </div>
                     <div className="text-center">
                       <p className="text-sm text-gray-600">Skill Tags</p>
-                      <p className="text-lg font-semibold text-purple-600">{expertise.length}</p>
+                      <p className="text-lg font-semibold text-blue-600">{expertise.length}</p>
                     </div>
                   </div>
                 </div>
@@ -192,7 +192,7 @@ export function Volunteers() {
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-start gap-6 mb-6">
-              <div className="w-24 h-24 bg-gradient-to-br from-purple-400 to-blue-400 rounded-full flex items-center justify-center text-white text-3xl font-semibold">
+              <div className="w-24 h-24 bg-gradient-to-br from-blue-400 to-blue-400 rounded-full flex items-center justify-center text-white text-3xl font-semibold">
                 {selectedVol.initials}
               </div>
               <div className="flex-1">
@@ -209,6 +209,7 @@ export function Volunteers() {
               <button
                 onClick={() => setSelectedVolunteer(null)}
                 className="text-gray-400 hover:text-gray-600"
+                aria-label="Close volunteer details"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -239,7 +240,7 @@ export function Volunteers() {
                   {splitTags(selectedVol.expertise_tags).map((tag) => (
                     <span
                       key={tag}
-                      className="px-3 py-1.5 bg-purple-50 text-purple-700 text-sm rounded-lg"
+                      className="px-3 py-1.5 bg-blue-50 text-blue-700 text-sm rounded-lg"
                     >
                       {tag}
                     </span>

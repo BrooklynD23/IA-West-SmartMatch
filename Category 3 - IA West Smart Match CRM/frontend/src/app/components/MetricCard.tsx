@@ -15,7 +15,7 @@ export function MetricCard({
   change,
   changeType = "neutral",
   icon: Icon,
-  iconColor = "bg-purple-100 text-purple-600",
+  iconColor = "bg-blue-100 text-blue-600",
 }: MetricCardProps) {
   const changeColors = {
     positive: "text-green-600",
