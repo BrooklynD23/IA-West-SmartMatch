@@ -31,7 +31,7 @@ Plans:
 - [x] 08-04-PLAN.md — Login/role-selection page
 - [x] 08-05-PLAN.md — Coordinator dashboard, match engine, and app.py wiring
 
-### Phase 8.5: FastAPI Backend + React Promotion
+### Phase 8.5: FastAPI Backend + React Promotion ✅
 **Goal:** Stand up a FastAPI backend that exposes all existing Python business logic as REST endpoints, and promote the V1.1 React mockup to a production frontend that calls these APIs.
 
 **Scope:**
@@ -50,17 +50,12 @@ Plans:
 - Volunteer Profiles grid renders with real data
 - Pipeline funnel renders with real data
 
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans executed
 
 Plans:
 - [x] 08.5-01-PLAN.md — FastAPI app with data, matching, and outreach routers
 - [x] 08.5-02-PLAN.md — React promotion from V1.1 mockup to frontend/ with API client
-- [ ] 08.5-03-PLAN.md — Wire all React pages to fetch real data from FastAPI
-
-**Execution Handoff (2026-03-25 / 2026-03-26 UTC):**
-- Backend/API files and the promoted `frontend/` app now exist in the worktree.
-- Verification is still pending because the local Python environment is missing `fastapi`, and the promoted frontend has not yet completed its first `npm install` + `npm run build` pass in this session.
-- Keep this phase marked incomplete until the focused verification pass succeeds and Phase 8.5 summaries/verification artifacts are written.
+- [x] 08.5-03-PLAN.md — Wire all React pages to fetch real data from FastAPI
 
 ### Phase 9: Outreach Button + NemoClaw Workflow
 **Goal:** Wire the "Initiate Outreach" button in the React Match Engine page to trigger a complete NemoClaw-orchestrated workflow: email generation + meeting scheduling + pipeline status update.
@@ -134,4 +129,4 @@ Plans:
 
 ## Current Status
 
-v3.0 milestone active. Phase 8 complete. Phase 8.5 is mid-execution with backend/frontend code landed but not yet verified. Next GSD action after environment setup is `$gsd-execute-phase 8.5`, continuing through focused verification and phase artifact write-up.
+v3.0 milestone active. Phases 8 and 8.5 complete. Next: Phase 9 (Outreach Button + NemoClaw Workflow).

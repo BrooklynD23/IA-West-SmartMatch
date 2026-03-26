@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Phases
-status: unknown
-stopped_at: Completed 08.5-02-PLAN.md - React promotion + API client
-last_updated: "2026-03-26T03:33:28.507Z"
+status: executing
+stopped_at: Phase 8.5 complete (verified). Moving to Phase 9.
+last_updated: "2026-03-25T21:00:00Z"
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** A coordinator can use voice or text to command an AI assistant that orchestrates parallel agents for event discovery, speaker matching, and outreach, with human approval gating every action.
-**Current focus:** Phase 8.5 — FastAPI Backend + React Promotion
+**Current focus:** Phase 9 — Outreach Button + NemoClaw Workflow
 
 ## Current Position
 
-Phase: 8.5 (FastAPI Backend + React Promotion) — EXECUTING
-Plan: 3 of 3
+Phase: 9 (Outreach Button + NemoClaw Workflow) — STARTING
+Plan: 0 of 0 (needs planning)
 
 ## Accumulated Context
 
@@ -40,20 +40,17 @@ Plan: 3 of 3
 - [v3.0 Extension]: V1.1 React mockup promoted to `frontend/` — reuse existing shadcn/ui components
 - [Phase 08.5]: FastAPI wraps all Python business logic as REST endpoints; React frontend calls API over HTTP instead of Streamlit
 - [Phase 08.5]: React 18.3.1 pinned as production dependency; all API calls use relative URLs via Vite proxy to FastAPI on :8000
+- [Phase 08.5]: All 3 plans executed and verified — FastAPI backend + React promotion complete
 
 ### Pending Todos
 
-- Finish Phase 8.5 verification after installing missing Python/npm dependencies
-- If verification fails, fix backend/frontend regressions before writing Phase 8.5 summaries
-- After Phase 8.5 is verified, continue phases 9 through 12 (React migration + feature expansion)
+- Continue phases 9 through 12 (feature expansion)
 - Run human UAT for live voice/mic and full rehearsal flow
+- Apply senior frontend review feedback to V1.2 UI
 
 ### Blockers/Concerns
 
-- Local verification environment is incomplete for Phase 8.5:
-  - `fastapi` is not installed in the default Python interpreter, so the new API tests cannot import.
-  - The promoted React frontend has not yet had `npm install` / `npm run build` run in this session.
-  - A disposable venv exists at `/tmp/hbf-phase85-venv`, but the dependency install request was interrupted mid-turn. Re-verify its package state before reuse.
+- None — environment verified (venv at .venv with fastapi/httpx/pandas, npm deps installed)
 
 ## Session Continuity
 
