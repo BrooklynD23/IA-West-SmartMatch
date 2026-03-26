@@ -20,19 +20,24 @@ A coordinator can use voice or text to command an AI assistant that orchestrates
 - Tool wrappers dispatch discovery, ranking, outreach, and contact workflows.
 - Swimlane dashboard renders real-time per-agent statuses.
 - Demo-first constraints remain in effect (single-tenant, no production auth/scaling).
+- Phase 9 complete: Outreach workflow endpoint + React modal with 3-step checklist, ICS download, and pipeline update.
 
-## Next Milestone Goals
+## Current Milestone Goals (v3.0 Extension)
 
-- Define next milestone requirements from deferred scope (`VOICE-05`, `VOICE-06`, `ORCH-05`, `DASH-04`, and operational hardening items).
-- Execute human UAT for microphone, speech synthesis, and end-to-end rehearsal paths.
-- Convert accepted v2 technical debt into explicit phased backlog items with verification criteria.
+- ~~Phase 8.5: FastAPI backend + React promotion from V1.1 mockup~~ ✅
+- ~~Phase 9: Outreach button + NemoClaw workflow integration~~ ✅
+- Phase 09.1: V1.2 UI Rebrand — blue/white professional theme (INSERTED)
+- Phase 10: Master calendar + volunteer recovery period factor
+- Phase 11: QR code generation + ROI tracking
+- Phase 12: Continuous algorithm improvement via feedback loops
 
 ## Constraints
 
-- **Tech stack:** Python + Streamlit + pandas + Plotly + Gemini runtime, plus KittenTTS and NemoClaw integration paths.
+- **Tech stack:** Python + FastAPI (backend) + React 18/Vite/Tailwind v4/shadcn-ui (frontend) + Gemini runtime + NemoClaw
+- **Migration strategy:** Parallel — keep Streamlit on `:8501` during migration, React on `:5173`, FastAPI on `:8000`
+- **Storage:** CSV/JSON local storage for QR tracking (hackathon scope, no cloud DB)
 - **Verification standard:** No phase is complete without direct test/demo evidence.
 - **Human-in-the-loop:** No autonomous execution without coordinator approval.
-- **Demo-first delivery:** Features must remain demoable inside Streamlit.
 
 ---
-*Last updated: 2026-03-24 after v2.0 milestone completion*
+*Last updated: 2026-03-26 after Phase 9 complete + Phase 09.1 inserted*
