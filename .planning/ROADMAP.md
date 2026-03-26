@@ -36,7 +36,7 @@ Plans:
 
 **Scope:**
 - FastAPI application at `src/api/` with CORS config
-- REST routers: matching, outreach, data, discovery
+- REST routers: matching, outreach, data
 - Promote `docs/mockup/V1.1/IA-West_UI/` to `frontend/` production app
 - Wire React pages to fetch from FastAPI instead of hardcoded data
 - Keep Streamlit running in parallel (don't delete)
@@ -50,12 +50,17 @@ Plans:
 - Volunteer Profiles grid renders with real data
 - Pipeline funnel renders with real data
 
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
-- [ ] 08.5-01-PLAN.md — FastAPI app with data, matching, and outreach routers
+- [x] 08.5-01-PLAN.md — FastAPI app with data, matching, and outreach routers
 - [ ] 08.5-02-PLAN.md — React promotion from V1.1 mockup to frontend/ with API client
 - [ ] 08.5-03-PLAN.md — Wire all React pages to fetch real data from FastAPI
+
+**Execution Handoff (2026-03-25 / 2026-03-26 UTC):**
+- Backend/API files and the promoted `frontend/` app now exist in the worktree.
+- Verification is still pending because the local Python environment is missing `fastapi`, and the promoted frontend has not yet completed its first `npm install` + `npm run build` pass in this session.
+- Keep this phase marked incomplete until the focused verification pass succeeds and Phase 8.5 summaries/verification artifacts are written.
 
 ### Phase 9: Outreach Button + NemoClaw Workflow
 **Goal:** Wire the "Initiate Outreach" button in the React Match Engine page to trigger a complete NemoClaw-orchestrated workflow: email generation + meeting scheduling + pipeline status update.
@@ -129,4 +134,4 @@ Plans:
 
 ## Current Status
 
-v3.0 milestone active. Phase 8 complete. Phases 8.5-12 in scope — React migration + feature expansion.
+v3.0 milestone active. Phase 8 complete. Phase 8.5 is mid-execution with backend/frontend code landed but not yet verified. Next GSD action after environment setup is `$gsd-execute-phase 8.5`, continuing through focused verification and phase artifact write-up.

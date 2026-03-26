@@ -3,28 +3,28 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Phases
 status: unknown
-stopped_at: Completed 08-05-PLAN.md — awaiting Task 4 human-verify checkpoint
-last_updated: "2026-03-25T00:09:36Z"
+stopped_at: Completed 08.5-01-PLAN.md — FastAPI backend with 9 endpoints, 10 tests passing
+last_updated: "2026-03-26T03:31:19.457Z"
 progress:
-  total_phases: 3
-  completed_phases: 0
-  total_plans: 5
-  completed_plans: 5
+  total_phases: 6
+  completed_phases: 1
+  total_plans: 8
+  completed_plans: 6
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-24)
+See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** A coordinator can use voice or text to command an AI assistant that orchestrates parallel agents for event discovery, speaker matching, and outreach, with human approval gating every action.
-**Current focus:** Phase 08 — frontend-ui-redesign
+**Current focus:** Phase 8.5 — FastAPI Backend + React Promotion
 
 ## Current Position
 
-Phase: 08 (frontend-ui-redesign) — AWAITING HUMAN VERIFY
-Plan: 5 of 5 — all code tasks complete, Task 4 checkpoint pending
+Phase: 8.5 (FastAPI Backend + React Promotion) — EXECUTING
+Plan: 2 of 3
 
 ## Accumulated Context
 
@@ -33,26 +33,29 @@ Plan: 5 of 5 — all code tasks complete, Task 4 checkpoint pending
 - Keep human approval as a hard gate for all agent actions.
 - Preserve direct-dispatch fallback when NemoClaw is unavailable.
 - Keep demo reliability and verification evidence as milestone exit criteria.
-- [Phase 08]: Plan 02: lru_cache on tuple-returning inner functions to enable caching of mutable list data in data_helpers.py
-- [Phase 08]: Exact Tailwind config copied verbatim from landing page mockup to maintain color fidelity
-- [Phase 08]: wrap_html() and render_html_page() wrap Tailwind documents for st.components.v1.html() rendering
-- [Phase 08]: Plan 04: Streamlit buttons rendered below HTML iframe to handle navigate_to/set_user_role since iframe JS cannot mutate session_state
-- [Phase 08]: Plan 03: External heatmap image replaced with gradient placeholder div; Travis Miller lookup uses case-insensitive search with hardcoded fallback
-- [Phase 08]: Plan 05: Sidebar collapsed to prevent flash on v2 pages; CPP Career Center Career Fairs used as featured event for Match Engine; factor bar widths varied per card for visual richness; v2 routing dispatch uses early return pattern before CRM fallback
+- [Phase 08]: All 5 plans executed and verified.
+- [v3.0 Extension]: Parallel migration — keep Streamlit on `:8501`, React on `:5173`, FastAPI on `:8000`
+- [v3.0 Extension]: QR tracking uses CSV/JSON local storage (hackathon scope, no cloud DB)
+- [v3.0 Extension]: ALL phases 8.5-12 must ship (12 is stretch-but-desired)
+- [v3.0 Extension]: V1.1 React mockup promoted to `frontend/` — reuse existing shadcn/ui components
+- [Phase 08.5]: FastAPI wraps all Python business logic as REST endpoints; React frontend calls API over HTTP instead of Streamlit
 
 ### Pending Todos
 
-- Define the next milestone with `$gsd-new-milestone`.
-- Rebuild `.planning/REQUIREMENTS.md` for the next milestone scope.
-- Run human UAT for live voice/mic and full rehearsal flow.
+- Finish Phase 8.5 verification after installing missing Python/npm dependencies
+- If verification fails, fix backend/frontend regressions before writing Phase 8.5 summaries
+- After Phase 8.5 is verified, continue phases 9 through 12 (React migration + feature expansion)
+- Run human UAT for live voice/mic and full rehearsal flow
 
 ### Blockers/Concerns
 
-- Existing non-planning worktree changes remain outside milestone-archive commits.
-- Voice/microphone behavior still requires environment-specific validation on demo hardware.
+- Local verification environment is incomplete for Phase 8.5:
+  - `fastapi` is not installed in the default Python interpreter, so the new API tests cannot import.
+  - The promoted React frontend has not yet had `npm install` / `npm run build` run in this session.
+  - A disposable venv exists at `/tmp/hbf-phase85-venv`, but the dependency install request was interrupted mid-turn. Re-verify its package state before reuse.
 
 ## Session Continuity
 
-Last session: 2026-03-25T00:09:36Z
-Stopped at: Completed 08-05-PLAN.md Tasks 1-3; Task 4 is checkpoint:human-verify
+Last session: 2026-03-26T03:31:19.409Z
+Stopped at: Completed 08.5-01-PLAN.md — FastAPI backend with 9 endpoints, 10 tests passing
 Resume file: None
