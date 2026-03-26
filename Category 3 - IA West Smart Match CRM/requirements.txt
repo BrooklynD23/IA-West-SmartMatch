@@ -27,6 +27,10 @@ python-Levenshtein>=0.12.0    # accelerates fuzzywuzzy (optional but recommended
 pytest==8.3.4                 # installed: 8.3.4
 pytest-cov>=6.0.0             # installed: 7.0.0
 
+# ── REST API ──────────────────────────────────────────────
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+
 # ── Voice I/O (Phase 4 / Jarvis Command Center) ────────────
 # KittenTTS 0.8.1 wheel declares Requires-Python <3.13; on 3.13+ use Python 3.11/3.12 venv for TTS or rely on text-only Jarvis.
 https://github.com/KittenML/KittenTTS/releases/download/0.8.1/kittentts-0.8.1-py3-none-any.whl ; python_version < "3.13"

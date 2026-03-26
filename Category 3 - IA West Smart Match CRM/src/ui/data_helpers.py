@@ -106,6 +106,18 @@ def _load_event_calendar_cached() -> tuple[dict[str, str], ...]:
     return tuple(rows)
 
 
+@functools.lru_cache(maxsize=1)
+def _load_cpp_events_cached() -> tuple[dict[str, str], ...]:
+    csv_path = _data_dir() / "data_cpp_events_contacts.csv"
+    try:
+        with csv_path.open(newline="", encoding="utf-8") as fh:
+            rows = list(csv.DictReader(fh))
+    except FileNotFoundError:
+        _log.warning("data file not found: %s", csv_path)
+        return ()
+    return tuple(rows)
+
+
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
@@ -150,6 +162,34 @@ def load_event_calendar() -> list[dict[str, str]]:
     Returns an empty list if the file is missing.
     """
     return list(_load_event_calendar_cached())
+
+
+def load_cpp_events() -> list[dict[str, str]]:
+    """Load CPP events from ``data_cpp_events_contacts.csv``.
+
+    Returns a list of dicts with keys matching the CSV columns.
+    Returns an empty list if the file is missing.
+    """
+    return list(_load_cpp_events_cached())
+
+
+def get_event_by_name(event_name: str) -> dict[str, str] | None:
+    """Find a CPP event row by its ``Event / Program`` column value.
+
+    Uses substring matching so that partial event names (e.g. from
+    pipeline data) can find their full CPP event row.
+
+    Returns the first matching dict, or None if not found.
+    """
+    cpp_events = load_cpp_events()
+    for row in cpp_events:
+        if row.get("Event / Program", "") == event_name:
+            return dict(row)
+    # Fallback: substring match
+    for row in cpp_events:
+        if event_name in row.get("Event / Program", ""):
+            return dict(row)
+    return None
 
 
 def get_top_specialists_for_event(
