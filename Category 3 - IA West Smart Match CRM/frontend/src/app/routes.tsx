@@ -1,5 +1,7 @@
 import { createBrowserRouter } from "react-router";
 import { Layout } from "./components/Layout";
+import { LandingPage } from "./pages/LandingPage";
+import { LoginPage } from "./pages/LoginPage";
 import { Dashboard } from "./pages/Dashboard";
 import { Opportunities } from "./pages/Opportunities";
 import { Volunteers } from "./pages/Volunteers";
@@ -9,11 +11,16 @@ import { Calendar } from "./pages/Calendar";
 import { Outreach } from "./pages/Outreach";
 
 export const router = createBrowserRouter([
+  // Public routes (no sidebar)
+  { path: "/", Component: LandingPage },
+  { path: "/login", Component: LoginPage },
+
+  // Coordinator routes (with sidebar layout)
   {
     path: "/",
     Component: Layout,
     children: [
-      { index: true, Component: Dashboard },
+      { path: "dashboard", Component: Dashboard },
       { path: "opportunities", Component: Opportunities },
       { path: "volunteers", Component: Volunteers },
       { path: "ai-matching", Component: AIMatching },
