@@ -198,7 +198,10 @@ Plans:
   1. No "Phase #N" or similar internal label appears anywhere in the rendered app across all pages
   2. Every page heading, button label, and body copy reads as concrete, professional product text with no dev-flavored placeholders
   3. Navigating between pages and scrolling within any page produces smooth animated transitions with no abrupt jumps
-**Plans:** TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 13-01-PLAN.md — Remove Phase labels, replace dev copy, add scroll-to-top
 
 ### Phase 14: Visual Resilience
 **Goal:** Charts, images, and data visualizations never show broken states — they render real data or silently fall back to hardcoded mock data, and the coordinator always knows when mock data is active.
@@ -209,6 +212,7 @@ Plans:
   2. When a visualization uses fallback mock data, a discrete "Demo Mode" badge or indicator is visible on that view without disrupting the layout
   3. The "Demo Mode" indicator is absent on any view that has successfully loaded real data
 **Plans:** TBD
+
 
 ### Phase 15: Build Quality + Playwright Evidence
 **Goal:** The React production build is clean and browser-captured evidence proves the QR and feedback flows work end-to-end.
@@ -221,6 +225,7 @@ Plans:
   4. Both test artifacts (screenshots or trace files) are committed as evidence alongside the test scripts
 **Plans:** TBD
 
+
 ### Phase 16: Voice/Mic UAT Guide
 **Goal:** A human reviewer can pick up the UAT guide and independently walk through the live voice/mic coordinator path with no prior knowledge of the implementation.
 **Depends on:** Phase 15
@@ -230,6 +235,7 @@ Plans:
   2. A reviewer following only the guide can trigger voice input, observe intent parsing, see an approval card, and confirm agent action gating without requiring any developer assistance
   3. The guide documents known edge cases (microphone permission prompt, fallback to text input) with explicit handling steps
 **Plans:** TBD
+
 
 ### Progress
 
