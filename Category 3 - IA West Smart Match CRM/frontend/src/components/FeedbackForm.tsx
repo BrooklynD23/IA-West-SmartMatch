@@ -143,9 +143,6 @@ export function FeedbackForm({
             </div>
           </div>
         </div>
-        <div className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
-          Phase 12
-        </div>
       </div>
 
       <div className="mt-5 grid gap-4 md:grid-cols-2">
