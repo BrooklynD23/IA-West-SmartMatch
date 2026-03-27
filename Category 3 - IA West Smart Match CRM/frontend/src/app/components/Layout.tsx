@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { useState } from "react";
+import { ScrollToTop } from "./ScrollToTop";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -28,6 +29,7 @@ export function Layout() {
 
   return (
     <div className="min-h-screen bg-background">
+      <ScrollToTop />
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
