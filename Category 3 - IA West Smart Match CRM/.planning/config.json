@@ -1,0 +1,12 @@
+{
+  "version": "1.0",
+  "project": "IA West Smart Match CRM",
+  "mode": "yolo",
+  "granularity": "standard",
+  "use_git": true,
+  "use_agents": true,
+  "commit_docs": true,
+  "created": "2026-03-26",
+  "milestone": "Demo Polish",
+  "working_directory": "Category 3 - IA West Smart Match CRM"
+}
