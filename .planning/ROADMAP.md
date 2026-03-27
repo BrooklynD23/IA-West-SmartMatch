@@ -189,7 +189,7 @@ Plans:
 ### Phases
 
 - [x] **Phase 13: Demo Polish** — Remove internal labels, finalize all copy, and enable smooth scrolling (completed 2026-03-27)
-- [ ] **Phase 14: Visual Resilience** — Graceful fallback graphics with Demo Mode indicator
+- [x] **Phase 14: Visual Resilience** — Graceful fallback graphics with Demo Mode indicator (completed 2026-03-27)
 - [ ] **Phase 15: Build Quality + Playwright Evidence** — Fix chunk-size warning and capture browser test evidence for QR and feedback flows
 - [ ] **Phase 16: Voice/Mic UAT Guide** — Structured human walkthrough document for live voice path
 
@@ -216,11 +216,11 @@ Plans:
   1. Every chart and visualization in the app renders without error regardless of whether the backend returns data or not
   2. When a visualization uses fallback mock data, a discrete "Demo Mode" badge or indicator is visible on that view without disrupting the layout
   3. The "Demo Mode" indicator is absent on any view that has successfully loaded real data
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 14-01-PLAN.md — Backend demo.db seed, helper module, and router fallback wiring
-- [ ] 14-02-PLAN.md — Frontend mockData constants, DemoModeBadge, and page-level isMockData wiring
+- [x] 14-02-PLAN.md — Frontend mockData constants, DemoModeBadge, and page-level isMockData wiring
 
 ### Phase 15: Build Quality + Playwright Evidence
 **Goal:** The React production build is clean and browser-captured evidence proves the QR and feedback flows work end-to-end.
@@ -250,7 +250,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 13. Demo Polish | 1/1 | Complete    | 2026-03-27 |
-| 14. Visual Resilience | 1/2 | In Progress|  |
+| 14. Visual Resilience | 2/2 | Complete   | 2026-03-27 |
 | 15. Build Quality + Playwright Evidence | 0/? | Not started | - |
 | 16. Voice/Mic UAT Guide | 0/? | Not started | - |
 

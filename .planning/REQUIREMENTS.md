@@ -19,9 +19,9 @@ Requirements for the Demo Readiness milestone. Each maps to roadmap phases.
 
 ### Demo Polish
 
-- [ ] **POLISH-01**: All internal "Phase #N" labels removed from user-facing UI text across all pages
-- [ ] **POLISH-02**: All page headings, button labels, and body copy are concrete and demo-ready (no placeholder or dev-flavored text)
-- [ ] **POLISH-03**: Smooth scrolling applied across all pages and view transitions
+- [x] **POLISH-01**: All internal "Phase #N" labels removed from user-facing UI text across all pages
+- [x] **POLISH-02**: All page headings, button labels, and body copy are concrete and demo-ready (no placeholder or dev-flavored text)
+- [x] **POLISH-03**: Smooth scrolling applied across all pages and view transitions
 - [ ] **POLISH-04**: All charts, images, and data visualizations load real data or fall back gracefully to hardcoded mock data when unavailable
 - [ ] **POLISH-05**: Any view displaying fallback/mock data shows a discrete "Demo Mode" indicator visible to the coordinator
 
@@ -52,9 +52,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| POLISH-01 | Phase 13 | Pending |
-| POLISH-02 | Phase 13 | Pending |
-| POLISH-03 | Phase 13 | Pending |
+| POLISH-01 | Phase 13 | Complete |
+| POLISH-02 | Phase 13 | Complete |
+| POLISH-03 | Phase 13 | Complete |
 | POLISH-04 | Phase 14 | Pending |
 | POLISH-05 | Phase 14 | Pending |
 | BUILD-01 | Phase 15 | Pending |
