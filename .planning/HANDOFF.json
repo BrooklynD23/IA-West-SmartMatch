@@ -1,0 +1,30 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-03-27T06:53:57.610Z",
+  "phase": "13",
+  "phase_name": "Demo Polish",
+  "phase_dir": ".planning/phases/13-demo-polish",
+  "plan": 1,
+  "task": 0,
+  "total_tasks": 3,
+  "status": "paused",
+  "completed_tasks": [],
+  "remaining_tasks": [
+    {"id": 1, "name": "Remove Phase 12 badge from FeedbackForm.tsx:147", "status": "not_started"},
+    {"id": 2, "name": "Replace dev-flavored version strings on LandingPage.tsx", "status": "not_started"},
+    {"id": 3, "name": "Create ScrollToTop component and wire into Layout.tsx", "status": "not_started"}
+  ],
+  "blockers": [],
+  "human_actions_pending": [],
+  "decisions": [
+    {"decision": "ScrollToTop goes in Layout.tsx not App.tsx", "rationale": "useLocation requires router context; App.tsx renders RouterProvider so useLocation call would throw. Layout.tsx is rendered inside the router.", "phase": "13"},
+    {"decision": "scroll-behavior: smooth already in theme.css:155 — do not add again", "rationale": "Confirmed by researcher via direct file read", "phase": "13"},
+    {"decision": "Only 3 strings need changing: 'Phase 12' in FeedbackForm, 'V1.2 public brand' and 'IA West V1.2 blue / white brand' on LandingPage", "rationale": "Exhaustive grep + file audit found no other issues", "phase": "13"}
+  ],
+  "uncommitted_files": [
+    ".planning/STATE.md",
+    ".planning/phases/13-demo-polish/13-VALIDATION.md"
+  ],
+  "next_action": "/gsd:execute-phase 13 — spawns executor for 13-01-PLAN.md (3 tasks, Wave 1). Then /gsd:autonomous --from 14 to continue phases 14-16.",
+  "context_notes": "v3.1 milestone initialized this session. All planning artifacts for Phase 13 complete. No production code changed yet. User has been accepting all recommended choices — continue autonomously."
+}
