@@ -165,11 +165,11 @@ export function Calendar() {
           throw eventResult.reason;
         }
 
-        const eventRows = eventResult.value;
+        const eventRows = eventResult.value.data;
         setEvents(eventRows);
 
         if (assignmentResult.status === "fulfilled") {
-          setAssignments(assignmentResult.value);
+          setAssignments(assignmentResult.value.data);
         } else {
           setAssignments([]);
           setError(

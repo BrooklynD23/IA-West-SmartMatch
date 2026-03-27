@@ -848,35 +848,52 @@ export function splitTags(raw: string): string[] {
     .filter(Boolean);
 }
 
-export async function fetchSpecialists(): Promise<Specialist[]> {
-  return requestJson<Specialist[]>("/api/data/specialists");
+export interface WithSource<T> {
+  data: T;
+  source: "live" | "demo";
 }
 
-export async function fetchEvents(): Promise<CppEvent[]> {
-  return requestJson<CppEvent[]>("/api/data/events");
+export async function fetchSpecialists(): Promise<WithSource<Specialist[]>> {
+  const raw = await requestJson<unknown>("/api/data/specialists");
+  const payload = toRecordArray(raw);
+  const source: "live" | "demo" = (payload[0] as Record<string, unknown>)?.source === "demo" ? "demo" : "live";
+  return { data: payload as Specialist[], source };
 }
 
-export async function fetchPipeline(): Promise<PipelineRecord[]> {
-  return requestJson<PipelineRecord[]>("/api/data/pipeline");
+export async function fetchEvents(): Promise<WithSource<CppEvent[]>> {
+  const raw = await requestJson<unknown>("/api/data/events");
+  const payload = toRecordArray(raw);
+  const source: "live" | "demo" = (payload[0] as Record<string, unknown>)?.source === "demo" ? "demo" : "live";
+  return { data: payload as CppEvent[], source };
+}
+
+export async function fetchPipeline(): Promise<WithSource<PipelineRecord[]>> {
+  const raw = await requestJson<unknown>("/api/data/pipeline");
+  const payload = toRecordArray(raw);
+  const source: "live" | "demo" = (payload[0] as Record<string, unknown>)?.source === "demo" ? "demo" : "live";
+  return { data: payload as PipelineRecord[], source };
 }
 
 export async function fetchCalendar(): Promise<CalendarRecord[]> {
   return requestJson<CalendarRecord[]>("/api/data/calendar");
 }
 
-export async function fetchCalendarEvents(): Promise<CalendarEventSummary[]> {
+export async function fetchCalendarEvents(): Promise<WithSource<CalendarEventSummary[]>> {
   const payload = await requestJson<unknown>("/api/calendar/events");
-  return toRecordArray(payload).map((record, index) => normalizeCalendarEvent(record, index));
+  const rows = toRecordArray(payload);
+  const source: "live" | "demo" = (rows[0] as Record<string, unknown>)?.source === "demo" ? "demo" : "live";
+  return { data: rows.map((record, index) => normalizeCalendarEvent(record, index)), source };
 }
 
-export async function fetchCalendarAssignments(): Promise<CalendarAssignmentSummary[]> {
+export async function fetchCalendarAssignments(): Promise<WithSource<CalendarAssignmentSummary[]>> {
   const payload = await requestJson<unknown>("/api/calendar/assignments");
-  const rows = toRecordArray(payload).map((record, index) => normalizeCalendarAssignment(record, index));
-  return rows;
+  const rows = toRecordArray(payload);
+  const source: "live" | "demo" = (rows[0] as Record<string, unknown>)?.source === "demo" ? "demo" : "live";
+  return { data: rows.map((record, index) => normalizeCalendarAssignment(record, index)), source };
 }
 
 export async function fetchVolunteerRecovery(): Promise<VolunteerRecoverySummary[]> {
-  const assignments = await fetchCalendarAssignments();
+  const { data: assignments } = await fetchCalendarAssignments();
   const byVolunteer = new Map<string, Record<string, unknown>>();
 
   for (const assignment of assignments) {
@@ -940,14 +957,16 @@ export function emptyFeedbackStatsSummary(): FeedbackStatsSummary {
   };
 }
 
-export async function fetchQrStats(): Promise<QrStatsSummary> {
-  const payload = await requestJson<unknown>("/api/qr/stats");
-  return normalizeQrStats(payload);
+export async function fetchQrStats(): Promise<WithSource<QrStatsSummary>> {
+  const payload = await requestJson<Record<string, unknown>>("/api/qr/stats");
+  const source: "live" | "demo" = payload?.source === "demo" ? "demo" : "live";
+  return { data: normalizeQrStats(payload), source };
 }
 
-export async function fetchFeedbackStats(): Promise<FeedbackStatsSummary> {
-  const payload = await requestJson<unknown>("/api/feedback/stats");
-  return normalizeFeedbackStats(payload);
+export async function fetchFeedbackStats(): Promise<WithSource<FeedbackStatsSummary>> {
+  const payload = await requestJson<Record<string, unknown>>("/api/feedback/stats");
+  const source: "live" | "demo" = payload?.source === "demo" ? "demo" : "live";
+  return { data: normalizeFeedbackStats(payload), source };
 }
 
 export async function submitFeedback(
