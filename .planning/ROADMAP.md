@@ -231,8 +231,11 @@ Plans:
   2. A Playwright test script runs headlessly and captures a passing assertion that QR code generation and scan attribution complete in the browser
   3. A Playwright test script runs headlessly and captures a passing assertion that coordinator feedback submission triggers weight-shift analytics rendering in the browser
   4. Both test artifacts (screenshots or trace files) are committed as evidence alongside the test scripts
-**Plans:** TBD
+**Plans:** 2 plans
 
+Plans:
+- [ ] 15-01-PLAN.md — Fix React build chunk-size warning via manualChunks vendor splitting
+- [ ] 15-02-PLAN.md — Python Playwright E2E tests for QR and feedback flows with screenshot evidence
 
 ### Phase 16: Voice/Mic UAT Guide
 **Goal:** A human reviewer can pick up the UAT guide and independently walk through the live voice/mic coordinator path with no prior knowledge of the implementation.
@@ -251,7 +254,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 13. Demo Polish | 1/1 | Complete    | 2026-03-27 |
 | 14. Visual Resilience | 2/2 | Complete    | 2026-03-27 |
-| 15. Build Quality + Playwright Evidence | 0/? | Not started | - |
+| 15. Build Quality + Playwright Evidence | 0/2 | Planned | - |
 | 16. Voice/Mic UAT Guide | 0/? | Not started | - |
 
 ---
@@ -262,4 +265,4 @@ Plans:
 
 ## Current Status
 
-v3.1 Demo Readiness is in progress. Phase 13 implementation is landed and pending formal verification, Phase 14 is planned and ready for execution, and Phases 15-16 remain planned.
+v3.1 Demo Readiness is in progress. Phases 13-14 complete. Phase 15 is planned with 2 plans (build fix + Playwright evidence). Phase 16 remains to be planned.
