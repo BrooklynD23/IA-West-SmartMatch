@@ -1,6 +1,7 @@
 import { Check, Download, Loader2, Mail, X } from "lucide-react";
 
 import { type RankedMatch, type WorkflowResponse } from "@/lib/api";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/app/components/ui/dialog";
 
 interface OutreachWorkflowModalProps {
   volunteer: RankedMatch;
@@ -35,30 +36,22 @@ export function OutreachWorkflowModal({
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-      onClick={onClose}
-      onKeyDown={(event) => {
-        if (event.key === "Escape") onClose();
-      }}
-      role="presentation"
-    >
-      <div
-        className="bg-white rounded-xl p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto"
-        onClick={(event) => event.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="workflow-modal-title"
-      >
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto rounded-xl p-8 sm:max-w-3xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
               <Mail className="w-5 h-5 text-blue-600" />
             </div>
-            <h2 id="workflow-modal-title" className="text-2xl font-semibold text-gray-900">
-              Outreach Workflow
-            </h2>
+            <div>
+              <DialogTitle id="workflow-modal-title" className="text-2xl font-semibold text-gray-900">
+                Outreach Workflow
+              </DialogTitle>
+              <DialogDescription className="mt-1 text-sm text-gray-600">
+                Review generated outreach steps for {volunteer.name} before you dispatch follow-up.
+              </DialogDescription>
+            </div>
           </div>
           <button
             onClick={onClose}
@@ -157,7 +150,7 @@ export function OutreachWorkflowModal({
             ) : null}
           </div>
         ) : null}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

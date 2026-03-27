@@ -117,21 +117,21 @@ export function Opportunities() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="mx-auto max-w-7xl space-y-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-3xl font-semibold text-gray-900">Opportunities</h1>
           <p className="text-gray-600 mt-1">
             Discover and match university engagement opportunities from the live dataset.
           </p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg">
+        <button className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-white shadow-sm transition-colors hover:bg-[#00477f]">
           <Sparkles className="w-5 h-5" />
           Find Best Matches
         </button>
       </div>
 
-      <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm space-y-4">
+      <div className="space-y-4 rounded-2xl border border-[#d5e0f7] bg-white p-6 shadow-sm">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
@@ -139,20 +139,20 @@ export function Opportunities() {
             placeholder="Search opportunities by name or host..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-xl border border-[#cfd8e5] bg-[#f7f9fc] py-3 pl-10 pr-4 focus:border-[#005394] focus:outline-none focus:ring-2 focus:ring-[#005394]/20"
           />
         </div>
 
         <div className="flex flex-wrap gap-3">
           <div className="flex items-center gap-2">
             <Filter className="w-5 h-5 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700">Filters:</span>
+            <span className="text-sm font-medium text-gray-700">Filters</span>
           </div>
 
           <select
             value={selectedLocation}
             onChange={(event) => setSelectedLocation(event.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            className="rounded-xl border border-[#cfd8e5] bg-[#f7f9fc] px-3 py-2 text-sm focus:border-[#005394] focus:outline-none focus:ring-2 focus:ring-[#005394]/20"
           >
             {locations.map((location) => (
               <option key={location} value={location}>
@@ -164,7 +164,7 @@ export function Opportunities() {
           <select
             value={selectedRole}
             onChange={(event) => setSelectedRole(event.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            className="rounded-xl border border-[#cfd8e5] bg-[#f7f9fc] px-3 py-2 text-sm focus:border-[#005394] focus:outline-none focus:ring-2 focus:ring-[#005394]/20"
           >
             {roles.map((role) => (
               <option key={role} value={role}>
@@ -176,7 +176,7 @@ export function Opportunities() {
           <select
             value={selectedType}
             onChange={(event) => setSelectedType(event.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            className="rounded-xl border border-[#cfd8e5] bg-[#f7f9fc] px-3 py-2 text-sm focus:border-[#005394] focus:outline-none focus:ring-2 focus:ring-[#005394]/20"
           >
             {types.map((type) => (
               <option key={type} value={type}>
@@ -193,8 +193,8 @@ export function Opportunities() {
               onClick={() => toggleTag(tag)}
               className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                 selectedTags.includes(tag)
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  ? "bg-[#005394] text-white shadow-sm"
+                  : "bg-[#eef4ff] text-[#005394] hover:bg-[#dceaff]"
               }`}
             >
               {tag}
@@ -204,7 +204,7 @@ export function Opportunities() {
       </div>
 
       {error ? (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-red-700 text-center">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center text-red-700">
           {error}
         </div>
       ) : null}
@@ -220,7 +220,7 @@ export function Opportunities() {
           ? Array.from({ length: 6 }, (_, index) => (
               <div
                 key={index}
-                className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm animate-pulse"
+                className="animate-pulse rounded-2xl border border-[#d5e0f7] bg-white p-6 shadow-sm"
               >
                 <div className="h-5 w-2/3 rounded bg-gray-200 mb-4" />
                 <div className="space-y-3">
@@ -233,7 +233,7 @@ export function Opportunities() {
           : filteredOpportunities.map((opportunity) => (
               <div
                 key={opportunity.id}
-                className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+                className="rounded-2xl border border-[#d5e0f7] bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
@@ -243,7 +243,7 @@ export function Opportunities() {
                       {opportunity.university}
                     </div>
                   </div>
-                  <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
+                  <span className="rounded-full bg-[#e6effb] px-3 py-1 text-xs font-medium text-[#005394]">
                     {opportunity.type}
                   </span>
                 </div>
@@ -265,7 +265,7 @@ export function Opportunities() {
 
                 <div className="mb-4">
                   <p className="text-sm text-gray-600 mb-2">Required Role:</p>
-                  <span className="inline-flex px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
+                  <span className="inline-flex rounded-full bg-[#eef4ff] px-3 py-1 text-sm font-medium text-[#005394]">
                     {opportunity.role}
                   </span>
                 </div>
@@ -276,7 +276,7 @@ export function Opportunities() {
                     {opportunity.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md"
+                        className="rounded-md bg-[#f2f7ff] px-2 py-1 text-xs text-[#005394]"
                       >
                         {tag}
                       </span>
@@ -285,7 +285,7 @@ export function Opportunities() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium">
+                  <button className="flex-1 rounded-xl bg-primary px-4 py-2.5 font-medium text-white shadow-sm transition-colors hover:bg-[#00477f]">
                     Match Volunteers
                   </button>
                   {opportunity.url ? (
@@ -293,7 +293,7 @@ export function Opportunities() {
                       href={opportunity.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                      className="rounded-xl border border-[#cfd8e5] px-4 py-2.5 text-gray-700 transition-colors hover:bg-[#f7f9fc]"
                     >
                       <ExternalLink className="w-5 h-5" />
                     </a>
@@ -304,7 +304,7 @@ export function Opportunities() {
       </div>
 
       {!loading && !error && filteredOpportunities.length === 0 ? (
-        <div className="bg-white rounded-xl p-10 border border-gray-200 shadow-sm text-center text-gray-600">
+        <div className="rounded-2xl border border-[#d5e0f7] bg-white p-10 text-center text-gray-600 shadow-sm">
           No opportunities matched the active filters.
         </div>
       ) : null}

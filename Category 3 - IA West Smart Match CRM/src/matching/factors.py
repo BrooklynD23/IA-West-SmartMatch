@@ -251,6 +251,11 @@ def _resolve_event_region(raw_region: str) -> str:
     return DEFAULT_EVENT_REGION
 
 
+def resolve_event_region(raw_region: str) -> str:
+    """Public wrapper for event-region normalization."""
+    return _resolve_event_region(raw_region)
+
+
 def geographic_proximity(
     speaker_metro_region: str,
     event_region: str,
@@ -425,6 +430,147 @@ def calendar_fit(
                 best_score = proximity_score
 
     return round(best_score, 4) if best_score > 0.0 else 0.30
+
+
+# ---------------------------------------------------------------------------
+# Factor 4.5: Volunteer Fatigue / Recovery
+# ---------------------------------------------------------------------------
+
+def _coerce_pipeline_rows(pipeline_rows: object) -> pd.DataFrame:
+    """Normalize pipeline input into a DataFrame for local scoring helpers."""
+    if pipeline_rows is None:
+        return pd.DataFrame()
+    if isinstance(pipeline_rows, pd.DataFrame):
+        return pipeline_rows
+    try:
+        return pd.DataFrame(list(pipeline_rows))
+    except TypeError:
+        return pd.DataFrame()
+
+
+def _recurrence_pressure(event_date_or_recurrence: object) -> float:
+    """Map recurrence or event-type hints to a fatigue pressure score."""
+    if not event_date_or_recurrence:
+        return 0.45
+
+    recurrence_lower = str(event_date_or_recurrence).strip().lower()
+    pressure_map: tuple[tuple[tuple[str, ...], float], ...] = (
+        (("hackathon", "summit", "boot camp", "bootcamp", "conference", "intensive"), 0.85),
+        (("weekly", "bi-weekly", "biweekly"), 0.80),
+        (("ongoing", "ongoing series", "recurring"), 0.75),
+        (("monthly",), 0.60),
+        (("quarterly", "semester", "term"), 0.50),
+        (("annual", "annually"), 0.30),
+        (("one-time", "once", "single", "tbd"), 0.40),
+    )
+    for keywords, pressure in pressure_map:
+        if any(keyword in recurrence_lower for keyword in keywords):
+            return pressure
+    return 0.45
+
+
+def _recovery_status_from_fatigue(fatigue_score: float) -> str:
+    """Translate a fatigue burden score into a coordinator-facing status."""
+    if fatigue_score >= 0.75:
+        return "On Cooldown"
+    if fatigue_score >= 0.40:
+        return "Needs Rest"
+    return "Available"
+
+
+def volunteer_recovery_details(
+    speaker_name: str,
+    speaker_metro_region: str,
+    event_region: str,
+    event_date_or_recurrence: object,
+    ia_event_calendar: pd.DataFrame,
+    pipeline_rows: object = None,
+) -> dict[str, object]:
+    """
+    Return normalized recovery details for one speaker-event combination.
+
+    `recovery_score` is the positive matching factor in the 0.0-1.0 range where
+    higher means more available. `volunteer_fatigue` is the inverse burden
+    metric intended for coordinator-facing UI where higher means more fatigued.
+    """
+    pipeline_df = _coerce_pipeline_rows(pipeline_rows)
+
+    speaker_history = pd.DataFrame()
+    if not pipeline_df.empty and "speaker_name" in pipeline_df.columns:
+        speaker_history = pipeline_df[
+            pipeline_df["speaker_name"].astype(str).str.casefold() == speaker_name.strip().casefold()
+        ].copy()
+
+    assignment_pressure = 0.0
+    recency_pressure = 0.0
+    active_assignments = 0
+    days_since_last_assignment: int | None = None
+    if not speaker_history.empty:
+        if "stage_order" in speaker_history.columns:
+            stage_orders = pd.to_numeric(speaker_history["stage_order"], errors="coerce").fillna(0.0)
+        else:
+            stage_orders = pd.Series([0.0] * len(speaker_history), dtype="float64")
+        active_assignments = int((stage_orders > 0).sum())
+        deepest_stage = float(stage_orders.max()) if not stage_orders.empty else 0.0
+        assignment_pressure = min(active_assignments / 5.0, 1.0)
+        recency_pressure = min(deepest_stage / 4.0, 1.0)
+        days_since_last_assignment = int(round((1.0 - recency_pressure) * 30))
+
+    travel_pressure = 1.0 - geographic_proximity(speaker_metro_region, event_region)
+    recurrence_pressure = _recurrence_pressure(event_date_or_recurrence)
+    parsed_date = _parse_date_flexible(event_date_or_recurrence)
+    if parsed_date is not None and ia_event_calendar is not None and not ia_event_calendar.empty:
+        recurrence_pressure = max(
+            recurrence_pressure,
+            1.0 - calendar_fit(event_date_or_recurrence, ia_event_calendar, speaker_metro_region),
+        )
+
+    fatigue_pressure = (
+        0.30 * assignment_pressure
+        + 0.30 * recency_pressure
+        + 0.20 * travel_pressure
+        + 0.20 * recurrence_pressure
+    )
+    recovery_score = round(max(0.0, min(1.0, 1.0 - fatigue_pressure)), 4)
+    fatigue_score = round(max(0.0, min(1.0, fatigue_pressure)), 4)
+    recovery_status = _recovery_status_from_fatigue(fatigue_score)
+    return {
+        "recovery_score": recovery_score,
+        "volunteer_fatigue": fatigue_score,
+        "recovery_status": recovery_status,
+        "recovery_label": recovery_status,
+        "recent_assignment_count": active_assignments,
+        "days_since_last_assignment": days_since_last_assignment,
+        "travel_burden": round(max(0.0, min(1.0, travel_pressure)), 4),
+        "event_cadence": round(max(0.0, min(1.0, recurrence_pressure)), 4),
+    }
+
+
+def volunteer_fatigue(
+    speaker_name: str,
+    speaker_metro_region: str,
+    event_region: str,
+    event_date_or_recurrence: object,
+    ia_event_calendar: pd.DataFrame,
+    pipeline_rows: object = None,
+) -> float:
+    """
+    Estimate volunteer readiness from recent load and event intensity.
+
+    The score is intentionally oriented so that higher values indicate higher
+    recovery / availability, which keeps it compatible with the positive-weight
+    matching model.
+    """
+    return float(
+        volunteer_recovery_details(
+            speaker_name=speaker_name,
+            speaker_metro_region=speaker_metro_region,
+            event_region=event_region,
+            event_date_or_recurrence=event_date_or_recurrence,
+            ia_event_calendar=ia_event_calendar,
+            pipeline_rows=pipeline_rows,
+        )["recovery_score"]
+    )
 
 
 # ---------------------------------------------------------------------------

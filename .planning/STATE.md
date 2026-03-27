@@ -2,29 +2,29 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Phases
-status: unknown
-stopped_at: "Checkpoint 09-02 Task 3: awaiting human-verify of outreach workflow E2E"
-last_updated: "2026-03-26T08:32:29.586Z"
+status: completed
+stopped_at: "Milestone v3.0 shipped after Phase 12 verification"
+last_updated: "2026-03-26T16:52:20Z"
 progress:
   total_phases: 7
-  completed_phases: 3
-  total_plans: 10
-  completed_plans: 10
+  completed_phases: 7
+  total_plans: 19
+  completed_plans: 19
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-25)
+See: .planning/PROJECT.md (updated 2026-03-26)
 
 **Core value:** A coordinator can use voice or text to command an AI assistant that orchestrates parallel agents for event discovery, speaker matching, and outreach, with human approval gating every action.
-**Current focus:** Phase 09 — outreach-button-nemoclaw-workflow
+**Current focus:** v3.0 shipped — awaiting the next milestone
 
 ## Current Position
 
-Phase: 09.1
-Plan: Not started
+Phase: 12
+Plan: shipped
 
 ## Accumulated Context
 
@@ -45,12 +45,22 @@ Plan: Not started
 - [Phase 09]: Per-step try/except in /workflow endpoint for partial failure tolerance
 - [Phase 09]: LRU cache cleared immediately after CSV write to ensure GET /api/data/pipeline freshness
 - [Phase 09]: WorkflowStepResult and WorkflowResponse interfaces mirror backend Pydantic models; ICS download via Blob URL in modal; Modal receives result/loading/error as props from AIMatching state
+- [Phase 09.1]: Theme tokens plus `fonts.css` are now the shared V1.2 source of truth for the React public and authenticated surfaces
+- [Phase 09.1]: Dashboard density-map/discovery-feed enhancements remain presentation-only in this phase to avoid Phase 10 backend coupling
+- [Phase 09.1]: Volunteer and AI Matching fatigue cues are frontend-local for now; formal fatigue scoring remains Phase 10 scope
+- [Phase 10]: `factor_scores.volunteer_fatigue` now represents recovery-readiness for ranking, while API top-level fatigue metadata exposes the inverse burden for coordinator UI
+- [Phase 10]: `/api/calendar/events` and `/api/calendar/assignments` are now the authoritative React scheduling contract, with fallback normalization retained in `frontend/src/lib/api.ts`
+- [Phase 10]: Focused API verification uses direct route/helper calls instead of `TestClient` because this environment can hang on that path
+- [Phase 11]: QR attribution now uses deterministic speaker-event referral codes with local `data/qr/manifest.json` and append-only `data/qr/scan-log.jsonl` storage
+- [Phase 11]: React QR helpers normalize backend `referral_codes`, `membership_interest_count`, and `qr_data_url` fields so coordinator UI reflects live QR history and ROI counts
+- [Phase 12]: Effective matching weights now come from feedback-driven optimizer snapshots exposed by `/api/feedback/stats`, while the `/api/matching/*` request contract stays backward-compatible
+- [Phase 12]: React now captures coordinator outcome feedback in AI Matching and surfaces pain-score plus weight-shift analytics in both Dashboard and Pipeline
 
 ### Pending Todos
 
-- Continue phases 9 through 12 (feature expansion)
 - Run human UAT for live voice/mic and full rehearsal flow
-- Apply senior frontend review feedback to V1.2 UI
+- Add a browser-backed smoke pass for the QR and feedback React workflows once a Playwright browser runtime is available
+- Revisit bundle splitting if the React coordinator app expands beyond the current shipped scope
 
 ### Roadmap Evolution
 
@@ -59,10 +69,12 @@ Plan: Not started
 
 ### Blockers/Concerns
 
-- None — environment verified (venv at .venv with fastapi/httpx/pandas, npm deps installed)
+- Playwright browser runtime is not available in-session; browser-backed UI evidence is still pending.
+- `TestClient` can hang in the current Python environment on the focused calendar/matching tests; direct route/helper verification is the reliable path for now.
+- The frontend production build still emits a non-blocking chunk-size warning as the React analytics surfaces grow.
 
 ## Session Continuity
 
-Last session: 2026-03-26T07:55:40.039Z
-Stopped at: Checkpoint 09-02 Task 3: awaiting human-verify of outreach workflow E2E
+Last session: 2026-03-26T16:52:20Z
+Stopped at: Milestone v3.0 shipped after Phase 12 verification
 Resume file: None

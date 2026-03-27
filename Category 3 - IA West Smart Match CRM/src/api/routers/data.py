@@ -18,7 +18,7 @@ def _server_error(exc: Exception) -> HTTPException:
 
 
 @router.get("/specialists")
-def specialists() -> list[dict]:
+async def specialists() -> list[dict]:
     """Return the specialist roster consumed by the frontend."""
     try:
         return load_specialists()
@@ -27,7 +27,7 @@ def specialists() -> list[dict]:
 
 
 @router.get("/events")
-def events() -> list[dict]:
+async def events() -> list[dict]:
     """Return the CPP events dataset."""
     try:
         return load_cpp_events()
@@ -36,7 +36,7 @@ def events() -> list[dict]:
 
 
 @router.get("/pipeline")
-def pipeline() -> list[dict]:
+async def pipeline() -> list[dict]:
     """Return pipeline sample rows for dashboard views."""
     try:
         return load_pipeline_data()
@@ -45,7 +45,7 @@ def pipeline() -> list[dict]:
 
 
 @router.get("/calendar")
-def calendar() -> list[dict]:
+async def calendar() -> list[dict]:
     """Return IA event calendar rows."""
     try:
         return load_event_calendar()
@@ -54,7 +54,7 @@ def calendar() -> list[dict]:
 
 
 @router.get("/contacts")
-def contacts() -> list[dict]:
+async def contacts() -> list[dict]:
     """Return point-of-contact records."""
     try:
         return load_poc_contacts()

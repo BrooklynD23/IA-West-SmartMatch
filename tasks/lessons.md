@@ -9,6 +9,6 @@
 
 ## Recent Corrections
 
-- None yet.
 - When testing helpers that validate config, patch the real source module (`src.config`) rather than only a re-exported constant in a downstream module.
 - Clean up generated dependency trees after local installs before checking worktree status so untracked noise does not hide the real changes.
+- When a launcher’s readiness checks depend on fixed ports, verify occupied-port and duplicate-start behavior explicitly; syntax checks alone will miss false startup failures.

@@ -1,5 +1,22 @@
 # Milestones
 
+## v3.0 Production UI & Demo Polish (Shipped: 2026-03-26)
+
+**Phases completed:** 7 phases, 19 plans
+
+**Key accomplishments:**
+- Finished the FastAPI + React production path across the v3.0 extension phases, including the V1.2 rebrand and the restored outreach flow.
+- Added recovery-aware scheduling via the calendar contract and surfaced that state across coordinator views.
+- Added deterministic QR generation, scan attribution, and ROI analytics for speaker-event referrals.
+- Added a persisted coordinator feedback loop with bounded optimizer snapshots, pain-score analytics, and weight-shift visibility in React.
+
+**Known gaps accepted as tech debt at closeout:**
+- No browser-backed Playwright evidence exists yet for the shipped QR and feedback flows because the browser runtime was unavailable in-session.
+- The React production build still emits a non-blocking chunk-size warning.
+- The legacy Streamlit feedback sidebar remains a separate path from the new React/FastAPI feedback loop.
+
+---
+
 ## v2.0 Jarvis Agent Coordinator (Shipped: 2026-03-24)
 
 **Phases completed:** 4 phases, 9 plans, 6 tasks

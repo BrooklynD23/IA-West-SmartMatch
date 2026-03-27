@@ -1,318 +1,341 @@
 import { Link } from "react-router";
+import { motion, useReducedMotion } from "motion/react";
+
+const introReveal = {
+  initial: { opacity: 0, y: 24 },
+  whileInView: { opacity: 1, y: 0 },
+  transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
+  viewport: { once: true, amount: 0.35 },
+};
+
+const cards = [
+  {
+    title: "Discover",
+    description:
+      "Capture opportunity signals from across the West Coast and surface the ones that matter in one clear blue/white workspace.",
+  },
+  {
+    title: "Rank",
+    description:
+      "Use matching logic, availability, and specialist context to rank the best-fit coordinator actions without visual clutter.",
+  },
+  {
+    title: "Activate",
+    description:
+      "Route the public surface into a single coordinator login path so the public brand stays simple and focused.",
+  },
+];
+
+const proofRows = [
+  { label: "Discovered opportunities", value: "2,481", width: "100%" },
+  { label: "High-confidence matches", value: "842", width: "34%" },
+  { label: "Coordinator-ready", value: "114", width: "5%" },
+];
+
+const marketSignals = [
+  { label: "Los Angeles", tone: "bg-primary/20 text-primary" },
+  { label: "San Diego", tone: "bg-secondary text-foreground" },
+  { label: "Bay Area", tone: "bg-muted text-foreground" },
+];
+
+const schoolNames = ["CPP", "UCLA", "SDSU", "UC Davis", "USC", "Portland State"];
 
 export function LandingPage() {
+  const reduceMotion = useReducedMotion();
+
   return (
-    <div className="min-h-screen bg-[#f7f9fc] font-[Inter] text-[#191c1e]">
-      {/* Nav - only Sign In */}
-      <nav className="bg-white/80 backdrop-blur-xl shadow-sm fixed top-0 z-50 flex justify-between items-center w-full px-8 py-4">
-        <span className="text-xl font-bold tracking-tight font-[Inter_Tight]">IA SmartMatch</span>
-        <Link
-          to="/login"
-          className="bg-gradient-to-r from-[#005394] to-[#2b6cb0] text-white px-6 py-2 rounded-xl font-semibold shadow-sm hover:opacity-90 active:scale-[0.98] transition-all"
-        >
-          Sign In
-        </Link>
-      </nav>
-
-      <main className="pt-24">
-        {/* Hero */}
-        <section className="px-8 py-20 max-w-7xl mx-auto flex flex-col items-center text-center">
-          <span className="text-[#005394] font-semibold tracking-wider uppercase text-sm mb-4">
-            AI-Driven Opportunity Matching for IA West
-          </span>
-          <h1 className="text-5xl md:text-7xl font-bold font-[Inter_Tight] tracking-tight max-w-4xl leading-[1.1] mb-8">
-            Match your specialist database with every university opportunity
-          </h1>
-          <p className="text-xl text-[#414750] max-w-2xl mb-12">
-            Bridge the gap between your internal industry expertise and live academic needs through
-            automated web-scraped signals and high-fidelity matching.
-          </p>
-          <Link
-            to="/login"
-            className="bg-gradient-to-r from-[#005394] to-[#2b6cb0] text-white px-8 py-4 rounded-xl text-lg font-bold shadow-lg hover:opacity-90 transition-all"
-          >
-            Get Started
+    <div className="public-shell">
+      <header className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur-xl">
+        <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
+          <Link to="/" className="flex items-center gap-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20">
+              IW
+            </span>
+            <div className="leading-tight">
+              <p className="font-semibold text-foreground">IA West Smart Match</p>
+              <p className="text-xs uppercase tracking-[0.28em] text-muted-foreground">V1.2 public brand</p>
+            </div>
           </Link>
-        </section>
 
-        {/* Product Preview */}
-        <section className="px-8 pb-32 max-w-7xl mx-auto">
-          <div className="bg-[#f2f4f7] rounded-[2.5rem] p-4 md:p-8 shadow-sm">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              {/* Main Event Card */}
-              <div className="lg:col-span-8 bg-white rounded-2xl p-8 shadow-sm">
-                <div className="flex justify-between items-start mb-12">
+          <Link to="/login" className="public-button-primary">
+            Sign In
+          </Link>
+        </nav>
+      </header>
+
+      <main>
+        <section
+          id="hero"
+          className="mx-auto grid max-w-7xl gap-12 px-6 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-8 lg:py-24"
+        >
+          <motion.div {...introReveal} className="space-y-8">
+            <span className="public-pill">IA West V1.2 blue / white brand</span>
+            <div className="space-y-6">
+              <h1 className="max-w-3xl font-[Inter_Tight] text-5xl font-semibold tracking-tight text-foreground md:text-7xl">
+                Turn West Coast opportunities into coordinated specialist action.
+              </h1>
+              <p className="max-w-2xl text-lg leading-8 text-muted-foreground md:text-xl">
+                The public surface stays focused on one path: discover the brand, understand the
+                product story, and sign in to the coordinator workflow.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Link to="/login" className="public-button-primary">
+                Sign In
+              </Link>
+              <a href="#proof" className="public-button-secondary">
+                See the proof
+              </a>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="public-panel p-5">
+                <p className="text-3xl font-semibold text-primary">2,481</p>
+                <p className="mt-1 text-sm text-muted-foreground">opportunities surfaced</p>
+              </div>
+              <div className="public-panel p-5">
+                <p className="text-3xl font-semibold text-primary">842</p>
+                <p className="mt-1 text-sm text-muted-foreground">high-fit matches</p>
+              </div>
+              <div className="public-panel p-5">
+                <p className="text-3xl font-semibold text-primary">94%</p>
+                <p className="mt-1 text-sm text-muted-foreground">signal confidence</p>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            {...introReveal}
+            transition={{ ...introReveal.transition, delay: 0.08 }}
+            className="relative"
+          >
+            <div className="public-panel relative overflow-hidden p-6 md:p-8">
+              <motion.div
+                aria-hidden="true"
+                className="absolute -right-16 -top-12 h-48 w-48 rounded-full bg-primary/10 blur-3xl"
+                animate={
+                  reduceMotion
+                    ? undefined
+                    : { scale: [1, 1.08, 1], opacity: [0.45, 0.7, 0.45] }
+                }
+                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <motion.div
+                aria-hidden="true"
+                className="absolute bottom-6 left-6 h-24 w-24 rounded-full bg-secondary/70 blur-2xl"
+                animate={reduceMotion ? undefined : { y: [0, -8, 0] }}
+                transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+              />
+
+              <div className="relative space-y-6">
+                <div className="flex items-start justify-between gap-4">
                   <div>
-                    <span className="text-[#005394] font-bold text-xs uppercase tracking-widest mb-2 block">
-                      Scraped Opportunity
-                    </span>
-                    <h3 className="text-3xl font-[Inter_Tight] font-bold">UCLA Career Fair 2026</h3>
-                    <p className="text-[#414750] mt-1">Luskin Conference Center &bull; May 14, 2026</p>
+                    <p className="public-pill">Opportunity snapshot</p>
+                    <h2 className="mt-4 font-[Inter_Tight] text-2xl font-semibold text-foreground md:text-3xl">
+                      UCLA Career Fair 2026
+                    </h2>
+                    <p className="mt-2 text-sm text-muted-foreground">Luskin Conference Center</p>
                   </div>
-                  <div className="bg-[#d5e0f7] text-[#111c2c] px-4 py-2 rounded-full flex items-center gap-2">
-                    <span className="text-sm font-semibold">High Priority</span>
-                  </div>
+                  <span className="rounded-full bg-primary/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-primary">
+                    High priority
+                  </span>
                 </div>
-                <div className="space-y-6">
-                  <h4 className="text-sm font-bold text-[#414750] uppercase tracking-tighter">
-                    Database Specialist Recommendations
-                  </h4>
-                  <div className="flex items-center justify-between p-6 bg-[#eceef1] rounded-2xl border border-[#005394]/10">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-full bg-[#2b6cb0] flex items-center justify-center text-white font-bold">
+
+                <div className="grid gap-4 md:grid-cols-[1.2fr_0.8fr]">
+                  <div className="rounded-[1.5rem] border border-border/70 bg-background p-5">
+                    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+                      Specialist focus
+                    </p>
+                    <div className="mt-4 flex items-center gap-4">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-lg font-semibold text-primary-foreground">
                         TM
                       </div>
                       <div>
-                        <p className="font-bold text-lg">Travis Miller</p>
-                        <p className="text-sm text-[#414750]">SVP Sales, TechCorp &bull; Specialist CRM</p>
+                        <p className="font-semibold text-foreground">Travis Miller</p>
+                        <p className="text-sm text-muted-foreground">SVP Sales, TechCorp</p>
                       </div>
                     </div>
-                    <div className="flex gap-8 items-center">
-                      <div className="text-center">
-                        <p className="text-xs text-[#414750] uppercase">Match Score</p>
-                        <p className="text-xl font-bold text-[#005394]">94%</p>
-                      </div>
-                      <button className="bg-[#005394] text-white px-4 py-2 rounded-lg text-sm font-bold">
-                        Sync CRM
-                      </button>
-                    </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-4">
-                    {[
-                      { label: "Domain Relevance", value: "35%" },
-                      { label: "Scraped Role Fit", value: "25%" },
-                      { label: "Location", value: "20%" },
-                    ].map((item) => (
-                      <div key={item.label} className="bg-[#f7f9fc] p-4 rounded-xl text-center">
-                        <p className="text-[#005394] font-bold text-lg">{item.value}</p>
-                        <p className="text-xs text-[#414750] uppercase font-medium">{item.label}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
 
-              {/* Bridge Logic Panel */}
-              <div className="lg:col-span-4">
-                <div className="bg-[#2b6cb0] text-white p-8 rounded-2xl h-full flex flex-col">
-                  <h4 className="font-[Inter_Tight] font-bold text-xl mb-6">Bridge Logic</h4>
-                  <p className="text-lg leading-relaxed mb-8 opacity-90">
-                    Travis's profile in your Specialist CRM aligns with UCLA's web-scraped event data
-                    focused on "Sales Leadership in SaaS." His history suggests a high-fidelity match
-                    for this discovered opportunity.
-                  </p>
-                  <div className="mt-auto space-y-4">
-                    <div className="flex justify-between text-sm">
-                      <span>Signal Integrity</span>
-                      <span className="font-bold">Excellent</span>
+                  <div className="rounded-[1.5rem] border border-border/70 bg-background p-5">
+                    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+                      Match score
+                    </p>
+                    <div className="mt-3 flex items-end gap-2">
+                      <span className="font-[Inter_Tight] text-5xl font-semibold text-primary">94</span>
+                      <span className="pb-1 text-lg font-semibold text-muted-foreground">/100</span>
                     </div>
-                    <div className="w-full bg-white/20 h-1 rounded-full overflow-hidden">
-                      <div className="bg-white h-full w-[92%]" />
+                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted">
+                      <div className="h-full w-[94%] rounded-full bg-primary" />
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        </section>
 
-        {/* Features */}
-        <section className="bg-[#f2f4f7] py-32">
-          <div className="px-8 max-w-7xl mx-auto">
-            <div className="mb-20">
-              <h2 className="text-4xl font-[Inter_Tight] font-bold mb-4">
-                Complete Specialist Engagement Pipeline
-              </h2>
-              <p className="text-[#414750] max-w-xl">
-                A unified platform to bridge your internal specialist database with external
-                university opportunities.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-              {[
-                {
-                  title: "Proprietary Web Scraping",
-                  desc: "Real-time automation monitors university portals to identify speaking slots, panels, and academic needs across the West Coast.",
-                },
-                {
-                  title: "Industry Specialist CRM",
-                  desc: "Centralize your internal database of volunteers with enriched profiles, expertise tracking, and availability management.",
-                },
-                {
-                  title: "Bridge Matching",
-                  desc: "Proprietary algorithms bridge the gap between internal CRM expertise and scraped event requirements for optimal placement.",
-                },
-              ].map((feature) => (
-                <div key={feature.title} className="flex flex-col gap-6">
-                  <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center shadow-sm text-[#005394]">
-                    <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-2xl font-[Inter_Tight] font-bold">{feature.title}</h3>
-                  <p className="text-[#414750]">{feature.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Match Score Visualization */}
-        <section className="py-32 px-8 max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-            <div>
-              <h2 className="text-4xl font-[Inter_Tight] font-bold mb-6 leading-tight">
-                The Bridge: 6-factor MATCH_SCORE
-              </h2>
-              <p className="text-lg text-[#414750] mb-10">
-                Our engine cross-references internal specialist data with scraped event parameters to
-                maximize the impact of every engagement.
-              </p>
-              <div className="bg-white p-8 rounded-3xl shadow-sm border border-[#c1c7d2]/10">
-                <h3 className="text-xl font-[Inter_Tight] font-bold mb-6">Match Verification</h3>
-                <div className="space-y-6">
-                  {[
-                    { label: "CRM Profile Sync", desc: "Specialist expertise matches 100% of the course curriculum scraped from UCLA." },
-                    { label: "Scraped Calendar Match", desc: "CRM availability shows 3 overlapping slots with the university's priority window." },
-                    { label: "Geospatial Synergies", desc: "Internal location data aligns with the scraped event venue for low-friction coordination." },
-                  ].map((item) => (
-                    <div key={item.label} className="flex gap-4">
-                      <div className="w-10 h-10 rounded-full bg-[#005394]/10 flex items-center justify-center shrink-0">
-                        <svg className="w-5 h-5 text-[#005394]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="font-bold text-sm uppercase tracking-wider text-[#414750] mb-1">{item.label}</p>
-                        <p>{item.desc}</p>
-                      </div>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {marketSignals.map((signal) => (
+                    <div key={signal.label} className={`rounded-2xl px-4 py-3 text-sm font-semibold ${signal.tone}`}>
+                      {signal.label}
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-            {/* Score Circle */}
-            <div className="flex items-center justify-center">
-              <div className="bg-[#eceef1] rounded-3xl p-8 w-full max-w-md aspect-square flex flex-col items-center justify-center relative">
-                <svg className="w-64 h-64 transform -rotate-90" viewBox="0 0 100 100">
-                  <circle cx="50" cy="50" r="42" fill="transparent" stroke="#005394" strokeWidth="8" strokeDasharray="35 65" strokeDashoffset="0" strokeLinecap="round" />
-                  <circle cx="50" cy="50" r="42" fill="transparent" stroke="#005394" strokeWidth="8" strokeDasharray="25 75" strokeDashoffset="-36" strokeLinecap="round" opacity="0.7" />
-                  <circle cx="50" cy="50" r="42" fill="transparent" stroke="#005394" strokeWidth="8" strokeDasharray="20 80" strokeDashoffset="-62" strokeLinecap="round" opacity="0.5" />
-                  <circle cx="50" cy="50" r="42" fill="transparent" stroke="#005394" strokeWidth="8" strokeDasharray="15 85" strokeDashoffset="-83" strokeLinecap="round" opacity="0.3" />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <div className="w-28 h-28 bg-white rounded-full shadow-2xl flex flex-col items-center justify-center border-4 border-[#eceef1]">
-                    <span className="text-xs uppercase font-bold text-[#414750] opacity-60">Match Score</span>
-                    <span className="text-5xl font-[Inter_Tight] font-bold text-[#005394]">94</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          </motion.div>
         </section>
 
-        {/* Analytics Preview */}
-        <section className="py-32 px-8 max-w-7xl mx-auto">
-          <h2 className="text-4xl font-[Inter_Tight] font-bold mb-16 text-center">
-            Engagement &amp; Scraping Analytics
-          </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 bg-white rounded-3xl p-8 shadow-sm">
-              <div className="flex justify-between items-center mb-12">
-                <h3 className="text-xl font-bold font-[Inter_Tight]">Opportunity Density Heat Map</h3>
-                <div className="flex gap-2">
-                  <span className="px-3 py-1 bg-[#eceef1] rounded-lg text-xs font-bold">Scraped Leads</span>
-                  <span className="px-3 py-1 bg-[#eceef1] rounded-lg text-xs font-bold">CRM Matches</span>
-                </div>
-              </div>
-              <div className="h-80 bg-[#eceef1] rounded-2xl relative overflow-hidden flex items-center justify-center">
-                <div className="relative flex flex-col items-center gap-2">
-                  <div className="w-16 h-16 bg-[#005394] rounded-full animate-pulse opacity-70" />
-                  <p className="font-bold text-[#005394]">High Opportunity: Los Angeles Hub</p>
-                </div>
-              </div>
+        <motion.section
+          id="story"
+          {...introReveal}
+          className="mx-auto max-w-7xl px-6 py-8 lg:px-8 lg:py-16"
+        >
+          <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="space-y-3">
+              <p className="public-pill">Product story</p>
+              <h2 className="font-[Inter_Tight] text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+                One public journey, one coordinator handoff.
+              </h2>
             </div>
-            <div className="bg-white rounded-3xl p-8 shadow-sm">
-              <h3 className="text-xl font-bold font-[Inter_Tight] mb-12">Matching Funnel</h3>
-              <div className="space-y-8">
-                {[
-                  { label: "Discovered (Scraped)", count: "2,481", width: "100%" },
-                  { label: "CRM Potential Matches", count: "842", width: "34%" },
-                  { label: "Specialist Confirmed", count: "114", width: "5%" },
-                ].map((item) => (
-                  <div key={item.label}>
-                    <div className="flex justify-between mb-2">
-                      <span className="text-sm font-bold">{item.label}</span>
-                      <span className="text-sm">{item.count}</span>
+            <p className="max-w-2xl text-muted-foreground">
+              The public page explains the workflow without exposing dashboard chrome. The login
+              path remains the single conversion point.
+            </p>
+          </div>
+
+          <div className="grid gap-5 lg:grid-cols-3">
+            {cards.map((card, index) => (
+              <motion.div
+                key={card.title}
+                className="public-panel p-6"
+                initial={{ opacity: 0, y: 18 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
+                viewport={{ once: true, amount: 0.4 }}
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                  <span className="font-[Inter_Tight] text-lg font-semibold">{index + 1}</span>
+                </div>
+                <h3 className="mt-5 font-[Inter_Tight] text-2xl font-semibold text-foreground">{card.title}</h3>
+                <p className="mt-3 leading-7 text-muted-foreground">{card.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </motion.section>
+
+        <motion.section
+          id="proof"
+          {...introReveal}
+          className="mx-auto max-w-7xl px-6 py-8 lg:px-8 lg:py-16"
+        >
+          <div className="mb-10 space-y-3">
+            <p className="public-pill">Analytics proof</p>
+            <h2 className="font-[Inter_Tight] text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+              Brand clarity backed by operational signal.
+            </h2>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+            <div className="public-panel p-6 md:p-8">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h3 className="font-[Inter_Tight] text-2xl font-semibold text-foreground">
+                    Opportunity density
+                  </h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    A West Coast view of where the strongest engagements cluster.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {schoolNames.map((school) => (
+                    <span
+                      key={school}
+                      className="rounded-full border border-border/70 bg-background px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground"
+                    >
+                      {school}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6 grid gap-4 rounded-[1.5rem] border border-border/70 bg-surface-container-low p-5 md:grid-cols-3">
+                {marketSignals.map((signal, index) => (
+                  <div
+                    key={signal.label}
+                    className="rounded-2xl border border-border/70 bg-background p-4"
+                  >
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold text-foreground">{signal.label}</p>
+                      <span className="text-xs font-semibold text-primary">#{index + 1}</span>
                     </div>
-                    <div className="h-3 bg-[#eceef1] rounded-full overflow-hidden">
-                      <div className="h-full bg-[#005394]" style={{ width: item.width }} />
+                    <div className="mt-4 flex h-24 items-center justify-center rounded-2xl bg-primary/5">
+                      <div className="h-12 w-12 rounded-full bg-primary/25" />
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
-        </section>
 
-        {/* Partners */}
-        <section className="py-24 border-y border-[#eceef1]">
-          <div className="px-8 max-w-7xl mx-auto">
-            <p className="text-center text-[#414750] font-bold uppercase tracking-widest text-xs mb-12">
-              Bridging CRM Data to
-            </p>
-            <div className="flex flex-wrap justify-center gap-12 md:gap-24 grayscale opacity-60">
-              {["CPP", "UCLA", "SDSU", "UC DAVIS", "USC", "PORTLAND STATE"].map((school) => (
-                <span key={school} className="text-2xl font-[Inter_Tight] font-extrabold">{school}</span>
-              ))}
+            <div className="public-panel p-6 md:p-8">
+              <h3 className="font-[Inter_Tight] text-2xl font-semibold text-foreground">Matching funnel</h3>
+              <div className="mt-6 space-y-6">
+                {proofRows.map((row) => (
+                  <div key={row.label}>
+                    <div className="flex items-center justify-between gap-4">
+                      <p className="text-sm font-medium text-foreground">{row.label}</p>
+                      <p className="text-sm font-semibold text-primary">{row.value}</p>
+                    </div>
+                    <div className="mt-3 h-3 overflow-hidden rounded-full bg-muted">
+                      <div className="h-full rounded-full bg-primary" style={{ width: row.width }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-8 rounded-[1.5rem] border border-border/70 bg-background p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+                  Public CTA
+                </p>
+                <p className="mt-3 text-sm leading-7 text-muted-foreground">
+                  Every public interaction ends in the same place: the coordinator login flow.
+                </p>
+                <Link to="/login" className="public-button-primary mt-5">
+                  Sign In
+                </Link>
+              </div>
             </div>
           </div>
-        </section>
+        </motion.section>
 
-        {/* Final CTA */}
-        <section className="px-8 py-32 max-w-5xl mx-auto text-center">
-          <h2 className="text-5xl font-[Inter_Tight] font-bold mb-8">
-            Ready to sync your database with the web?
-          </h2>
-          <p className="text-xl text-[#414750] mb-12 max-w-2xl mx-auto">
-            Join the IA West network and transform how your internal specialist database interacts
-            with real-world university opportunities.
-          </p>
-          <Link
-            to="/login"
-            className="bg-gradient-to-r from-[#005394] to-[#2b6cb0] text-white px-10 py-5 rounded-2xl text-xl font-bold shadow-xl active:scale-95 transition-all inline-block"
-          >
-            Get Started
-          </Link>
-        </section>
+        <motion.section
+          id="login"
+          {...introReveal}
+          className="mx-auto max-w-5xl px-6 py-8 pb-20 lg:px-8 lg:py-16"
+        >
+          <div className="public-panel overflow-hidden p-8 md:p-10">
+            <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
+              <div className="space-y-4">
+                <p className="public-pill">Ready for coordinators</p>
+                <h2 className="font-[Inter_Tight] text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+                  Sign in to move from public brand to working dashboard.
+                </h2>
+                <p className="max-w-2xl text-muted-foreground">
+                  The landing page stays clean and informative. The login page carries the same
+                  blue/white system forward and hands coordinators directly into the app.
+                </p>
+              </div>
+
+              <Link to="/login" className="public-button-primary justify-self-start lg:justify-self-end">
+                Sign In
+              </Link>
+            </div>
+          </div>
+        </motion.section>
       </main>
 
-      {/* Footer */}
-      <footer className="w-full border-t border-[#eceef1] bg-white">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 px-12 py-16 max-w-7xl mx-auto">
-          <div className="col-span-2">
-            <span className="text-md font-bold font-[Inter_Tight] mb-4 block">IA SmartMatch</span>
-            <p className="text-[#414750] max-w-xs">
-              Connecting internal specialist CRM data with real-time scraped academic opportunities.
-            </p>
-          </div>
-          <div className="space-y-4">
-            <p className="font-[Inter_Tight] font-semibold">Product</p>
-            <ul className="space-y-2 text-[#414750]">
-              <li>Specialist CRM</li>
-              <li>Scraping Engine</li>
-            </ul>
-          </div>
-          <div className="space-y-4">
-            <p className="font-[Inter_Tight] font-semibold">About</p>
-            <ul className="space-y-2 text-[#414750]">
-              <li>About IA West</li>
-              <li>Contact</li>
-            </ul>
-          </div>
-        </div>
-        <div className="px-12 py-8 border-t border-[#eceef1] max-w-7xl mx-auto">
-          <p className="text-[#414750] text-sm">&copy; 2026 IA West. All rights reserved.</p>
+      <footer className="border-t border-border/70 bg-background/80">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-8 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between lg:px-8">
+          <p className="font-medium text-foreground">IA West Smart Match</p>
+          <p>Blue/white public surface for the coordinator experience.</p>
         </div>
       </footer>
     </div>

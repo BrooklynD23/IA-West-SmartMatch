@@ -16,13 +16,26 @@ import {
   FunnelChart,
   LabelList,
   Legend,
+  Line,
+  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 
-import { fetchEvents, fetchPipeline, type CppEvent, type PipelineRecord } from "@/lib/api";
+import {
+  emptyFeedbackStatsSummary,
+  emptyQrStatsSummary,
+  fetchEvents,
+  fetchFeedbackStats,
+  fetchPipeline,
+  fetchQrStats,
+  type CppEvent,
+  type FeedbackStatsSummary,
+  type PipelineRecord,
+  type QrStatsSummary,
+} from "@/lib/api";
 
 const stagePalette = ["#a78bfa", "#8b5cf6", "#7c3aed", "#6d28d9", "#5b21b6"];
 
@@ -41,6 +54,13 @@ type UniversityRow = {
   Attended: number;
   "Member Inquiry": number;
 };
+
+function formatFactorName(value: string): string {
+  return value
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
 
 function summarizeStages(records: PipelineRecord[]): StageSummary[] {
   const counts = new Map<string, { count: number; order: number }>();
@@ -102,6 +122,10 @@ function buildUniversityBreakdown(records: PipelineRecord[], events: CppEvent[])
 export function Pipeline() {
   const [pipelineRecords, setPipelineRecords] = useState<PipelineRecord[]>([]);
   const [events, setEvents] = useState<CppEvent[]>([]);
+  const [qrStats, setQrStats] = useState<QrStatsSummary>(emptyQrStatsSummary());
+  const [feedbackStats, setFeedbackStats] = useState<FeedbackStatsSummary>(
+    emptyFeedbackStatsSummary(),
+  );
   const [selectedUniversity, setSelectedUniversity] = useState("All Hosts");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -109,13 +133,49 @@ export function Pipeline() {
   useEffect(() => {
     let active = true;
 
-    Promise.all([fetchPipeline(), fetchEvents()])
-      .then(([pipelineData, eventData]) => {
+    Promise.allSettled([
+      fetchPipeline(),
+      fetchEvents(),
+      fetchQrStats(),
+      fetchFeedbackStats(),
+    ])
+      .then(([pipelineResult, eventResult, qrResult, feedbackResult]) => {
         if (!active) {
           return;
         }
-        setPipelineRecords(pipelineData);
-        setEvents(eventData);
+        if (pipelineResult.status !== "fulfilled" || eventResult.status !== "fulfilled") {
+          throw (
+            pipelineResult.status === "rejected"
+              ? pipelineResult.reason
+              : eventResult.reason
+          );
+        }
+
+        setPipelineRecords(pipelineResult.value);
+        setEvents(eventResult.value);
+        setQrStats(qrResult.status === "fulfilled" ? qrResult.value : emptyQrStatsSummary());
+        setFeedbackStats(
+          feedbackResult.status === "fulfilled"
+            ? feedbackResult.value
+            : emptyFeedbackStatsSummary(),
+        );
+
+        const warnings = [];
+        if (qrResult.status === "rejected") {
+          warnings.push(
+            qrResult.reason instanceof Error
+              ? `QR analytics are unavailable: ${qrResult.reason.message}`
+              : "QR analytics are unavailable.",
+          );
+        }
+        if (feedbackResult.status === "rejected") {
+          warnings.push(
+            feedbackResult.reason instanceof Error
+              ? `Feedback optimizer stats are unavailable: ${feedbackResult.reason.message}`
+              : "Feedback optimizer stats are unavailable.",
+          );
+        }
+        setError(warnings.length ? warnings.join(" ") : null);
       })
       .catch((err: unknown) => {
         if (active) {
@@ -161,6 +221,11 @@ export function Pipeline() {
 
   const stageCount = (stageName: string) =>
     stageSummary.find((stage) => stage.name === stageName)?.count ?? 0;
+  const qrEntries = [...qrStats.entries].sort(
+    (left, right) => right.scan_count - left.scan_count || right.conversion_count - left.conversion_count,
+  );
+  const qrTopEntries = qrEntries.slice(0, 3);
+  const leadAdjustment = feedbackStats.recommended_adjustments[0] ?? null;
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -272,6 +337,208 @@ export function Pipeline() {
                   <p className="text-2xl font-semibold text-gray-900">
                     {stageCount("Member Inquiry")}
                   </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+            <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900">QR ROI Tracking</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Referral codes, scans, and downstream conversion signals from the QR contract.
+                </p>
+              </div>
+              <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
+                {qrStats.total_generated > 0 ? "Live referrals" : "Awaiting QR data"}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+              <div className="rounded-xl border border-blue-100 bg-blue-50/70 p-4">
+                <p className="text-sm font-medium text-blue-700">Codes generated</p>
+                <p className="mt-2 text-3xl font-semibold text-gray-900">{qrStats.total_generated}</p>
+                <p className="mt-1 text-xs text-gray-600">Deterministic referral assets created.</p>
+              </div>
+              <div className="rounded-xl border border-blue-100 bg-blue-50/70 p-4">
+                <p className="text-sm font-medium text-blue-700">Total scans</p>
+                <p className="mt-2 text-3xl font-semibold text-gray-900">{qrStats.total_scans}</p>
+                <p className="mt-1 text-xs text-gray-600">Tracks the redirect endpoint activity.</p>
+              </div>
+              <div className="rounded-xl border border-blue-100 bg-blue-50/70 p-4">
+                <p className="text-sm font-medium text-blue-700">Conversions</p>
+                <p className="mt-2 text-3xl font-semibold text-gray-900">{qrStats.total_conversions}</p>
+                <p className="mt-1 text-xs text-gray-600">Membership-interest outcomes attributed to QR.</p>
+              </div>
+              <div className="rounded-xl border border-blue-100 bg-blue-50/70 p-4">
+                <p className="text-sm font-medium text-blue-700">Scan-to-conversion</p>
+                <p className="mt-2 text-3xl font-semibold text-gray-900">
+                  {Math.round(qrStats.conversion_rate * 100)}%
+                </p>
+                <p className="mt-1 text-xs text-gray-600">Rollup efficiency across all referrals.</p>
+              </div>
+            </div>
+
+            <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+              <div className="rounded-xl border border-gray-200 bg-slate-50 p-4">
+                <div className="mb-4 flex items-center justify-between">
+                  <h4 className="font-semibold text-gray-900">Top referral history</h4>
+                  <span className="text-xs uppercase tracking-wide text-gray-500">scan volume</span>
+                </div>
+                <div className="space-y-3">
+                  {qrTopEntries.length === 0 ? (
+                    <div className="rounded-lg border border-dashed border-gray-300 bg-white p-4 text-sm text-gray-600">
+                      QR rows will appear here once the backend emits referral assets.
+                    </div>
+                  ) : (
+                    qrTopEntries.map((entry) => (
+                      <div
+                        key={entry.referral_code}
+                        className="flex items-center justify-between gap-3 rounded-lg border border-white bg-white px-4 py-3 shadow-sm"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-gray-900">{entry.speaker_name}</p>
+                          <p className="truncate text-sm text-gray-600">
+                            {entry.event_name || "Event pending"} · {entry.referral_code}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-semibold text-gray-900">{entry.scan_count} scans</p>
+                          <p className="text-xs text-gray-500">{entry.conversion_count} conversions</p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-gray-200 bg-white p-4">
+                <h4 className="mb-4 font-semibold text-gray-900">ROI notes</h4>
+                <div className="space-y-3 text-sm text-gray-600">
+                  <p>
+                    Referral codes stay deterministic per speaker-event pair, so repeated outreach can
+                    reuse the same attribution key.
+                  </p>
+                  <p>
+                    Scans are the leading signal, while downstream membership-interest conversions are
+                    the primary ROI target for this phase.
+                  </p>
+                  <p>
+                    If the QR service is unavailable, the page keeps rendering with zeroed analytics
+                    instead of failing the entire pipeline surface.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+            <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900">Continuous Improvement</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Feedback-driven acceptance, pain-score, and weight-shift telemetry for the matcher.
+                </p>
+              </div>
+              <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
+                {feedbackStats.total_feedback > 0 ? "Optimizer active" : "Awaiting feedback"}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+              <div className="rounded-xl border border-blue-100 bg-blue-50/70 p-4">
+                <p className="text-sm font-medium text-blue-700">Feedback rows</p>
+                <p className="mt-2 text-3xl font-semibold text-gray-900">{feedbackStats.total_feedback}</p>
+                <p className="mt-1 text-xs text-gray-600">Coordinator submissions captured so far.</p>
+              </div>
+              <div className="rounded-xl border border-blue-100 bg-blue-50/70 p-4">
+                <p className="text-sm font-medium text-blue-700">Acceptance rate</p>
+                <p className="mt-2 text-3xl font-semibold text-gray-900">
+                  {Math.round(feedbackStats.acceptance_rate * 100)}%
+                </p>
+                <p className="mt-1 text-xs text-gray-600">Accept vs. decline signal from the new feedback loop.</p>
+              </div>
+              <div className="rounded-xl border border-blue-100 bg-blue-50/70 p-4">
+                <p className="text-sm font-medium text-blue-700">Pain score</p>
+                <p className="mt-2 text-3xl font-semibold text-gray-900">
+                  {Math.round(feedbackStats.pain_score)}
+                </p>
+                <p className="mt-1 text-xs text-gray-600">Tracks how much correction pressure the matcher is under.</p>
+              </div>
+              <div className="rounded-xl border border-blue-100 bg-blue-50/70 p-4">
+                <p className="text-sm font-medium text-blue-700">Lead shift</p>
+                <p className="mt-2 text-lg font-semibold text-gray-900">
+                  {leadAdjustment ? formatFactorName(leadAdjustment.factor) : "No shift yet"}
+                </p>
+                <p className="mt-1 text-xs text-gray-600">
+                  {leadAdjustment
+                    ? `${leadAdjustment.delta > 0 ? "+" : ""}${(leadAdjustment.delta * 100).toFixed(1)} pts`
+                    : "Needs more coordinator outcomes."}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[1.05fr_0.95fr]">
+              <div className="rounded-xl border border-gray-200 bg-slate-50 p-4">
+                <div className="mb-4 flex items-center justify-between">
+                  <h4 className="font-semibold text-gray-900">Acceptance trend</h4>
+                  <span className="text-xs uppercase tracking-wide text-gray-500">feedback loop</span>
+                </div>
+                {feedbackStats.trend.length === 0 ? (
+                  <div className="rounded-lg border border-dashed border-gray-300 bg-white p-4 text-sm text-gray-600">
+                    Trend rows will appear here once feedback is submitted from the coordinator workflow.
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <LineChart
+                      data={feedbackStats.trend.map((point) => ({
+                        ...point,
+                        acceptance_percent: Math.round(point.acceptance_rate * 100),
+                      }))}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Line
+                        type="monotone"
+                        dataKey="acceptance_percent"
+                        stroke="#2563eb"
+                        strokeWidth={3}
+                        name="Acceptance %"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+
+              <div className="rounded-xl border border-gray-200 bg-white p-4">
+                <h4 className="mb-4 font-semibold text-gray-900">Weight-shift watchlist</h4>
+                <div className="space-y-3">
+                  {feedbackStats.recommended_adjustments.length === 0 ? (
+                    <div className="rounded-lg border border-dashed border-gray-300 bg-slate-50 p-4 text-sm text-gray-600">
+                      The optimizer has not proposed any bounded weight changes yet.
+                    </div>
+                  ) : (
+                    feedbackStats.recommended_adjustments.slice(0, 4).map((adjustment) => (
+                      <div
+                        key={adjustment.factor}
+                        className="rounded-lg border border-gray-200 bg-slate-50 px-4 py-3"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="font-medium text-gray-900">
+                            {formatFactorName(adjustment.factor)}
+                          </p>
+                          <span className="text-sm font-semibold text-blue-700">
+                            {adjustment.delta > 0 ? "+" : ""}
+                            {(adjustment.delta * 100).toFixed(1)} pts
+                          </span>
+                        </div>
+                        <p className="mt-2 text-sm text-gray-600">{adjustment.rationale}</p>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>

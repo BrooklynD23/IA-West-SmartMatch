@@ -63,7 +63,7 @@ def _find_ranked_match(event_name: str, speaker_name: str) -> dict[str, Any]:
 
 
 @router.post("/email")
-def email(body: EmailRequest) -> dict[str, Any]:
+async def email(body: EmailRequest) -> dict[str, Any]:
     """Generate outreach email text for a ranked speaker-event pair."""
     try:
         match = _find_ranked_match(body.event_name, body.speaker_name)
@@ -97,7 +97,7 @@ def email(body: EmailRequest) -> dict[str, Any]:
 
 
 @router.post("/ics")
-def ics(body: IcsRequest) -> dict[str, str]:
+async def ics(body: IcsRequest) -> dict[str, str]:
     """Generate ICS content for an event."""
     try:
         return {
@@ -128,7 +128,7 @@ class StepResult(BaseModel):
 
 
 @router.post("/workflow")
-def workflow(body: WorkflowRequest) -> dict[str, Any]:
+async def workflow(body: WorkflowRequest) -> dict[str, Any]:
     """Orchestrate outreach email, ICS generation, and pipeline update in one call.
 
     Returns all three results alongside per-step statuses so callers can

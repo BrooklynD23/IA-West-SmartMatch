@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api.routers import data, matching, outreach
+from src.api.routers import calendar, data, feedback, matching, outreach, qr
 
 app = FastAPI(title="IA West SmartMatch API", version="0.1.0")
 
@@ -16,11 +16,14 @@ app.add_middleware(
 )
 
 app.include_router(data.router, prefix="/api/data", tags=["data"])
+app.include_router(calendar.router, prefix="/api/calendar", tags=["calendar"])
+app.include_router(qr.router, prefix="/api/qr", tags=["qr"])
+app.include_router(feedback.router, prefix="/api/feedback", tags=["feedback"])
 app.include_router(matching.router, prefix="/api/matching", tags=["matching"])
 app.include_router(outreach.router, prefix="/api/outreach", tags=["outreach"])
 
 
 @app.get("/api/health")
-def health_check() -> dict[str, str]:
+async def health_check() -> dict[str, str]:
     """Return a minimal health payload for local dev and smoke tests."""
     return {"status": "ok"}

@@ -1,0 +1,13 @@
+# Minimal Python dependencies for the React + FastAPI dev launcher.
+# This keeps `start_cat3_fullstack.*` focused on the fullstack path and
+# avoids pulling optional Streamlit voice/ML packages like torch/CUDA.
+
+python-dotenv==1.0.1
+pandas>=2.2.3
+numpy==1.26.4
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+qrcode==8.2
+Pillow==11.3.0
+fuzzywuzzy>=0.18.0
+python-Levenshtein>=0.12.0

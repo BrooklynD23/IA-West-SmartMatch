@@ -18,6 +18,14 @@ AI-orchestrated speaker-event matching platform for the Insights Association Wes
 
 See [Category 3 - IA West Smart Match CRM/README.md](Category%203%20-%20IA%20West%20Smart%20Match%20CRM/README.md) for full setup and usage instructions.
 
+Quick launch (React + FastAPI testing path):
+- Windows PowerShell: `powershell -ExecutionPolicy Bypass -File .\start_cat3_fullstack.ps1`
+- Windows CMD: `start_cat3_fullstack.cmd`
+- WSL/Linux: `./start_cat3_fullstack.sh`
+
+Those launchers now install the slim `requirements-fullstack.txt` set by default so React + FastAPI startup does not pull the optional Streamlit voice/ML stack on every run. Use `--full-install` when you need the full `requirements.txt` environment.
+If the CAT3 backend is already running on `:8000`, the launcher now reuses it; otherwise occupied `:8000`/`:5173` ports are reported explicitly instead of surfacing as a generic startup exit.
+
 ## Repository Structure
 
 ```

@@ -13,11 +13,53 @@ The “full” dev stack is **two processes**:
 | **Streamlit** | Main UI (`src/app.py`) | [http://127.0.0.1:8501](http://127.0.0.1:8501) |
 | **Dev backend** | Small health API used by demos/ops | [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health) |
 
-Use the **start scripts** below (they `pip install -r requirements.txt`, then launch both). Or run **manually** in two terminals if you prefer.
+Use the **start scripts** below. They sync the slim React + FastAPI dependency set from `requirements-fullstack.txt` by default, then launch both services with staged terminal status output. Use `--full-install` or `pip install -r requirements.txt` if you also need the legacy Streamlit + Jarvis voice stack in the same venv.
 
 **First-time setup** (once): create a virtualenv, install deps, copy env — see [Environment setup](#environment-setup). All commands assume your **current working directory** is this folder:
 
 `Category 3 - IA West Smart Match CRM/`
+
+---
+
+### Quick start for teammates: React + FastAPI (v3 path)
+
+If you want the React app (`:5173`) with the FastAPI backend (`:8000`), use the launcher below.
+It auto-detects **Windows vs WSL/Linux**, syncs deps (unless skipped), starts both services, and prints the exact URLs.
+
+From the repo root (`HackathonForBetterFuture2026/`):
+
+**Windows (PowerShell):**
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\start_cat3_fullstack.ps1
+```
+
+**Windows (CMD):**
+
+```cmd
+start_cat3_fullstack.cmd
+```
+
+**WSL2 / Linux:**
+
+```bash
+chmod +x ./start_cat3_fullstack.sh
+./start_cat3_fullstack.sh
+```
+
+What it launches:
+- React UI: `http://127.0.0.1:5173`
+- FastAPI health: `http://127.0.0.1:8000/api/health`
+
+Optional flags:
+- `--skip-install` to skip dependency sync
+- `--force-install` to ignore the cached install state and resync dependencies
+- `--full-install` to use `requirements.txt` instead of `requirements-fullstack.txt`
+- `--no-browser` to suppress auto-open
+- `--frontend-port <port>` and `--backend-port <port>` to change ports
+- `--frontend-host <host>` and `--backend-host <host>` to change bind hosts
+
+If `:8000` is already serving the CAT3 FastAPI health endpoint, the launcher reuses it instead of failing on a duplicate bind. If another process owns `:8000` or `:5173`, the launcher now reports the occupied port explicitly so you can stop it or pick a different port.
 
 ---
 

@@ -118,6 +118,86 @@ def _load_cpp_events_cached() -> tuple[dict[str, str], ...]:
     return tuple(rows)
 
 
+@functools.lru_cache(maxsize=1)
+def _load_qr_manifest_cached() -> tuple[dict[str, Any], ...]:
+    json_path = _data_dir() / "qr" / "manifest.json"
+    try:
+        with json_path.open(encoding="utf-8") as fh:
+            payload = json.load(fh)
+    except FileNotFoundError:
+        return ()
+    except json.JSONDecodeError:
+        _log.warning("qr manifest is malformed: %s", json_path)
+        return ()
+
+    records = payload.get("records", []) if isinstance(payload, dict) else payload
+    if not isinstance(records, list):
+        return ()
+    return tuple(record for record in records if isinstance(record, dict))
+
+
+@functools.lru_cache(maxsize=1)
+def _load_qr_scan_log_cached() -> tuple[dict[str, Any], ...]:
+    jsonl_path = _data_dir() / "qr" / "scan-log.jsonl"
+    try:
+        with jsonl_path.open(encoding="utf-8") as fh:
+            rows = []
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    row = json.loads(line)
+                except json.JSONDecodeError:
+                    _log.warning("qr scan log entry is malformed: %s", jsonl_path)
+                    continue
+                if isinstance(row, dict):
+                    rows.append(row)
+    except FileNotFoundError:
+        return ()
+    return tuple(rows)
+
+
+@functools.lru_cache(maxsize=1)
+def _load_feedback_log_cached() -> tuple[dict[str, Any], ...]:
+    jsonl_path = _data_dir() / "feedback" / "feedback-log.jsonl"
+    try:
+        with jsonl_path.open(encoding="utf-8") as fh:
+            rows = []
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    row = json.loads(line)
+                except json.JSONDecodeError:
+                    _log.warning("feedback log entry is malformed: %s", jsonl_path)
+                    continue
+                if isinstance(row, dict):
+                    rows.append(row)
+    except FileNotFoundError:
+        return ()
+    return tuple(rows)
+
+
+@functools.lru_cache(maxsize=1)
+def _load_weight_history_cached() -> tuple[dict[str, Any], ...]:
+    json_path = _data_dir() / "feedback" / "weight-history.json"
+    try:
+        with json_path.open(encoding="utf-8") as fh:
+            payload = json.load(fh)
+    except FileNotFoundError:
+        return ()
+    except json.JSONDecodeError:
+        _log.warning("weight history is malformed: %s", json_path)
+        return ()
+
+    snapshots = payload.get("snapshots", []) if isinstance(payload, dict) else payload
+    if not isinstance(snapshots, list):
+        return ()
+    return tuple(snapshot for snapshot in snapshots if isinstance(snapshot, dict))
+
+
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
@@ -171,6 +251,26 @@ def load_cpp_events() -> list[dict[str, str]]:
     Returns an empty list if the file is missing.
     """
     return list(_load_cpp_events_cached())
+
+
+def load_qr_manifest() -> list[dict[str, Any]]:
+    """Load the QR manifest records from ``data/qr/manifest.json``."""
+    return list(_load_qr_manifest_cached())
+
+
+def load_qr_scan_log() -> list[dict[str, Any]]:
+    """Load the append-only QR scan log from ``data/qr/scan-log.jsonl``."""
+    return list(_load_qr_scan_log_cached())
+
+
+def load_feedback_log() -> list[dict[str, Any]]:
+    """Load the append-only feedback log from ``data/feedback/feedback-log.jsonl``."""
+    return list(_load_feedback_log_cached())
+
+
+def load_weight_history() -> list[dict[str, Any]]:
+    """Load optimizer snapshots from ``data/feedback/weight-history.json``."""
+    return list(_load_weight_history_cached())
 
 
 def get_event_by_name(event_name: str) -> dict[str, str] | None:

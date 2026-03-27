@@ -63,6 +63,6 @@ desktop.ini
 .claude/handoff-*.md
 claude-progress.txt
 .planning/config.json
-# ── Mockup frontend install artifacts ────────────────────
-Category 3 - IA West Smart Match CRM/docs/mockup/V1.1/IA-West_UI/node_modules/
-Category 3 - IA West Smart Match CRM/docs/mockup/V1.1/IA-West_UI/package-lock.json
+# ── Node / frontend install artifacts ────────────────────
+node_modules/
+package-lock.json

@@ -1,94 +1,101 @@
 # Technology Stack
 
-**Analysis Date:** 2026-03-20
+**Analysis Date:** 2026-03-26
 
 ## Languages
 
-**Primary:**
-- Python 3.11 deploy target, Python 3.12.3 local venv - Application code, scripts, and tests live in `Category 3 - IA West Smart Match CRM/src/`, `Category 3 - IA West Smart Match CRM/scripts/`, and `Category 3 - IA West Smart Match CRM/tests/`. Deployment is pinned by `Category 3 - IA West Smart Match CRM/runtime.txt`; the checked-in local venv is recorded in `Category 3 - IA West Smart Match CRM/.venv/pyvenv.cfg`.
+**Primary**
+- Python - Core backend, legacy Streamlit UI, scripts, and tests live under `Category 3 - IA West Smart Match CRM/src/`, `Category 3 - IA West Smart Match CRM/scripts/`, and `Category 3 - IA West Smart Match CRM/tests/`.
+- TypeScript - The promoted React coordinator app lives under `Category 3 - IA West Smart Match CRM/frontend/src/`.
 
-**Secondary:**
-- Markdown - Category 3 execution authority and closeout context live in `Category 3 - IA West Smart Match CRM/docs/README.md`, `Category 3 - IA West Smart Match CRM/docs/SPRINT_PLAN.md`, `PRD_SECTION_CAT3.md`, `Category 3 - IA West Smart Match CRM/.status.md`, `Agents.md`, and `tasks/todo.md`.
-- TOML - Streamlit runtime and theme configuration live in `Category 3 - IA West Smart Match CRM/.streamlit/config.toml`.
-- YAML - Repo governance ownership mapping lives in `docs/governance/canonical-map.yaml`.
-- CSV/JSON/NumPy artifacts - Runtime data and caches are stored under `Category 3 - IA West Smart Match CRM/data/` and `Category 3 - IA West Smart Match CRM/cache/`.
+**Secondary**
+- Markdown - Planning, milestone, and product context live in `.planning/`, `Category 3 - IA West Smart Match CRM/docs/`, `Agents.md`, and `tasks/todo.md`.
+- JSON / JSONL - QR and feedback persistence now use local files such as `Category 3 - IA West Smart Match CRM/data/qr/manifest.json`, `Category 3 - IA West Smart Match CRM/data/qr/scan-log.jsonl`, `Category 3 - IA West Smart Match CRM/data/feedback/feedback-log.jsonl`, and `Category 3 - IA West Smart Match CRM/data/feedback/weight-history.json`.
+- CSV / NPY - Canonical event, speaker, calendar, and pipeline inputs plus cached embeddings remain file-backed under `Category 3 - IA West Smart Match CRM/data/` and `Category 3 - IA West Smart Match CRM/cache/`.
+- TOML - Streamlit runtime config lives in `Category 3 - IA West Smart Match CRM/.streamlit/config.toml`.
 
 ## Runtime
 
-**Environment:**
-- Local development uses CPython 3.12.3 in `Category 3 - IA West Smart Match CRM/.venv/pyvenv.cfg`.
-- Deployment targets CPython 3.11 via `Category 3 - IA West Smart Match CRM/runtime.txt`.
-- The supported launch command is `streamlit run src/app.py`, documented in `Category 3 - IA West Smart Match CRM/docs/README.md` and wired into `Makefile`.
-- The app is a single-process Streamlit runtime with shared cross-tab state in `st.session_state`, initialized by `Category 3 - IA West Smart Match CRM/src/runtime_state.py`.
+**Python runtime**
+- Local development uses the checked-in venv at `Category 3 - IA West Smart Match CRM/.venv/`.
+- Deployment target remains CPython 3.11 via `Category 3 - IA West Smart Match CRM/runtime.txt`.
+- The legacy Streamlit app still starts from `Category 3 - IA West Smart Match CRM/src/app.py`.
+- The promoted API server starts from `Category 3 - IA West Smart Match CRM/src/api/main.py`.
 
-**Package Manager:**
-- `pip` installs Category 3 dependencies from `Category 3 - IA West Smart Match CRM/requirements.txt`.
-- Lockfile: missing.
-- Shared baseline file `requirements-common.txt` exists at the repo root, but Category 3 installs from its own `Category 3 - IA West Smart Match CRM/requirements.txt`.
+**Frontend runtime**
+- Vite dev/build tooling is defined in `Category 3 - IA West Smart Match CRM/frontend/package.json`.
+- The React app targets local development on port `5173` and production static output under `Category 3 - IA West Smart Match CRM/frontend/dist/`.
+
+**Package managers / lockfiles**
+- Python dependencies are declared in `Category 3 - IA West Smart Match CRM/requirements.txt`.
+- npm dependencies are declared in `Category 3 - IA West Smart Match CRM/frontend/package.json`.
+- Lockfiles now exist for both stacks: `Category 3 - IA West Smart Match CRM/package-lock.json` and `Category 3 - IA West Smart Match CRM/frontend/package-lock.json`.
 
 ## Frameworks
 
-**Core:**
-- Streamlit 1.42.2 - Main UI and runtime shell in `Category 3 - IA West Smart Match CRM/src/app.py` and `Category 3 - IA West Smart Match CRM/src/ui/`.
-- pandas >=2.2.3 - CSV ingestion, tabular transforms, and fallback pipeline storage in `Category 3 - IA West Smart Match CRM/src/data_loader.py`, `Category 3 - IA West Smart Match CRM/src/ui/pipeline_tab.py`, and `Category 3 - IA West Smart Match CRM/src/feedback/acceptance.py`.
-- NumPy 1.26.4 - Embedding matrices and similarity math in `Category 3 - IA West Smart Match CRM/src/embeddings.py`, `Category 3 - IA West Smart Match CRM/src/similarity.py`, and `Category 3 - IA West Smart Match CRM/src/matching/`.
-- Plotly 5.24.1 - Funnel, radar, map, and volunteer charts in `Category 3 - IA West Smart Match CRM/src/ui/matches_tab.py`, `Category 3 - IA West Smart Match CRM/src/ui/pipeline_tab.py`, `Category 3 - IA West Smart Match CRM/src/ui/expansion_map.py`, and `Category 3 - IA West Smart Match CRM/src/ui/volunteer_dashboard.py`.
+**Backend / legacy app**
+- Streamlit 1.42.2 powers the original coordinator UI in `Category 3 - IA West Smart Match CRM/src/app.py` and `Category 3 - IA West Smart Match CRM/src/ui/`.
+- FastAPI powers the promoted backend in `Category 3 - IA West Smart Match CRM/src/api/main.py` and `Category 3 - IA West Smart Match CRM/src/api/routers/`.
+- Pydantic request models are used in router modules such as `Category 3 - IA West Smart Match CRM/src/api/routers/matching.py`, `Category 3 - IA West Smart Match CRM/src/api/routers/qr.py`, and `Category 3 - IA West Smart Match CRM/src/api/routers/feedback.py`.
 
-**Testing:**
-- pytest 8.3.4 - Primary test runner for `Category 3 - IA West Smart Match CRM/tests/`.
-- pytest-cov >=6.0.0 - Coverage-enabled test command is exposed in `Makefile`.
+**Frontend**
+- React 18.3.1 is the coordinator app runtime in `Category 3 - IA West Smart Match CRM/frontend/src/`.
+- React Router is used in `Category 3 - IA West Smart Match CRM/frontend/src/app/routes.tsx`.
+- Vite 6 drives frontend bundling via `Category 3 - IA West Smart Match CRM/frontend/vite.config.ts`.
+- Tailwind CSS 4 is wired through `Category 3 - IA West Smart Match CRM/frontend/postcss.config.mjs`.
+- Recharts is used for dashboard/pipeline analytics in `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Dashboard.tsx` and `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Pipeline.tsx`.
+- Lucide icons, Radix UI primitives, MUI packages, and project CSS tokens are used across `Category 3 - IA West Smart Match CRM/frontend/src/components/` and `Category 3 - IA West Smart Match CRM/frontend/src/styles/`.
 
-**Build/Dev:**
-- python-dotenv 1.0.1 - Local env loading in `Category 3 - IA West Smart Match CRM/src/config.py`.
-- requests 2.32.3 + beautifulsoup4 4.12.3 - Static discovery scraping and HTML preprocessing in `Category 3 - IA West Smart Match CRM/src/scraping/scraper.py` and `Category 3 - IA West Smart Match CRM/src/extraction/llm_extractor.py`.
-- Playwright 1.49.1 - Dynamic scrape fallback and screenshot automation in `Category 3 - IA West Smart Match CRM/src/scraping/scraper.py` and `Category 3 - IA West Smart Match CRM/scripts/capture_screenshots.py`.
-- Root `Makefile` - Repo-level setup/run/test/lint entrypoints; Category 3 uses `CAT=3`.
-- Not detected: `pyproject.toml`, `package.json`, GitHub Actions, Dockerfiles, `packages.txt`, or a dedicated deployment manifest beyond Streamlit files.
+**Data / matching / utilities**
+- pandas and NumPy support CSV ingestion, cached embeddings, and match scoring in `Category 3 - IA West Smart Match CRM/src/data_loader.py`, `Category 3 - IA West Smart Match CRM/src/embeddings.py`, and `Category 3 - IA West Smart Match CRM/src/matching/`.
+- Plotly remains in use on the Streamlit side under `Category 3 - IA West Smart Match CRM/src/ui/`.
+- qrcode and Pillow are now part of the QR generation path in `Category 3 - IA West Smart Match CRM/src/qr/service.py`.
+
+**Testing**
+- pytest is the backend test runner for `Category 3 - IA West Smart Match CRM/tests/`.
+- Frontend currently has no checked-in test runner or spec files under `Category 3 - IA West Smart Match CRM/frontend/`.
 
 ## Key Dependencies
 
-**Critical:**
-- `streamlit==1.42.2` - Category 3 is a Streamlit-first application, and core runtime behavior depends on `st.session_state` contracts defined in `Category 3 - IA West Smart Match CRM/src/runtime_state.py` and referenced from `Category 3 - IA West Smart Match CRM/docs/README.md`.
-- `pandas>=2.2.3` - All canonical inputs are CSV-backed and loaded through `Category 3 - IA West Smart Match CRM/src/data_loader.py`.
-- `numpy==1.26.4` - Embeddings are stored as `.npy` files and loaded by `Category 3 - IA West Smart Match CRM/src/embeddings.py`.
-- `plotly==5.24.1` - User-facing charts are rendered throughout `Category 3 - IA West Smart Match CRM/src/ui/`.
-- No Gemini SDK package is installed or required for the shipped runtime. `Category 3 - IA West Smart Match CRM/src/gemini_client.py` uses stdlib `urllib` directly against Gemini REST endpoints.
+**Backend critical**
+- `fastapi` / `uvicorn` - REST promotion path in `Category 3 - IA West Smart Match CRM/src/api/`.
+- `streamlit` - Legacy coordinator shell and demo path in `Category 3 - IA West Smart Match CRM/src/app.py`.
+- `pandas`, `numpy` - Canonical data loading and scoring logic in `Category 3 - IA West Smart Match CRM/src/data_loader.py` and `Category 3 - IA West Smart Match CRM/src/matching/`.
+- `qrcode`, `Pillow` - Deterministic QR generation in `Category 3 - IA West Smart Match CRM/src/qr/service.py`.
 
-**Infrastructure:**
-- `python-dotenv==1.0.1` - Supports local `.env` based configuration in `Category 3 - IA West Smart Match CRM/src/config.py`.
-- `requests==2.32.3` - Performs outbound HTTP scraping in `Category 3 - IA West Smart Match CRM/src/scraping/scraper.py`.
-- `beautifulsoup4==4.12.3` - Cleans and preprocesses scraped HTML in `Category 3 - IA West Smart Match CRM/src/extraction/llm_extractor.py`.
-- `playwright==1.49.1` - Required for SDSU-style JS-rendered pages and local screenshot capture scripts.
-- `fuzzywuzzy>=0.18.0` and `python-Levenshtein>=0.12.0` - Optional fuzzy role matching fallback in `Category 3 - IA West Smart Match CRM/src/matching/factors.py`.
-- `scipy==1.14.1` and `scikit-learn>=1.5.2` are declared in `Category 3 - IA West Smart Match CRM/requirements.txt`, but they are not directly imported from the current `Category 3 - IA West Smart Match CRM/src/` tree. Treat them as dormant unless a future phase reintroduces them intentionally.
+**Frontend critical**
+- `react`, `react-dom`, `react-router` - SPA routing and rendering in `Category 3 - IA West Smart Match CRM/frontend/src/app/`.
+- `recharts` - analytics surfaces on dashboard and pipeline pages.
+- `lucide-react` - iconography across the promoted UI.
+- `vite`, `typescript`, `@vitejs/plugin-react` - local build pipeline.
+
+**AI / discovery / scraping**
+- No Gemini SDK package is used; direct REST calls live in `Category 3 - IA West Smart Match CRM/src/gemini_client.py`.
+- `requests`, `beautifulsoup4`, and `playwright` support discovery scraping in `Category 3 - IA West Smart Match CRM/src/scraping/scraper.py`.
 
 ## Configuration
 
-**Environment:**
-- `Category 3 - IA West Smart Match CRM/src/config.py` calls `load_dotenv()` and reads configuration from environment variables first, then from `st.secrets` when Streamlit is loaded.
-- Live Gemini-backed features require `GEMINI_API_KEY`.
-- Operational overrides are templated in `Category 3 - IA West Smart Match CRM/.env.example`: `GEMINI_BASE_URL`, `GEMINI_EMBEDDING_MODEL`, `GEMINI_TEXT_MODEL`, `DATA_DIR`, `CACHE_DIR`, `EMBEDDING_DIMENSION`, `EMBEDDING_BATCH_SIZE`, `EMBEDDING_MAX_RETRIES`, `APP_ENV`, `LOG_LEVEL`, `STREAMLIT_PAGE_TITLE`, and `STREAMLIT_PAGE_ICON`.
-- An additional runtime toggle, `SMARTMATCH_CACHE_ONLY`, is used in `Category 3 - IA West Smart Match CRM/src/scraping/scraper.py` to force cache-only discovery behavior.
-- Secret files are intentionally ignored by both `.gitignore` at the repo root and `Category 3 - IA West Smart Match CRM/.gitignore`.
+**Backend env/config**
+- `Category 3 - IA West Smart Match CRM/src/config.py` is the shared source of truth for environment variables, factor weights, optimizer bounds, and runtime paths.
+- `.env`-style configuration is bootstrapped through `load_dotenv()` in `Category 3 - IA West Smart Match CRM/src/config.py`.
+- Streamlit-specific settings live in `Category 3 - IA West Smart Match CRM/.streamlit/config.toml`.
 
-**Build:**
-- `Category 3 - IA West Smart Match CRM/.streamlit/config.toml` sets theme colors, headless mode, port `8501`, and disables Streamlit usage stats.
-- `Category 3 - IA West Smart Match CRM/runtime.txt` is the only checked-in runtime pin for deployment.
-- `Category 3 - IA West Smart Match CRM/scripts/sprint4_preflight.py` validates runtime, required data files, cache/artifact presence, and optional discovery prewarming.
-- `docs/governance/canonical-map.yaml`, `docs/governance/REPO_REFERENCE.md`, `Agents.md`, and `tasks/todo.md` are part of the execution stack for closeout work even though they do not affect app code at runtime.
+**Frontend config**
+- `Category 3 - IA West Smart Match CRM/frontend/vite.config.ts` controls the Vite build and local dev setup.
+- Theme and font tokens live in `Category 3 - IA West Smart Match CRM/frontend/src/styles/theme.css` and `Category 3 - IA West Smart Match CRM/frontend/src/styles/fonts.css`.
+- The frontend API contract and normalization layer are centralized in `Category 3 - IA West Smart Match CRM/frontend/src/lib/api.ts`.
 
 ## Platform Requirements
 
-**Development:**
-- Use Python with virtualenv support; the current checked-in environment is `3.12.3`, but Category 3 deployment expectations remain `3.11`.
-- Install browser binaries when using Playwright-dependent paths. `Category 3 - IA West Smart Match CRM/scripts/capture_screenshots.py` explicitly expects `playwright install chromium`.
-- The app assumes local read/write access to `Category 3 - IA West Smart Match CRM/data/` and `Category 3 - IA West Smart Match CRM/cache/`.
+**Development**
+- Python venv support is required for the backend and tests.
+- Node/npm are required for the React app under `Category 3 - IA West Smart Match CRM/frontend/`.
+- Playwright browser binaries are still needed for browser-backed scraping or UAT, but are not always available in-session.
 
-**Production:**
-- Target host is Streamlit Community Cloud, as referenced by `PRD_SECTION_CAT3.md`, `Category 3 - IA West Smart Match CRM/docs/SPRINT_PLAN.md`, and `Category 3 - IA West Smart Match CRM/docs/testing/README.md`.
-- Provide `GEMINI_API_KEY` through Streamlit secrets or equivalent environment injection.
-- Plan for a cache-first discovery posture on hosted deployments. `Category 3 - IA West Smart Match CRM/docs/SPRINT_PLAN.md` and `Category 3 - IA West Smart Match CRM/src/scraping/scraper.py` both assume cached scrape artifacts can replace live Playwright scraping when cloud browser support is limited.
+**Deployment**
+- The repo currently supports a parallel runtime model recorded in `.planning/STATE.md`: Streamlit on `:8501`, FastAPI on `:8000`, and React/Vite on `:5173`.
+- Production hosting remains partly hackathon-scoped and file-backed; QR, feedback, and optimizer state are persisted locally rather than in a database.
 
 ---
 
-*Stack analysis: 2026-03-20*
+*Stack analysis: 2026-03-26*

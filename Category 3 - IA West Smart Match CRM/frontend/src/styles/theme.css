@@ -152,6 +152,7 @@
 
   html {
     font-size: var(--font-size);
+    scroll-behavior: smooth;
   }
 
   h1 {
@@ -194,5 +195,31 @@
     font-size: var(--text-base);
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
+  }
+}
+
+@layer components {
+  .public-shell {
+    @apply min-h-screen bg-background text-foreground;
+    background-image:
+      radial-gradient(circle at top left, rgba(0, 83, 148, 0.08), transparent 30%),
+      radial-gradient(circle at top right, rgba(43, 108, 176, 0.06), transparent 26%),
+      linear-gradient(180deg, rgba(247, 249, 252, 0.98), rgba(247, 249, 252, 0.88));
+  }
+
+  .public-panel {
+    @apply rounded-[2rem] border border-border/70 bg-card shadow-[0_24px_80px_rgba(0,83,148,0.08)];
+  }
+
+  .public-pill {
+    @apply inline-flex items-center rounded-full border border-border/70 bg-white px-4 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-primary;
+  }
+
+  .public-button-primary {
+    @apply inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-[0_18px_40px_rgba(0,83,148,0.18)] transition hover:bg-primary/90;
+  }
+
+  .public-button-secondary {
+    @apply inline-flex items-center justify-center rounded-full border border-border/70 bg-white px-6 py-3 text-sm font-semibold text-foreground transition hover:border-primary/30 hover:text-primary;
   }
 }

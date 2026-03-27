@@ -16,10 +16,13 @@ import {
   fetchSpecialists,
   generateEmail,
   generateIcs,
+  generateQrAsset,
   type CppEvent,
+  type QrCodeAsset,
   type OutreachEmailResponse,
   type Specialist,
 } from "@/lib/api";
+import { QRCodeCard } from "@/components/QRCodeCard";
 
 type Template = {
   id: number;
@@ -82,9 +85,12 @@ export function Outreach() {
   const [selectedEvent, setSelectedEvent] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [qrBusy, setQrBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [qrError, setQrError] = useState<string | null>(null);
   const [recentEmails, setRecentEmails] = useState<RecentEmail[]>([]);
   const [lastGenerated, setLastGenerated] = useState<OutreachEmailResponse | null>(null);
+  const [qrAsset, setQrAsset] = useState<QrCodeAsset | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -117,6 +123,11 @@ export function Outreach() {
 
   const selectedEventRow =
     events.find((event) => event["Event / Program"] === selectedEvent) ?? null;
+
+  useEffect(() => {
+    setQrAsset(null);
+    setQrError(null);
+  }, [selectedSpeaker, selectedEvent]);
 
   const handleTemplateSelect = (template: Template) => {
     setSelectedTemplate(template);
@@ -186,6 +197,30 @@ export function Outreach() {
       setError(err instanceof Error ? err.message : "Failed to generate ICS file.");
     } finally {
       setBusy(false);
+    }
+  };
+
+  const handleGenerateQr = async () => {
+    if (!selectedSpeaker || !selectedEvent) {
+      return;
+    }
+
+    setQrBusy(true);
+    setQrError(null);
+
+    try {
+      const asset = await generateQrAsset(selectedSpeaker, selectedEvent);
+      if (!asset) {
+        setQrAsset(null);
+        setQrError("The QR service returned no asset for the selected speaker-event pair.");
+        return;
+      }
+      setQrAsset(asset);
+    } catch (err: unknown) {
+      setQrAsset(null);
+      setQrError(err instanceof Error ? err.message : "Failed to generate QR asset.");
+    } finally {
+      setQrBusy(false);
     }
   };
 
@@ -379,6 +414,15 @@ export function Outreach() {
                 Audience: {selectedEventRow?.["Primary Audience"] || "Not listed"}
               </p>
             </div>
+
+            <QRCodeCard
+              asset={qrAsset}
+              loading={loading || qrBusy}
+              error={qrError}
+              title="Referral QR"
+              description="Generate a deterministic QR asset for the current outreach pair."
+              onPrimaryAction={() => void handleGenerateQr()}
+            />
 
             <div className="flex items-center gap-3 pt-4">
               <button

@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 
 from src.config import DEFAULT_WEIGHTS, FACTOR_KEYS
+from src.feedback.service import get_effective_weights
 from src.matching.factors import (
     calendar_fit,
     geographic_proximity,
@@ -20,8 +21,10 @@ from src.matching.factors import (
     role_fit,
     student_interest,
     topic_relevance,
+    volunteer_fatigue,
 )
 from src.similarity import keyword_overlap_score
+from src.ui.data_helpers import load_pipeline_data
 from src.utils import format_course_display_name
 
 logger = logging.getLogger(__name__)
@@ -49,7 +52,7 @@ _PIPELINE_STAGE_ORDER: dict[str, int] = {
 
 def _normalize_weights(weights: Optional[dict[str, float]] = None) -> dict[str, float]:
     """Return weights normalized to sum to 1.0 across the known factor set."""
-    raw_weights = weights if weights is not None else DEFAULT_WEIGHTS
+    raw_weights = dict(weights) if weights is not None else get_effective_weights()
     weight_sum = sum(raw_weights.values())
     if weight_sum <= 0:
         return {factor: 0.0 for factor in FACTOR_KEYS}
@@ -75,6 +78,7 @@ def compute_match_score(
     conversion_overrides: Optional[dict[str, float]] = None,
     student_interest_override: Optional[float] = None,
     topic_relevance_override: Optional[float] = None,
+    pipeline_rows: Optional[pd.DataFrame] = None,
 ) -> dict[str, Any]:
     """
     Compute a composite match score for one speaker–event pair.
@@ -112,6 +116,14 @@ def compute_match_score(
         "geographic_proximity": geographic_proximity(speaker_metro_region, event_region),
         "calendar_fit": calendar_fit(
             event_date_or_recurrence, ia_event_calendar, speaker_metro_region
+        ),
+        "volunteer_fatigue": volunteer_fatigue(
+            speaker_name=speaker_name,
+            speaker_metro_region=speaker_metro_region,
+            event_region=event_region,
+            event_date_or_recurrence=event_date_or_recurrence,
+            ia_event_calendar=ia_event_calendar,
+            pipeline_rows=pipeline_rows,
         ),
         "historical_conversion": historical_conversion(speaker_name, conversion_overrides),
         "student_interest": max(
@@ -229,6 +241,7 @@ def rank_speakers_for_event(
             ),
         )
     )
+    pipeline_rows = pd.DataFrame(load_pipeline_data())
 
     scored: list[dict[str, Any]] = []
 
@@ -269,6 +282,7 @@ def rank_speakers_for_event(
             conversion_overrides=conversion_overrides,
             student_interest_override=student_interest_override,
             topic_relevance_override=topic_fallback,
+            pipeline_rows=pipeline_rows,
         )
         scored.append(
             _build_speaker_result(

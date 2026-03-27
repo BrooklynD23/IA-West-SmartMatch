@@ -84,14 +84,16 @@ class FactorSpec:
 
 
 FACTOR_REGISTRY: Final[tuple[FactorSpec, ...]] = (
-    FactorSpec("topic_relevance", "Topic Relevance", "Topic", 0.25,
+    FactorSpec("topic_relevance", "Topic Relevance", "Topic", 0.22,
                "topic alignment", "Topic Match"),
-    FactorSpec("role_fit", "Role Fit", "Role Fit", 0.20,
+    FactorSpec("role_fit", "Role Fit", "Role Fit", 0.18,
                "role compatibility", "Role Fit"),
-    FactorSpec("geographic_proximity", "Geographic Proximity", "Proximity", 0.20,
+    FactorSpec("geographic_proximity", "Geographic Proximity", "Proximity", 0.18,
                "geographic proximity", "Geographic Fit"),
-    FactorSpec("calendar_fit", "Calendar Fit", "Calendar", 0.15,
+    FactorSpec("calendar_fit", "Calendar Fit", "Calendar", 0.12,
                "calendar alignment", "Calendar Fit"),
+    FactorSpec("volunteer_fatigue", "Volunteer Fatigue", "Recovery", 0.10,
+               "volunteer recovery", "Recovery Readiness"),
     FactorSpec("historical_conversion", "Historical Conversion", "History", 0.05,
                "engagement history", "Engagement History"),
     FactorSpec("student_interest", "Student Interest", "Student Int.", 0.05,
@@ -109,6 +111,15 @@ FACTOR_DISPLAY_LABELS: Final[dict[str, str]] = {f.key: f.display_label for f in 
 FACTOR_SHORT_LABELS: Final[dict[str, str]] = {f.key: f.short_label for f in FACTOR_REGISTRY}
 FACTOR_PROMPT_LABELS: Final[dict[str, str]] = {f.key: f.prompt_label for f in FACTOR_REGISTRY}
 FACTOR_EMAIL_ALIASES: Final[dict[str, str]] = {f.key: f.email_alias for f in FACTOR_REGISTRY}
+OPTIMIZER_REASON_WEIGHT_BUMP: Final[float] = float(
+    os.getenv("OPTIMIZER_REASON_WEIGHT_BUMP", "0.03")
+)
+OPTIMIZER_MAX_FACTOR_DELTA: Final[float] = float(
+    os.getenv("OPTIMIZER_MAX_FACTOR_DELTA", "0.08")
+)
+OPTIMIZER_TARGET_RATING: Final[float] = float(
+    os.getenv("OPTIMIZER_TARGET_RATING", "4.2")
+)
 
 # ---------- Metro Regions ----------
 METRO_REGIONS: Final[list[str]] = [

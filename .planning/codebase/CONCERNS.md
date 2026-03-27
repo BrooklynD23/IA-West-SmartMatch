@@ -1,159 +1,195 @@
 # Codebase Concerns
 
-**Analysis Date:** 2026-03-20
+**Analysis Date:** 2026-03-26
 
 ## Tech Debt
 
-**Verification and governance drift around Sprint 5 closeout:**
-- Issue: Category 3 closeout evidence disagrees across the repo. `Category 3 - IA West Smart Match CRM/docs/README.md`, `Category 3 - IA West Smart Match CRM/docs/sprints/README.md`, and `Category 3 - IA West Smart Match CRM/.status.md` still state `366 passed`, while `tasks/todo.md` records `373 passed`, and the current 2026-03-20 verification run is `./.venv/bin/python -m pytest -q` -> `378 passed`.
-- Files: `Category 3 - IA West Smart Match CRM/docs/README.md`, `Category 3 - IA West Smart Match CRM/docs/sprints/README.md`, `Category 3 - IA West Smart Match CRM/.status.md`, `tasks/todo.md`
-- Impact: Sprint 5 wrap-up lacks one trustworthy verification baseline, so a closeout commit can be declared done against stale numbers.
-- Fix approach: reconcile one canonical closeout result first, then refresh every derived mirror from that single source.
+**Planning state says shipped while core v3.0 work is still only in the worktree:**
+- Issue: `.planning/STATE.md`, `.planning/ROADMAP.md`, and `.planning/MILESTONES.md` mark `v3.0` shipped, but the current implementation still lives in modified and untracked files such as `Category 3 - IA West Smart Match CRM/frontend/src/lib/api.ts`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/AIMatching.tsx`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Calendar.tsx`, `Category 3 - IA West Smart Match CRM/src/api/routers/calendar.py`, `Category 3 - IA West Smart Match CRM/src/api/routers/feedback.py`, `Category 3 - IA West Smart Match CRM/src/api/routers/qr.py`, and `.planning/phases/10-master-calendar-volunteer-recovery/`.
+- Files: `.planning/STATE.md`, `.planning/ROADMAP.md`, `.planning/MILESTONES.md`, `Category 3 - IA West Smart Match CRM/frontend/src/lib/api.ts`, `Category 3 - IA West Smart Match CRM/src/api/routers/calendar.py`
+- Impact: milestone closeout documents can be treated as canonical even though the underlying code has not been reduced to a reviewed commit boundary yet.
+- Fix approach: either commit and review the Phase 09.1-12 implementation delta, or roll the planning state back from shipped until the code and planning state match.
 
-**Sprint 5 planning is still task-board driven instead of GSD-driven:**
-- Issue: `tasks/todo.md` assumes Sprint 5 will be executed as a GSD closeout milestone, but `.planning/` had no checked-in planning state before this concerns map was written.
-- Files: `tasks/todo.md`, `.planning/`
-- Impact: wrap-up scope, verification gates, and residual risks live in a mutable task board instead of structured planning artifacts.
-- Fix approach: create the Sprint 5 planning state before more closeout changes land.
+**Data-path resolution is split between config-aware loaders and hard-coded UI helpers:**
+- Issue: `Category 3 - IA West Smart Match CRM/src/config.py` and `Category 3 - IA West Smart Match CRM/src/data_loader.py` honor `DATA_DIR`, but `Category 3 - IA West Smart Match CRM/src/ui/data_helpers.py` hard-codes `project_root/data`, and `Category 3 - IA West Smart Match CRM/src/outreach/pipeline_updater.py`, `Category 3 - IA West Smart Match CRM/src/feedback/service.py`, and `Category 3 - IA West Smart Match CRM/src/qr/service.py` depend on that helper.
+- Files: `Category 3 - IA West Smart Match CRM/src/config.py`, `Category 3 - IA West Smart Match CRM/src/data_loader.py`, `Category 3 - IA West Smart Match CRM/src/ui/data_helpers.py`, `Category 3 - IA West Smart Match CRM/src/outreach/pipeline_updater.py`, `Category 3 - IA West Smart Match CRM/src/feedback/service.py`, `Category 3 - IA West Smart Match CRM/src/qr/service.py`
+- Impact: non-default data layouts and some tests can read from one directory while QR, feedback, and pipeline mutations write to another.
+- Fix approach: make `Category 3 - IA West Smart Match CRM/src/config.py` the only source of truth for mutable data paths and pass those paths into helpers/services explicitly.
 
-**Generated-runtime outputs are not clearly separated from source-controlled content:**
-- Issue: runtime caches and feedback outputs are written under tracked project folders, but ignore rules only cover embedding `.npy` artifacts and a few Python-generated files.
-- Files: `.gitignore`, `Category 3 - IA West Smart Match CRM/.gitignore`, `Category 3 - IA West Smart Match CRM/src/feedback/acceptance.py`, `Category 3 - IA West Smart Match CRM/cache/`, `Category 3 - IA West Smart Match CRM/data/`
-- Impact: a demo or rehearsal can dirty the worktree with cache JSON, feedback logs, and other generated artifacts that look like product changes during Sprint 5 closeout.
-- Fix approach: move generated runtime outputs to an explicitly untracked location or expand ignore coverage before the final closeout pass.
+**The repo carries two feedback systems with different storage models:**
+- Issue: the Streamlit path still uses `Category 3 - IA West Smart Match CRM/src/feedback/acceptance.py` and `data/feedback_log.csv`, while the React/FastAPI path uses `Category 3 - IA West Smart Match CRM/src/feedback/service.py` plus `data/feedback/feedback-log.jsonl` and `data/feedback/weight-history.json`; `Category 3 - IA West Smart Match CRM/src/app.py` still renders the legacy feedback sidebar.
+- Files: `Category 3 - IA West Smart Match CRM/src/feedback/acceptance.py`, `Category 3 - IA West Smart Match CRM/src/feedback/service.py`, `Category 3 - IA West Smart Match CRM/src/app.py`, `Category 3 - IA West Smart Match CRM/frontend/src/components/FeedbackForm.tsx`
+- Impact: match decisions, optimizer snapshots, and dashboard analytics can diverge depending on whether a coordinator uses the Streamlit or React surface.
+- Fix approach: pick one canonical feedback service and either migrate the Streamlit sidebar to it or retire the legacy path.
 
-**Large single-file hotspots raise regression risk for late-stage changes:**
-- Issue: several core modules stay monolithic: `src/embeddings.py` (562 lines), `src/scraping/scraper.py` (479 lines), `src/matching/factors.py` (462 lines), `src/extraction/llm_extractor.py` (452 lines), `src/ui/matches_tab.py` (435 lines), and `src/matching/engine.py` (397 lines).
-- Files: `Category 3 - IA West Smart Match CRM/src/embeddings.py`, `Category 3 - IA West Smart Match CRM/src/scraping/scraper.py`, `Category 3 - IA West Smart Match CRM/src/matching/factors.py`, `Category 3 - IA West Smart Match CRM/src/extraction/llm_extractor.py`, `Category 3 - IA West Smart Match CRM/src/ui/matches_tab.py`, `Category 3 - IA West Smart Match CRM/src/matching/engine.py`
-- Impact: Sprint 5 bug-fix work is likely to touch multi-responsibility modules where a narrow change can perturb unrelated behavior.
-- Fix approach: defer structural refactors until after closeout, but protect each touched hotspot with focused contract tests.
+**The calendar API is still a scenario-planning model, not authoritative scheduling data:**
+- Issue: `Category 3 - IA West Smart Match CRM/src/api/routers/calendar.py` fabricates `calendar-xx` IDs from `data_event_calendar.csv`, assigns events to slots with `_stable_slot_index()`, and hard-codes `open_slots` against a target of three volunteers per event.
+- Files: `Category 3 - IA West Smart Match CRM/src/api/routers/calendar.py`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Calendar.tsx`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Dashboard.tsx`
+- Impact: the React calendar and recovery views look authoritative but are still derived from a deterministic sample model instead of persisted event assignments.
+- Fix approach: persist real event-to-slot assignments, or explicitly label the current API as planning data and keep it separate from operational scheduling.
+
+**Frontend contract handling is concentrated in one large normalization file:**
+- Issue: `Category 3 - IA West Smart Match CRM/frontend/src/lib/api.ts` has grown to roughly 1,100 lines and mixes request helpers, type definitions, normalization, fallback behavior, and empty-state defaults for every backend domain.
+- Files: `Category 3 - IA West Smart Match CRM/frontend/src/lib/api.ts`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/AIMatching.tsx`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Dashboard.tsx`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Calendar.tsx`
+- Impact: backend contract changes are expensive to reason about, easy to mask, and difficult to test in isolation.
+- Fix approach: split API clients by domain (`matching`, `calendar`, `qr`, `feedback`, `outreach`) and keep normalization close to each route contract.
 
 ## Known Bugs
 
-**Discovered events do not actually enter the match pool:**
-- Symptoms: `render_discovery_tab()` appends transformed events into `st.session_state["matching_discovered_events"]`, but `render_matches_tab()` and `_render_event_matches()` only read the original `events` DataFrame and never consume that state key.
-- Files: `Category 3 - IA West Smart Match CRM/src/ui/discovery_tab.py`, `Category 3 - IA West Smart Match CRM/src/ui/matches_tab.py`, `Category 3 - IA West Smart Match CRM/docs/testing/test_log.md`
-- Trigger: click `Add to Matching` after a discovery run.
-- Workaround: none for newly discovered events; only the preloaded CPP event list can be matched.
+**The outreach workflow never uses the NemoClaw parallel-dispatch path:**
+- Symptoms: `POST /api/outreach/workflow` in `Category 3 - IA West Smart Match CRM/src/api/routers/outreach.py` always returns `"dispatch_mode": "serial"` and never calls `dispatch_parallel()` from `Category 3 - IA West Smart Match CRM/src/coordinator/nemoclaw_adapter.py`, even though the adapter exists and is tested.
+- Files: `Category 3 - IA West Smart Match CRM/src/api/routers/outreach.py`, `Category 3 - IA West Smart Match CRM/src/coordinator/nemoclaw_adapter.py`, `Category 3 - IA West Smart Match CRM/tests/test_api_outreach_workflow.py`, `Category 3 - IA West Smart Match CRM/tests/test_nemoclaw_adapter.py`
+- Trigger: any React or API call to `/api/outreach/workflow`.
+- Workaround: none. The current coordinator workflow path is always serial.
 
-**Demo Mode does not cover the core matching flow on a clean checkout:**
-- Symptoms: `scripts/sprint4_preflight.py` currently warns that all embedding artifacts are missing. `src/app.py` blocks the Matches tab when embedding cache validation fails, and `src/demo_mode.py` only fixtures discovery, explanation, email, pipeline, volunteer, and feedback payloads, not the match-ranking inputs themselves.
-- Files: `Category 3 - IA West Smart Match CRM/src/app.py`, `Category 3 - IA West Smart Match CRM/src/demo_mode.py`, `Category 3 - IA West Smart Match CRM/src/embeddings.py`, `Category 3 - IA West Smart Match CRM/scripts/sprint4_preflight.py`, `Category 3 - IA West Smart Match CRM/cache/demo_fixtures/`, `Category 3 - IA West Smart Match CRM/tests/test_demo_mode.py`
-- Trigger: launch the app without warmed embedding cache artifacts and without live Gemini access.
-- Workaround: pre-generate embeddings or provide a valid Gemini key before the session starts.
+**React analytics can silently degrade into empty states when backend routes fail:**
+- Symptoms: `fetchQrStats()` and `fetchFeedbackStats()` in `Category 3 - IA West Smart Match CRM/frontend/src/lib/api.ts` swallow all errors and return empty summaries; `fetchCalendarAssignments()` and `fetchCalendarEvents()` either fall back to different datasets or to `[]`, and several pages render those results as normal data rather than as degraded mode.
+- Files: `Category 3 - IA West Smart Match CRM/frontend/src/lib/api.ts`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Dashboard.tsx`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/AIMatching.tsx`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Calendar.tsx`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Pipeline.tsx`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Volunteers.tsx`
+- Trigger: FastAPI route errors, schema mismatches, or local proxy/back-end outages.
+- Workaround: inspect browser network traffic or backend logs; the UI often presents a zero-data dashboard instead of surfacing the failure clearly.
 
-**Feedback persistence depends on current working directory instead of project root:**
-- Symptoms: `record_feedback()` appends to `data/feedback_log.csv` via a plain relative path, unlike the rest of the runtime which resolves paths from `PROJECT_ROOT` and `DATA_DIR`.
-- Files: `Category 3 - IA West Smart Match CRM/src/feedback/acceptance.py`
-- Trigger: launch the app from a directory other than `Category 3 - IA West Smart Match CRM/`.
-- Workaround: only run the app from the Category 3 project root.
+**Pipeline, QR, and feedback writes can target the wrong directory outside the default project layout:**
+- Symptoms: `Category 3 - IA West Smart Match CRM/src/outreach/pipeline_updater.py` binds `PIPELINE_CSV` from `_data_dir()` at import time, while QR and feedback persistence also depend on `Category 3 - IA West Smart Match CRM/src/ui/data_helpers.py` instead of `DATA_DIR`.
+- Files: `Category 3 - IA West Smart Match CRM/src/outreach/pipeline_updater.py`, `Category 3 - IA West Smart Match CRM/src/ui/data_helpers.py`, `Category 3 - IA West Smart Match CRM/src/feedback/service.py`, `Category 3 - IA West Smart Match CRM/src/qr/service.py`, `Category 3 - IA West Smart Match CRM/src/config.py`
+- Trigger: running with a non-default `DATA_DIR`, importing modules before monkeypatches, or trying to reuse the app in a different deployment layout.
+- Workaround: run with the default `Category 3 - IA West Smart Match CRM/data/` layout only, or patch module-level path constants explicitly in tests.
 
 ## Security Considerations
 
-**robots.txt failures currently fail open:**
-- Risk: `check_robots_txt()` logs a warning and returns `True` whenever the robots fetch fails, allowing `scrape_university()` to proceed.
-- Files: `Category 3 - IA West Smart Match CRM/src/scraping/scraper.py`
-- Current mitigation: `validate_public_demo_url()` constrains protocol, host type, and public-IP resolution.
-- Recommendations: for Sprint 5 closeout, prefer cache-only fallback or explicit operator acknowledgement instead of assuming permission on robots fetch failure.
+**The FastAPI surface has no authentication or authorization boundary:**
+- Risk: every coordinator route is currently open to any caller that can reach the server, including `Category 3 - IA West Smart Match CRM/src/api/routers/data.py`, `Category 3 - IA West Smart Match CRM/src/api/routers/matching.py`, `Category 3 - IA West Smart Match CRM/src/api/routers/outreach.py`, `Category 3 - IA West Smart Match CRM/src/api/routers/feedback.py`, and `Category 3 - IA West Smart Match CRM/src/api/routers/qr.py`.
+- Files: `Category 3 - IA West Smart Match CRM/src/api/main.py`, `Category 3 - IA West Smart Match CRM/src/api/routers/data.py`, `Category 3 - IA West Smart Match CRM/src/api/routers/outreach.py`, `Category 3 - IA West Smart Match CRM/src/api/routers/feedback.py`, `Category 3 - IA West Smart Match CRM/src/api/routers/qr.py`, `Category 3 - IA West Smart Match CRM/frontend/src/app/routes.tsx`
+- Current mitigation: CORS in `Category 3 - IA West Smart Match CRM/src/api/main.py` only allows localhost dev origins.
+- Recommendations: keep the API private behind a trusted same-origin proxy for demo use, or add real authn/authz and rate limiting before any wider deployment.
 
-**Generated feedback and cache artifacts can be mistaken for source-controlled product data:**
-- Risk: `data/feedback_log.csv` and cache directories such as `cache/scrapes/`, `cache/extractions/`, `cache/explanations/`, and `cache/emails/` are operational outputs but are not comprehensively ignored.
-- Files: `.gitignore`, `Category 3 - IA West Smart Match CRM/.gitignore`, `Category 3 - IA West Smart Match CRM/src/feedback/acceptance.py`
-- Current mitigation: checked-in demo fixtures stay isolated in `cache/demo_fixtures/`.
-- Recommendations: explicitly ignore or relocate these outputs before final wrap-up so rehearsal data and generated content do not bleed into release commits.
+**The QR flow is an open redirect sink:**
+- Risk: `QRGenerateRequest.destination_url` in `Category 3 - IA West Smart Match CRM/src/api/routers/qr.py` is accepted and persisted as-is, and `record_qr_scan()` in `Category 3 - IA West Smart Match CRM/src/qr/service.py` issues a 307 redirect to that stored destination with appended referral metadata.
+- Files: `Category 3 - IA West Smart Match CRM/src/api/routers/qr.py`, `Category 3 - IA West Smart Match CRM/src/qr/service.py`
+- Current mitigation: `Category 3 - IA West Smart Match CRM/src/qr/service.py` falls back to `DEFAULT_DESTINATION_URL` only when no custom URL is supplied.
+- Recommendations: validate schemes, allowlist approved hosts, and sign or derive the redirect target server-side instead of trusting request input.
+
+**Operational feedback and QR logs live under repo-tracked data folders:**
+- Risk: `Category 3 - IA West Smart Match CRM/src/feedback/service.py` and `Category 3 - IA West Smart Match CRM/src/qr/service.py` write volunteer names, coordinator outcomes, and scan history under `data/feedback/` and `data/qr/`, but the current ignore rules do not exclude those directories.
+- Files: `.gitignore`, `Category 3 - IA West Smart Match CRM/.gitignore`, `Category 3 - IA West Smart Match CRM/src/feedback/service.py`, `Category 3 - IA West Smart Match CRM/src/qr/service.py`, `Category 3 - IA West Smart Match CRM/src/ui/data_helpers.py`
+- Current mitigation: none beyond manual `git status` review.
+- Recommendations: move mutable operational logs outside the repo, or explicitly ignore `Category 3 - IA West Smart Match CRM/data/feedback/` and `Category 3 - IA West Smart Match CRM/data/qr/`.
+
+**Scraping still fails open when `robots.txt` cannot be read:**
+- Risk: `check_robots_txt()` in `Category 3 - IA West Smart Match CRM/src/scraping/scraper.py` logs a warning and returns `True` when the robots fetch fails.
+- Files: `Category 3 - IA West Smart Match CRM/src/scraping/scraper.py`
+- Current mitigation: `validate_public_demo_url()` constrains scheme, host type, and public-IP resolution before the scrape.
+- Recommendations: treat robots-read failures as deny-by-default or require explicit operator override before scraping proceeds.
 
 ## Performance Bottlenecks
 
-**Cold-start embedding generation is a blocking prerequisite, not a background task:**
-- Problem: `_resolve_embedding_lookup_dicts()` performs cache validation during app startup and prevents match rendering until valid speaker, event, and course embeddings exist.
-- Files: `Category 3 - IA West Smart Match CRM/src/app.py`, `Category 3 - IA West Smart Match CRM/src/embeddings.py`
-- Cause: the app treats embedding availability as a hard gate and falls back to synchronous Gemini generation when a key is available.
-- Improvement path: ship prebuilt artifacts for demo/closeout paths or add a deterministic offline ranking path for Demo Mode.
+**Matching requests rebuild disk-backed context on every call:**
+- Problem: `_load_matching_context()` in `Category 3 - IA West Smart Match CRM/src/api/routers/matching.py` reloads speakers, events, calendar data, and embedding lookup dictionaries on every `/rank` and `/score` request.
+- Files: `Category 3 - IA West Smart Match CRM/src/api/routers/matching.py`, `Category 3 - IA West Smart Match CRM/src/data_loader.py`, `Category 3 - IA West Smart Match CRM/src/embeddings.py`
+- Cause: immutable CSV and embedding artifacts are re-read from disk instead of being cached at process scope with explicit invalidation.
+- Improvement path: memoize loaded DataFrames and embedding dictionaries for the running API process and invalidate them when source files change.
 
-**Discovery and AI generation remain synchronous UI-path operations:**
-- Problem: scraping, extraction, explanation generation, and email generation run inline from Streamlit interactions.
-- Files: `Category 3 - IA West Smart Match CRM/src/ui/discovery_tab.py`, `Category 3 - IA West Smart Match CRM/src/extraction/llm_extractor.py`, `Category 3 - IA West Smart Match CRM/src/matching/explanations.py`, `Category 3 - IA West Smart Match CRM/src/outreach/email_gen.py`
-- Cause: cache hits are the only latency control; there is no background queue or precomputed closeout bundle beyond demo fixtures.
-- Improvement path: treat warmed caches as a release artifact and surface cache-miss risk before rehearsals and day-of use.
+**The React coordinator bundle is eagerly loaded and already at warning size:**
+- Problem: `Category 3 - IA West Smart Match CRM/frontend/src/app/routes.tsx` statically imports every page, while `Category 3 - IA West Smart Match CRM/frontend/src/lib/api.ts`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/AIMatching.tsx`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Calendar.tsx`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Dashboard.tsx`, and `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Volunteers.tsx` are all large modules; `.planning/STATE.md` already records the build chunk-size warning as an accepted follow-up.
+- Files: `Category 3 - IA West Smart Match CRM/frontend/src/app/routes.tsx`, `Category 3 - IA West Smart Match CRM/frontend/src/lib/api.ts`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/AIMatching.tsx`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Calendar.tsx`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Dashboard.tsx`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Volunteers.tsx`, `Category 3 - IA West Smart Match CRM/frontend/vite.config.ts`, `.planning/STATE.md`
+- Cause: route-level code splitting and domain-level client splitting have not been added.
+- Improvement path: lazy-load coordinator routes, split chart-heavy domains into separate chunks, and break `api.ts` into smaller modules.
+
+**Calendar and recovery payloads are recomputed repeatedly from sample pipeline data:**
+- Problem: `Category 3 - IA West Smart Match CRM/src/api/routers/calendar.py` rebuilds slot and overlay summaries for every request, and the React pages in `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Calendar.tsx`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Dashboard.tsx`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Volunteers.tsx`, and `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/AIMatching.tsx` each re-fetch and aggregate those rows on mount.
+- Files: `Category 3 - IA West Smart Match CRM/src/api/routers/calendar.py`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Calendar.tsx`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Dashboard.tsx`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Volunteers.tsx`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/AIMatching.tsx`
+- Cause: the model is purely derived at request time and there is no cache/materialized summary layer.
+- Improvement path: cache derived calendar payloads server-side and recompute only when pipeline or calendar inputs change.
 
 ## Fragile Areas
 
-**The session-state contract is fragmented across tabs and helpers:**
-- Files: `Category 3 - IA West Smart Match CRM/src/runtime_state.py`, `Category 3 - IA West Smart Match CRM/src/ui/discovery_tab.py`, `Category 3 - IA West Smart Match CRM/src/ui/pipeline_tab.py`, `Category 3 - IA West Smart Match CRM/src/ui/email_panel.py`, `Category 3 - IA West Smart Match CRM/src/feedback/acceptance.py`
-- Why fragile: some keys are centrally initialized (`match_results_df`, `scraped_events`, `emails_generated`), while others are created ad hoc (`feedback_log`, `feedback_decisions`, `discovered_events`, `matching_discovered_events`, `pending_email_match`).
-- Safe modification: define one shared runtime-state schema and keep cross-tab keys in a single module.
-- Test coverage: unit-level state normalization is covered, but cross-tab end-to-end behavior is not.
+**File-backed mutation paths have no locking or transactional safety:**
+- Files: `Category 3 - IA West Smart Match CRM/src/feedback/service.py`, `Category 3 - IA West Smart Match CRM/src/qr/service.py`, `Category 3 - IA West Smart Match CRM/src/outreach/pipeline_updater.py`
+- Why fragile: these modules perform append or read-modify-write updates against JSON, JSONL, and CSV files without file locks or atomic replace semantics.
+- Safe modification: move the mutation paths behind a transactional store or use temp-file replace plus explicit file locking.
+- Test coverage: single-process happy paths are covered in `Category 3 - IA West Smart Match CRM/tests/test_api_feedback.py`, `Category 3 - IA West Smart Match CRM/tests/test_api_qr.py`, and `Category 3 - IA West Smart Match CRM/tests/test_pipeline_updater.py`, but concurrent writes are not.
 
-**Pipeline and volunteer metrics blend real and simulated values:**
-- Files: `Category 3 - IA West Smart Match CRM/src/ui/pipeline_tab.py`, `Category 3 - IA West Smart Match CRM/src/ui/volunteer_dashboard.py`, `Category 3 - IA West Smart Match CRM/data/pipeline_sample_data.csv`
-- Why fragile: counts fall back to hard-coded assumptions such as `cpp_event_count = 15`, `Contacted = 80%`, `Confirmed = 45%`, and volunteer acceptance/attendance simulation when live feedback is absent.
-- Safe modification: keep projection logic clearly separate from real runtime metrics and derive baseline counts from loaded datasets instead of constants.
-- Test coverage: helpers are unit-tested, but the end-user distinction between projected and real data is easy to blur during closeout.
+**Legacy Streamlit and React/FastAPI coordinator surfaces still overlap heavily:**
+- Files: `Category 3 - IA West Smart Match CRM/src/app.py`, `Category 3 - IA West Smart Match CRM/src/ui/`, `Category 3 - IA West Smart Match CRM/frontend/src/app/`, `Category 3 - IA West Smart Match CRM/src/api/routers/`
+- Why fragile: the repo carries two coordinator entry paths with overlapping business logic, different persistence contracts, and partially duplicated UX features.
+- Safe modification: decide which surface is authoritative for each feature before changing shared matching, feedback, or pipeline logic.
+- Test coverage: Streamlit unit coverage is broad, but cross-surface parity is not asserted anywhere.
 
-**Sprint 5 closeout runs inside a dirty worktree:**
-- Files: `.claude/settings.local.json`, `tasks/todo.md`, `Category 3 - IA West Smart Match CRM/.claude/`, `Category 3 - IA West Smart Match CRM/claude-progress.txt`, `Category 3 - IA West Smart Match CRM/init.sh`
-- Why fragile: unrelated local edits and untracked files increase the chance of staging or reviewing the wrong delta during final closeout.
-- Safe modification: stage with explicit pathspecs and review `git status --short` before every Sprint 5 commit.
+**React error handling is inconsistent across domains:**
+- Files: `Category 3 - IA West Smart Match CRM/frontend/src/lib/api.ts`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/AIMatching.tsx`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Dashboard.tsx`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Calendar.tsx`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Pipeline.tsx`, `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Volunteers.tsx`
+- Why fragile: some failures surface as top-level page errors while others are silently converted into empty arrays or zero summaries.
+- Safe modification: preserve typed degraded-state objects and render explicit “backend unavailable / fallback data” messaging whenever a fallback path is taken.
+- Test coverage: no frontend test suite exercises these degraded states.
+
+**Verification hygiene is vulnerable to generated install artifacts and a dirty tree:**
+- Files: `.planning/STATE.md`, `.planning/ROADMAP.md`, `Category 3 - IA West Smart Match CRM/frontend/node_modules/`, `Category 3 - IA West Smart Match CRM/package-lock.json`, `.gitignore`, `Category 3 - IA West Smart Match CRM/.gitignore`
+- Why fragile: the repo records a shipped milestone while local install artifacts and large uncommitted implementation changes remain present, and `Category 3 - IA West Smart Match CRM/frontend/node_modules/` is not currently ignored.
+- Safe modification: ignore generated install trees, clean local verification artifacts, and do not advance planning state until the scoped diff is committed.
 - Test coverage: not applicable.
 
 ## Scaling Limits
 
-**The current product contract is tuned to the 77-row hackathon dataset:**
-- Current capacity: `18` speakers, `15` CPP events, `35` course sections, and `9` calendar rows loaded from `Category 3 - IA West Smart Match CRM/data/`.
-- Limit: multiple UI paths embed assumptions about the fixed CPP baseline and top-3 matching shape.
-- Scaling path: derive event/course counts and funnel baselines from loaded data, then lift hard-coded constants before any post-hackathon expansion.
+**The current coordinator model is still tuned to a very small static dataset:**
+- Current capacity: `18` speakers in `Category 3 - IA West Smart Match CRM/data/data_speaker_profiles.csv`, `15` events in `Category 3 - IA West Smart Match CRM/data/data_cpp_events_contacts.csv`, `35` course rows in `Category 3 - IA West Smart Match CRM/data/data_cpp_course_schedule.csv`, and `9` calendar rows in `Category 3 - IA West Smart Match CRM/data/data_event_calendar.csv`.
+- Limit: the calendar API, top-five match UI, and recovery heuristics all assume small in-memory lists and sample-sized coordinator review flows.
+- Scaling path: move filtering, ranking, and scheduling summaries behind paginated/queryable server contracts before the source datasets grow significantly.
 
-**Persistence is single-user and file-based:**
-- Current capacity: one local operator session with append-only files and cache directories.
-- Limit: `st.session_state` plus CSV/JSON append patterns do not provide concurrency control, deduplication, or audit isolation across multiple operators.
-- Scaling path: if the app survives beyond the hackathon demo, move feedback, pipeline state, and generated artifacts into an explicit data store.
+**Mutable state is still single-instance local filesystem storage:**
+- Current capacity: one process writing `Category 3 - IA West Smart Match CRM/data/pipeline_sample_data.csv`, `Category 3 - IA West Smart Match CRM/data/feedback/`, and `Category 3 - IA West Smart Match CRM/data/qr/`.
+- Limit: there is no locking, deduplication, multi-user audit isolation, or conflict resolution.
+- Scaling path: replace file-backed mutable state with a transactional store and keep CSVs as seed/reference data only.
 
 ## Dependencies at Risk
 
-**Python and package parity are not fully pinned to the tested environment:**
-- Risk: the local verification environment is Python `3.12.3`, while `runtime.txt` pins Streamlit Cloud to `python-3.11`, and `requirements.txt` already documents package-version drift on this platform.
-- Impact: local green tests do not fully prove cloud runtime parity for Sprint 5 closeout.
-- Migration plan: capture one verified run in a Python 3.11 environment and update dependency pins to the versions actually required.
+**Browser-backed verification still depends on optional Playwright and a live app process:**
+- Risk: `Category 3 - IA West Smart Match CRM/requirements.txt` includes `playwright`, `Category 3 - IA West Smart Match CRM/tests/test_e2e_playwright.py` assumes a running Streamlit app on `127.0.0.1:8501` without an explicit skip guard, and `.planning/milestones/v3.0-MILESTONE-AUDIT.md` records that a browser runtime was unavailable in-session.
+- Impact: browser-backed verification remains inconsistent across environments, and unattended `pytest` runs can be noisy or fail for setup reasons unrelated to the code under review.
+- Migration plan: gate live-browser tests behind explicit markers/fixtures and make browser-backed verification a separate, documented profile.
 
-**The scraping path depends on optional browser/runtime availability:**
-- Risk: `playwright` is required for the SDSU target in `UNIVERSITY_TARGETS`, but cloud and clean-machine behavior depend on warmed cache fallback when browser support is absent.
-- Impact: the discovery story is only stable when cache artifacts already exist.
-- Migration plan: keep a fully warmed cache bundle for all target universities and reduce the live scrape surface before closeout.
+**The combined Streamlit + FastAPI + Playwright + voice runtime is still brittle to reproduce:**
+- Risk: `Category 3 - IA West Smart Match CRM/requirements.txt` now mixes Streamlit, FastAPI, Playwright, QR imaging, and optional voice dependencies, and the file already documents version drift for `pandas` and `scikit-learn`.
+- Impact: clean-machine setup and CI parity remain fragile, especially when only one surface of the app is actually being verified.
+- Migration plan: split runtime extras by surface or lock one known-good environment file per deployment/test profile.
 
 ## Missing Critical Features
 
-**Sprint 5 lacks a canonical closeout spec inside the active planning system:**
-- Problem: `tasks/todo.md` frames Sprint 5 as a GSD closeout milestone, but there is still no canonical Sprint 5 spec or phase plan under `.planning/`.
-- Blocks: a clean wrap-up process with traceable scope, verification gates, and residual-risk handoff.
+**There is still no real authentication layer for the coordinator product:**
+- Problem: the React coordinator routes in `Category 3 - IA West Smart Match CRM/frontend/src/app/routes.tsx` and the FastAPI routers under `Category 3 - IA West Smart Match CRM/src/api/routers/` assume trusted local access only.
+- Blocks: safe exposure beyond local demo use.
 
-**Operational closeout evidence is still template-grade rather than completed evidence:**
-- Problem: `Category 3 - IA West Smart Match CRM/docs/testing/test_log.md` and `Category 3 - IA West Smart Match CRM/docs/testing/rehearsal_log.md` remain mostly blank templates, and `bug_log.md` records no new issues while the discovery-to-matching flow remains broken.
-- Blocks: a defensible Sprint 5 claim that demo rehearsal, fallback behavior, and wrap-up validation are complete.
+**There is still no authoritative persisted scheduling model behind the calendar UI:**
+- Problem: `Category 3 - IA West Smart Match CRM/src/api/routers/calendar.py` derives event windows and recovery overlays from `pipeline_sample_data.csv` plus `data_event_calendar.csv`, rather than from stored assignments or calendar entities.
+- Blocks: trustworthy scheduling, auditability, and multi-operator coordination.
 
-**The repo claims only documentation/governance wrap-up remains, but runtime prep is still incomplete:**
-- Problem: `Category 3 - IA West Smart Match CRM/docs/README.md` states the remaining work is documentation/governance refresh and a sprint-closeout commit, while current preflight still warns about missing embedding, scrape, extraction, explanation, and email cache readiness.
-- Blocks: safe declaration that the product is demo-ready without additional operational prep.
+**The shipped outreach path still lacks actual parallel-agent orchestration:**
+- Problem: `Category 3 - IA West Smart Match CRM/src/coordinator/nemoclaw_adapter.py` is present but unused by `Category 3 - IA West Smart Match CRM/src/api/routers/outreach.py`.
+- Blocks: truthful implementation of the “parallel agents” coordinator story in the API/React workflow.
 
 ## Test Coverage Gaps
 
-**No cross-tab regression proves discovery output reaches the matches flow:**
-- What's not tested: the actual `Discover Events` -> `Add to Matching` -> `Matches` selector handoff.
-- Files: `Category 3 - IA West Smart Match CRM/tests/test_discovery_tab.py`, `Category 3 - IA West Smart Match CRM/tests/test_matches_tab.py`, `Category 3 - IA West Smart Match CRM/src/ui/discovery_tab.py`, `Category 3 - IA West Smart Match CRM/src/ui/matches_tab.py`
-- Risk: the main live-demo path can stay broken while unit tests still pass.
+**There is no React unit or integration suite for the shipped coordinator app:**
+- What's not tested: the pages and components under `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/`, `Category 3 - IA West Smart Match CRM/frontend/src/components/`, and the normalization logic in `Category 3 - IA West Smart Match CRM/frontend/src/lib/api.ts`.
+- Files: `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/`, `Category 3 - IA West Smart Match CRM/frontend/src/components/`, `Category 3 - IA West Smart Match CRM/frontend/src/lib/api.ts`, `Category 3 - IA West Smart Match CRM/frontend/package.json`
+- Risk: backend contract drift and UI regressions are currently caught only by manual build checks or ad hoc browser testing.
 - Priority: High
 
-**The suite is heavily mocked and does not exercise a real Streamlit/browser path:**
-- What's not tested: real Streamlit rendering, real browser interactions, clipboard flow, and end-to-end tab traversal.
-- Files: `Category 3 - IA West Smart Match CRM/tests/conftest.py`, `Category 3 - IA West Smart Match CRM/tests/`, `Category 3 - IA West Smart Match CRM/docs/testing/test_log.md`
-- Risk: integration defects can hide behind mocked `streamlit` calls and only appear during rehearsal.
+**Most newly added API routes are not exercised through the full HTTP stack:**
+- What's not tested: real FastAPI request/response serialization, middleware behavior, and exception handling for matching, calendar, feedback, and QR routes.
+- Files: `Category 3 - IA West Smart Match CRM/tests/test_api_matching.py`, `Category 3 - IA West Smart Match CRM/tests/test_api_calendar.py`, `Category 3 - IA West Smart Match CRM/tests/test_api_feedback.py`, `Category 3 - IA West Smart Match CRM/tests/test_api_qr.py`, `Category 3 - IA West Smart Match CRM/src/api/main.py`
+- Risk: framework-level regressions can slip through even when direct function-call tests stay green.
 - Priority: High
 
-**Deployment-parity coverage is still narrow:**
-- What's not tested: a full Python 3.11 / Streamlit Cloud style run with cache-only discovery and missing-live-network conditions.
-- Files: `Category 3 - IA West Smart Match CRM/runtime.txt`, `Category 3 - IA West Smart Match CRM/tests/test_sprint4_preflight.py`, `Category 3 - IA West Smart Match CRM/scripts/sprint4_preflight.py`
-- Risk: the repo can be locally green on Python 3.12.3 and still fail in the target hosted runtime.
+**Browser-backed coverage is partial and environment dependent:**
+- What's not tested: the React QR and feedback flows end-to-end, plus a reliable default browser-backed verification path for both coordinator surfaces.
+- Files: `Category 3 - IA West Smart Match CRM/tests/test_e2e_playwright.py`, `Category 3 - IA West Smart Match CRM/tests/test_e2e_flows.py`, `.planning/milestones/v3.0-MILESTONE-AUDIT.md`, `.planning/STATE.md`
+- Risk: the most visible coordinator workflows still depend on manual or environment-specific browser checks.
+- Priority: High
+
+**There are no concurrency tests for file-backed mutation paths:**
+- What's not tested: simultaneous QR generation/scan logging, feedback submission, and pipeline status updates against the same files.
+- Files: `Category 3 - IA West Smart Match CRM/src/feedback/service.py`, `Category 3 - IA West Smart Match CRM/src/qr/service.py`, `Category 3 - IA West Smart Match CRM/src/outreach/pipeline_updater.py`, `Category 3 - IA West Smart Match CRM/tests/test_api_feedback.py`, `Category 3 - IA West Smart Match CRM/tests/test_api_qr.py`, `Category 3 - IA West Smart Match CRM/tests/test_pipeline_updater.py`
+- Risk: lost updates and malformed operational files would only appear under live multi-action use.
 - Priority: Medium
 
 ---
 
-*Concerns audit: 2026-03-20*
+*Concerns audit: 2026-03-26*

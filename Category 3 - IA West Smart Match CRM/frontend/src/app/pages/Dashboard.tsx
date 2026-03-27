@@ -1,8 +1,14 @@
 import { useEffect, useState } from "react";
 import {
+  Activity,
   ArrowRight,
+  BellRing,
   Briefcase,
   CalendarDays,
+  MapPinned,
+  MessageSquareHeart,
+  ShieldCheck,
+  SlidersHorizontal,
   Sparkles,
   TrendingUp,
   Users,
@@ -23,13 +29,18 @@ import {
 } from "recharts";
 
 import {
-  fetchCalendar,
+  emptyFeedbackStatsSummary,
+  fetchCalendarAssignments,
+  fetchCalendarEvents,
   fetchEvents,
+  fetchFeedbackStats,
   fetchPipeline,
   fetchSpecialists,
   rankSpeakers,
   splitTags,
-  type CalendarRecord,
+  type CalendarAssignmentSummary,
+  type CalendarEventSummary,
+  type FeedbackStatsSummary,
   type PipelineRecord,
   type RankedMatch,
   type Specialist,
@@ -37,15 +48,32 @@ import {
 
 import { MetricCard } from "../components/MetricCard";
 
-const funnelPalette = ["#a78bfa", "#8b5cf6", "#7c3aed", "#6d28d9", "#5b21b6"];
+const funnelPalette = ["#005394", "#1f6fb2", "#2b87d1", "#56a4e4", "#a2c9ff"];
 
 function monthLabel(dateString: string): string {
-  const date = new Date(dateString);
+  const [year, month, day] = dateString.split("-").map(Number);
+  const date =
+    [year, month, day].every((part) => Number.isFinite(part) && !Number.isNaN(part))
+      ? new Date(year, month - 1, day)
+      : new Date(dateString);
   if (Number.isNaN(date.getTime())) {
     return dateString;
   }
   return date.toLocaleDateString("en-US", { month: "short" });
 }
+
+type RegionalPulseRow = {
+  region: string;
+  eventCount: number;
+  coveredCount: number;
+  openCount: number;
+  assignmentCount: number;
+  uniqueVolunteers: number;
+  memberInquiryCount: number;
+  coveragePercent: number;
+  workloadPercent: number;
+  detail: string;
+};
 
 function stageCounts(records: PipelineRecord[]) {
   const counts = new Map<string, { count: number; order: number }>();
@@ -81,30 +109,116 @@ function matchVolume(records: PipelineRecord[]) {
     }));
 }
 
-function calendarReach(records: CalendarRecord[]) {
-  const byMonth = new Map<string, { windows: number; campuses: number }>();
+function calendarReach(records: CalendarEventSummary[]) {
+  const byMonth = new Map<string, { windows: number; covered: number }>();
   for (const record of records) {
-    const label = monthLabel(record["IA Event Date"]);
-    const campuses = splitTags(record["Nearby Universities"] || "").length;
-    const current = byMonth.get(label) ?? { windows: 0, campuses: 0 };
+    const label = monthLabel(record.event_date);
+    const current = byMonth.get(label) ?? { windows: 0, covered: 0 };
     byMonth.set(label, {
       windows: current.windows + 1,
-      campuses: current.campuses + campuses,
+      covered: current.covered + (record.coverage_status === "covered" ? 1 : 0),
     });
   }
   return Array.from(byMonth.entries()).map(([month, value]) => ({
     month,
     windows: value.windows,
-    campuses: value.campuses,
+    covered: value.covered,
   }));
+}
+
+function buildRegionalPulse(
+  calendarEvents: CalendarEventSummary[],
+  calendarAssignments: CalendarAssignmentSummary[],
+  pipeline: PipelineRecord[],
+): RegionalPulseRow[] {
+  const assignmentKeyToRegion = new Map<string, string>();
+  for (const assignment of calendarAssignments) {
+    assignmentKeyToRegion.set(
+      `${assignment.event_name.trim().toLowerCase()}::${assignment.volunteer_name.trim().toLowerCase()}`,
+      assignment.region,
+    );
+  }
+
+  const memberInquiriesByRegion = new Map<string, number>();
+  for (const record of pipeline) {
+    if (record.stage !== "Member Inquiry") {
+      continue;
+    }
+    const region = assignmentKeyToRegion.get(
+      `${record.event_name.trim().toLowerCase()}::${record.speaker_name.trim().toLowerCase()}`,
+    );
+    if (!region) {
+      continue;
+    }
+    memberInquiriesByRegion.set(region, (memberInquiriesByRegion.get(region) ?? 0) + 1);
+  }
+
+  const regions = Array.from(
+    new Set(
+      [...calendarEvents.map((event) => event.region), ...calendarAssignments.map((assignment) => assignment.region)]
+        .map((value) => value.trim())
+        .filter(Boolean),
+    ),
+  );
+
+  return regions
+    .map((region) => {
+      const eventsInRegion = calendarEvents.filter((event) => event.region === region);
+      const assignmentsInRegion = calendarAssignments.filter((assignment) => assignment.region === region);
+      const coveredCount = eventsInRegion.filter((event) => event.coverage_status === "covered").length;
+      const eventCount = eventsInRegion.length;
+      const openCount = eventsInRegion.filter((event) => event.coverage_status !== "covered").length;
+      const assignmentCount = assignmentsInRegion.length;
+      const uniqueVolunteers = new Set(assignmentsInRegion.map((assignment) => assignment.volunteer_name)).size;
+      const memberInquiryCount = memberInquiriesByRegion.get(region) ?? 0;
+      const coveragePercent = eventCount ? Math.round((coveredCount / eventCount) * 100) : 0;
+      const workloadPercent = Math.max(0, Math.min(Math.round((assignmentCount / Math.max(eventCount * 3, 1)) * 100), 100));
+      const detail = `${eventCount} calendar window${eventCount === 1 ? "" : "s"}, ${assignmentCount} assignment overlay${assignmentCount === 1 ? "" : "s"}, ${memberInquiryCount} member inquir${memberInquiryCount === 1 ? "y" : "ies"}.`;
+
+      return {
+        region,
+        eventCount,
+        coveredCount,
+        openCount,
+        assignmentCount,
+        uniqueVolunteers,
+        memberInquiryCount,
+        coveragePercent,
+        workloadPercent,
+        detail,
+      };
+    })
+    .sort((left, right) => {
+      if (right.eventCount !== left.eventCount) {
+        return right.eventCount - left.eventCount;
+      }
+      if (right.assignmentCount !== left.assignmentCount) {
+        return right.assignmentCount - left.assignmentCount;
+      }
+      return left.region.localeCompare(right.region);
+    })
+    .slice(0, 6);
+}
+
+function formatFactorName(value: string): string {
+  return value
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }
 
 export function Dashboard() {
   const [specialists, setSpecialists] = useState<Specialist[]>([]);
   const [pipeline, setPipeline] = useState<PipelineRecord[]>([]);
-  const [calendar, setCalendar] = useState<CalendarRecord[]>([]);
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEventSummary[]>([]);
+  const [calendarAssignments, setCalendarAssignments] = useState<CalendarAssignmentSummary[]>(
+    [],
+  );
   const [eventCount, setEventCount] = useState(0);
   const [topMatches, setTopMatches] = useState<RankedMatch[]>([]);
+  const [feedbackStats, setFeedbackStats] = useState<FeedbackStatsSummary>(
+    emptyFeedbackStatsSummary(),
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -113,26 +227,90 @@ export function Dashboard() {
 
     async function load() {
       try {
-        const [specialistRows, eventRows, pipelineRows, calendarRows] = await Promise.all([
+        const results = await Promise.allSettled([
           fetchSpecialists(),
           fetchEvents(),
           fetchPipeline(),
-          fetchCalendar(),
+          fetchCalendarEvents(),
+          fetchCalendarAssignments(),
+          fetchFeedbackStats(),
         ]);
+        const [
+          specialistResult,
+          eventResult,
+          pipelineResult,
+          calendarResult,
+          assignmentResult,
+          feedbackResult,
+        ] = results;
+
+        if (
+          specialistResult.status !== "fulfilled" ||
+          eventResult.status !== "fulfilled" ||
+          pipelineResult.status !== "fulfilled" ||
+          calendarResult.status !== "fulfilled"
+        ) {
+          throw (
+            specialistResult.status === "rejected"
+              ? specialistResult.reason
+              : eventResult.status === "rejected"
+                ? eventResult.reason
+                : pipelineResult.status === "rejected"
+                  ? pipelineResult.reason
+                  : calendarResult.reason
+          );
+        }
 
         if (!active) {
           return;
         }
 
+        const specialistRows = specialistResult.value;
+        const eventRows = eventResult.value;
+        const pipelineRows = pipelineResult.value;
+        const calendarRows = calendarResult.value;
+
         setSpecialists(specialistRows);
         setEventCount(eventRows.length);
         setPipeline(pipelineRows);
-        setCalendar(calendarRows);
+        setCalendarEvents(calendarRows);
+        setCalendarAssignments(
+          assignmentResult.status === "fulfilled" ? assignmentResult.value : [],
+        );
+        setFeedbackStats(
+          feedbackResult.status === "fulfilled"
+            ? feedbackResult.value
+            : emptyFeedbackStatsSummary(),
+        );
+
+        const warnings = [];
+        if (assignmentResult.status === "rejected") {
+          warnings.push(
+            assignmentResult.reason instanceof Error
+              ? `Assignment overlays are unavailable: ${assignmentResult.reason.message}`
+              : "Assignment overlays are unavailable.",
+          );
+        }
+        if (feedbackResult.status === "rejected") {
+          warnings.push(
+            feedbackResult.reason instanceof Error
+              ? `Feedback optimizer stats are unavailable: ${feedbackResult.reason.message}`
+              : "Feedback optimizer stats are unavailable.",
+          );
+        }
+        setError(warnings.length ? warnings.join(" ") : null);
 
         const firstEventName = eventRows[0]?.["Event / Program"];
         if (firstEventName) {
           try {
-            const ranked = await rankSpeakers(firstEventName, 4);
+            const ranked = await rankSpeakers(
+              firstEventName,
+              4,
+              feedbackResult.status === "fulfilled" &&
+                Object.keys(feedbackResult.value.current_weights).length > 0
+                ? feedbackResult.value.current_weights
+                : undefined,
+            );
             if (active) {
               setTopMatches(ranked);
             }
@@ -162,7 +340,7 @@ export function Dashboard() {
 
   const funnelData = stageCounts(pipeline);
   const eventVolume = matchVolume(pipeline);
-  const reachTrend = calendarReach(calendar);
+  const reachTrend = calendarReach(calendarEvents);
   const matchedCount = funnelData.find((stage) => stage.name === "Matched")?.value ?? 0;
   const memberInquiryCount =
     funnelData.find((stage) => stage.name === "Member Inquiry")?.value ?? 0;
@@ -173,47 +351,126 @@ export function Dashboard() {
   const conversionRate = matchedCount
     ? `${((memberInquiryCount / matchedCount) * 100).toFixed(1)}%`
     : "0.0%";
+  const primaryMatch = topMatches[0];
+  const coveredCalendarCount = calendarEvents.filter(
+    (event) => event.coverage_status === "covered",
+  ).length;
+  const openCalendarCount = calendarEvents.filter(
+    (event) => event.coverage_status !== "covered",
+  ).length;
+  const averageFatigue = calendarAssignments.length
+    ? Math.round(
+        (calendarAssignments.reduce((sum, assignment) => sum + assignment.volunteer_fatigue, 0) /
+          calendarAssignments.length) *
+          100,
+      )
+    : 0;
+  const cooldownCount = calendarAssignments.filter(
+    (assignment) => assignment.recovery_status === "On Cooldown",
+  ).length;
+  const leadAdjustment = feedbackStats.recommended_adjustments[0] ?? null;
+  const regionalPulse = buildRegionalPulse(calendarEvents, calendarAssignments, pipeline);
+  const regionNeedingCoverage =
+    regionalPulse
+      .filter((row) => row.openCount > 0)
+      .sort((left, right) => right.openCount - left.openCount || right.eventCount - left.eventCount)[0] ??
+    null;
+  const strongestCoverageRegion =
+    regionalPulse
+      .filter((row) => row.eventCount > 0)
+      .sort(
+        (left, right) =>
+          right.coveragePercent - left.coveragePercent ||
+          right.uniqueVolunteers - left.uniqueVolunteers,
+      )[0] ?? null;
+  const hottestInquiryRegion =
+    regionalPulse
+      .filter((row) => row.memberInquiryCount > 0)
+      .sort((left, right) => right.memberInquiryCount - left.memberInquiryCount)[0] ?? null;
+
+  const discoveryFeed = [
+    {
+      icon: BellRing,
+      title: primaryMatch
+        ? `Lead match ready: ${primaryMatch.name}`
+        : "Lead match queue ready",
+      detail: primaryMatch
+        ? `${primaryMatch.event_name} is sitting at ${(primaryMatch.score * 100).toFixed(
+            0,
+          )}% confidence and can be reviewed now.`
+        : "Run the matcher to populate the top recommendation feed.",
+      stamp: primaryMatch ? "Top recommendation" : "Awaiting data",
+    },
+    {
+      icon: MapPinned,
+      title: regionNeedingCoverage
+        ? `${regionNeedingCoverage.region} has ${regionNeedingCoverage.openCount} uncovered window${regionNeedingCoverage.openCount === 1 ? "" : "s"}`
+        : `${calendarEvents.length} calendar windows are currently covered`,
+      detail: regionNeedingCoverage
+        ? `${regionNeedingCoverage.assignmentCount} assignment overlays are attached across ${regionNeedingCoverage.eventCount} scheduled windows in that region.`
+        : "Every scheduled calendar window currently has covered status in the live feed.",
+      stamp: "Coverage",
+    },
+    {
+      icon: Activity,
+      title: `${matchedCount} records have moved into the match stage`,
+      detail: `${memberInquiryCount} records reached member inquiry and are ready for follow-up.`,
+      stamp: "Pipeline",
+    },
+    {
+      icon: ShieldCheck,
+      title: strongestCoverageRegion
+        ? `${strongestCoverageRegion.region} is at ${strongestCoverageRegion.coveragePercent}% covered`
+        : "Regional coverage is waiting on live calendar data",
+      detail: hottestInquiryRegion
+        ? `${hottestInquiryRegion.memberInquiryCount} member inquiry record${hottestInquiryRegion.memberInquiryCount === 1 ? "" : "s"} are currently attributed to ${hottestInquiryRegion.region}.`
+        : strongestCoverageRegion
+          ? `${strongestCoverageRegion.uniqueVolunteers} volunteer${strongestCoverageRegion.uniqueVolunteers === 1 ? "" : "s"} are attached to that region's current windows.`
+          : "The dashboard will populate regional coverage notes once calendar and pipeline data are available.",
+      stamp: "Regional watch",
+    },
+  ];
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="h-10 w-48 rounded bg-gray-200 animate-pulse" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="mx-auto max-w-7xl space-y-6">
+        <div className="h-10 w-48 animate-pulse rounded bg-gray-200" />
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 4 }, (_, index) => (
             <div
               key={index}
-              className="h-36 rounded-xl border border-gray-200 bg-white shadow-sm animate-pulse"
+              className="h-36 animate-pulse rounded-2xl border border-gray-200 bg-white shadow-sm"
             />
           ))}
         </div>
-        <div className="h-80 rounded-xl border border-gray-200 bg-white shadow-sm animate-pulse" />
+        <div className="h-80 animate-pulse rounded-2xl border border-gray-200 bg-white shadow-sm" />
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <div>
         <h1 className="text-3xl font-semibold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-1">
+        <p className="mt-1 text-gray-600">
           Live summary of the specialist roster, active opportunities, and pipeline movement.
         </p>
       </div>
 
       {error ? (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-red-700 text-center">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center text-red-700">
           {error}
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           title="Active Opportunities"
           value={eventCount}
           change="Loaded from CPP events"
           changeType="neutral"
           icon={Briefcase}
-          iconColor="bg-blue-100 text-blue-600"
+          iconColor="bg-[#e6effb] text-[#005394]"
         />
         <MetricCard
           title="Volunteer Utilization"
@@ -221,15 +478,15 @@ export function Dashboard() {
           change={`${uniqueMatchedSpeakers} specialists in pipeline`}
           changeType="positive"
           icon={Users}
-          iconColor="bg-green-100 text-green-600"
+          iconColor="bg-[#e6effb] text-[#005394]"
         />
         <MetricCard
           title="Upcoming IA Windows"
-          value={calendar.length}
+          value={calendarEvents.length}
           change="Calendar dataset"
           changeType="neutral"
           icon={CalendarDays}
-          iconColor="bg-blue-100 text-blue-600"
+          iconColor="bg-[#e6effb] text-[#005394]"
         />
         <MetricCard
           title="Member Inquiry Rate"
@@ -237,105 +494,397 @@ export function Dashboard() {
           change={`${memberInquiryCount} records at latest stage`}
           changeType="positive"
           icon={TrendingUp}
-          iconColor="bg-orange-100 text-orange-600"
+          iconColor="bg-[#e6effb] text-[#005394]"
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-          <h3 className="font-semibold text-gray-900 mb-4">Pipeline Funnel</h3>
+      <div className="rounded-2xl border border-[#d5e0f7] bg-white p-6 shadow-sm">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="h-5 w-5 text-[#005394]" />
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">Recovery and coverage summary</h3>
+            <p className="text-sm text-gray-600">
+              A compact view of the new calendar contract and volunteer recovery posture.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="rounded-2xl border border-[#d5e0f7] bg-[#f7f9fc] p-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Covered windows</p>
+            <p className="mt-2 text-3xl font-semibold text-gray-900">{coveredCalendarCount}</p>
+            <p className="mt-1 text-sm text-gray-600">
+              {calendarEvents.length
+                ? `${Math.round((coveredCalendarCount / calendarEvents.length) * 100)}% covered`
+                : "No calendar events yet"}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-[#d5e0f7] bg-[#f7f9fc] p-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Open windows</p>
+            <p className="mt-2 text-3xl font-semibold text-gray-900">{openCalendarCount}</p>
+            <p className="mt-1 text-sm text-gray-600">Still need volunteer coverage</p>
+          </div>
+          <div className="rounded-2xl border border-[#d5e0f7] bg-[#f7f9fc] p-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Avg fatigue</p>
+            <p className="mt-2 text-3xl font-semibold text-gray-900">{averageFatigue}%</p>
+            <p className="mt-1 text-sm text-gray-600">From the assignment overlay data</p>
+          </div>
+          <div className="rounded-2xl border border-[#d5e0f7] bg-[#f7f9fc] p-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-gray-500">On cooldown</p>
+            <p className="mt-2 text-3xl font-semibold text-gray-900">{cooldownCount}</p>
+            <p className="mt-1 text-sm text-gray-600">Volunteers the matcher should avoid</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-[#d5e0f7] bg-white p-6 shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <MessageSquareHeart className="h-5 w-5 text-[#005394]" />
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Algorithm improvement pulse</h3>
+              <p className="text-sm text-gray-600">
+                Coordinator feedback now drives a bounded weight snapshot and pain-score trend.
+              </p>
+            </div>
+          </div>
+          <div className="rounded-full border border-[#d5e0f7] bg-[#f7f9fc] px-3 py-1 text-xs font-medium text-[#005394]">
+            {feedbackStats.total_feedback} feedback rows
+          </div>
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="rounded-2xl border border-[#d5e0f7] bg-[#f7f9fc] p-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Acceptance rate</p>
+            <p className="mt-2 text-3xl font-semibold text-gray-900">
+              {Math.round(feedbackStats.acceptance_rate * 100)}%
+            </p>
+            <p className="mt-1 text-sm text-gray-600">
+              {feedbackStats.accepted} accepted / {feedbackStats.declined} declined
+            </p>
+          </div>
+          <div className="rounded-2xl border border-[#d5e0f7] bg-[#f7f9fc] p-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Pain score</p>
+            <p className="mt-2 text-3xl font-semibold text-gray-900">
+              {Math.round(feedbackStats.pain_score)}
+            </p>
+            <p className="mt-1 text-sm text-gray-600">A lower score indicates a healthier matching loop.</p>
+          </div>
+          <div className="rounded-2xl border border-[#d5e0f7] bg-[#f7f9fc] p-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Membership interest</p>
+            <p className="mt-2 text-3xl font-semibold text-gray-900">
+              {Math.round(feedbackStats.membership_interest_rate * 100)}%
+            </p>
+            <p className="mt-1 text-sm text-gray-600">
+              {feedbackStats.membership_interest_count} attributed follow-through signals.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-[#d5e0f7] bg-[#f7f9fc] p-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Lead adjustment</p>
+            <p className="mt-2 text-lg font-semibold text-gray-900">
+              {leadAdjustment ? formatFactorName(leadAdjustment.factor) : "No adjustment yet"}
+            </p>
+            <p className="mt-1 text-sm text-gray-600">
+              {leadAdjustment
+                ? `${leadAdjustment.delta > 0 ? "+" : ""}${(leadAdjustment.delta * 100).toFixed(1)} pts`
+                : "Collect more coordinator outcomes to unlock recommendations."}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[1fr_0.95fr]">
+          <div className="rounded-2xl border border-[#d5e0f7] bg-[#f7f9fc] p-4">
+            <h4 className="mb-3 font-semibold text-gray-900">Acceptance trend</h4>
+            {feedbackStats.trend.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-[#cfd8e5] bg-white p-6 text-sm text-gray-600">
+                Trend data will appear once coordinators submit feedback from the React workflow.
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={220}>
+                <LineChart
+                  data={feedbackStats.trend.map((point) => ({
+                    ...point,
+                    acceptance_percent: Math.round(point.acceptance_rate * 100),
+                  }))}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e6eef7" />
+                  <XAxis dataKey="date" tick={{ fill: "#5a6472", fontSize: 12 }} />
+                  <YAxis tick={{ fill: "#5a6472", fontSize: 12 }} />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="acceptance_percent"
+                    stroke="#005394"
+                    strokeWidth={3}
+                    name="Acceptance %"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-[#d5e0f7] bg-[#f7f9fc] p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <SlidersHorizontal className="h-4 w-4 text-[#005394]" />
+              <h4 className="font-semibold text-gray-900">Recommended weight shifts</h4>
+            </div>
+            <div className="space-y-3">
+              {feedbackStats.recommended_adjustments.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-[#cfd8e5] bg-white p-6 text-sm text-gray-600">
+                  No weight deltas yet. The optimizer is waiting for stronger coordinator signal.
+                </div>
+              ) : (
+                feedbackStats.recommended_adjustments.slice(0, 4).map((adjustment) => (
+                  <div
+                    key={adjustment.factor}
+                    className="rounded-2xl border border-[#d5e0f7] bg-white p-4 shadow-sm"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="font-semibold text-gray-900">
+                        {formatFactorName(adjustment.factor)}
+                      </p>
+                      <span className="text-sm font-semibold text-[#005394]">
+                        {adjustment.delta > 0 ? "+" : ""}
+                        {(adjustment.delta * 100).toFixed(1)} pts
+                      </span>
+                    </div>
+                    <p className="mt-2 text-sm text-gray-600">{adjustment.rationale}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+        <div className="rounded-2xl border border-[#d5e0f7] bg-white p-6 shadow-sm">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <MapPinned className="h-5 w-5 text-[#005394]" />
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#005394]/70">
+                  Regional coverage pulse
+                </p>
+              </div>
+              <h3 className="mt-2 text-xl font-semibold text-gray-900">
+                Coordinator coverage pulse
+              </h3>
+              <p className="mt-1 text-sm text-gray-600">
+                Live rollup built from calendar coverage, assignment overlays, and pipeline follow-through.
+              </p>
+            </div>
+            <div className="rounded-full border border-[#d5e0f7] bg-[#f7f9fc] px-3 py-1 text-xs font-medium text-[#005394]">
+              V1.2
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 lg:grid-cols-2">
+            {regionalPulse.length ? (
+              regionalPulse.map((region) => (
+                <div
+                  key={region.region}
+                  className="rounded-2xl border border-[#d5e0f7] bg-[linear-gradient(180deg,#fafdff_0%,#edf4ff_100%)] p-5 shadow-sm"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-lg font-semibold text-gray-900">{region.region}</p>
+                      <p className="mt-1 text-sm text-gray-600">{region.detail}</p>
+                    </div>
+                    <span className="rounded-full border border-[#d5e0f7] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#005394]">
+                      {region.coveragePercent}% covered
+                    </span>
+                  </div>
+
+                  <div className="mt-4 space-y-2">
+                    <div className="flex items-center justify-between text-xs font-medium uppercase tracking-[0.18em] text-[#5a6472]">
+                      <span>Coverage</span>
+                      <span>{region.coveredCount}/{region.eventCount || 0} windows</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-white/80">
+                      <div
+                        className="h-2 rounded-full bg-[#005394]"
+                        style={{ width: `${region.coveragePercent}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-gray-700">
+                    <div className="rounded-2xl border border-white/70 bg-white/85 px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.18em] text-[#5a6472]">
+                        Open windows
+                      </p>
+                      <p className="mt-1 text-lg font-semibold text-gray-900">{region.openCount}</p>
+                    </div>
+                    <div className="rounded-2xl border border-white/70 bg-white/85 px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.18em] text-[#5a6472]">
+                        Workload
+                      </p>
+                      <p className="mt-1 text-lg font-semibold text-gray-900">
+                        {region.workloadPercent}%
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-white/70 bg-white/85 px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.18em] text-[#5a6472]">
+                        Overlay rows
+                      </p>
+                      <p className="mt-1 text-lg font-semibold text-gray-900">
+                        {region.assignmentCount}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-white/70 bg-white/85 px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.18em] text-[#5a6472]">
+                        Member inquiry
+                      </p>
+                      <p className="mt-1 text-lg font-semibold text-gray-900">
+                        {region.memberInquiryCount}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-2xl border border-dashed border-[#cfd8e5] bg-[#f7f9fc] p-8 text-sm text-gray-600 lg:col-span-2">
+                Regional coverage summaries will appear once live calendar and overlay data are available.
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-[#d5e0f7] bg-white p-6 shadow-sm">
+          <div className="flex items-center gap-2">
+            <BellRing className="h-5 w-5 text-[#005394]" />
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900">Discovery feed</h3>
+              <p className="text-sm text-gray-600">
+                Lightweight coordinator notifications derived from the current dataset.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-3">
+            {discoveryFeed.map((item) => {
+              const Icon = item.icon;
+
+              return (
+                <div
+                  key={item.title}
+                  className="flex gap-4 rounded-2xl border border-[#d5e0f7] bg-[#f7f9fc] p-4 shadow-sm"
+                >
+                  <div className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#d5e0f7] bg-white text-[#005394]">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="font-semibold text-gray-900">{item.title}</p>
+                      <span className="rounded-full bg-[#e6effb] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#005394]">
+                        {item.stamp}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-gray-600">{item.detail}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="rounded-2xl border border-[#d5e0f7] bg-white p-6 shadow-sm">
+          <h3 className="mb-4 text-lg font-semibold text-gray-900">Pipeline Funnel</h3>
           <ResponsiveContainer width="100%" height={300}>
             <FunnelChart>
               <Tooltip />
               <Funnel dataKey="value" data={funnelData}>
-                <LabelList position="right" fill="#000" stroke="none" dataKey="name" />
+                <LabelList position="right" fill="#1f2937" stroke="none" dataKey="name" />
               </Funnel>
             </FunnelChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-          <h3 className="font-semibold text-gray-900 mb-4">Match Volume by Event</h3>
+        <div className="rounded-2xl border border-[#d5e0f7] bg-white p-6 shadow-sm">
+          <h3 className="mb-4 text-lg font-semibold text-gray-900">Match Volume by Event</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={eventVolume}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="event" />
-              <YAxis allowDecimals={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e6eef7" />
+              <XAxis dataKey="event" tick={{ fill: "#5a6472", fontSize: 12 }} />
+              <YAxis allowDecimals={false} tick={{ fill: "#5a6472", fontSize: 12 }} />
               <Tooltip />
-              <Bar dataKey="matches" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="matches" fill="#2b6cb0" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-        <h3 className="font-semibold text-gray-900 mb-4">Calendar Reach Trend</h3>
+      <div className="rounded-2xl border border-[#d5e0f7] bg-white p-6 shadow-sm">
+        <h3 className="mb-4 text-lg font-semibold text-gray-900">Calendar Reach Trend</h3>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={reachTrend}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis dataKey="month" />
-            <YAxis />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e6eef7" />
+            <XAxis dataKey="month" tick={{ fill: "#5a6472", fontSize: 12 }} />
+            <YAxis tick={{ fill: "#5a6472", fontSize: 12 }} />
             <Tooltip />
             <Line
               type="monotone"
               dataKey="windows"
-              stroke="#8b5cf6"
+              stroke="#005394"
               strokeWidth={3}
               name="IA windows"
             />
             <Line
               type="monotone"
-              dataKey="campuses"
-              stroke="#3b82f6"
+              dataKey="covered"
+              stroke="#56a4e4"
               strokeWidth={3}
-              name="Nearby campuses"
+              name="Covered windows"
             />
           </LineChart>
         </ResponsiveContainer>
       </div>
 
-      <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-        <div className="flex items-center justify-between mb-6">
+      <div className="rounded-2xl border border-[#d5e0f7] bg-white p-6 shadow-sm">
+        <div className="mb-6 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-blue-600" />
-            <h3 className="font-semibold text-gray-900">Top Recommended Matches</h3>
+            <Sparkles className="h-5 w-5 text-[#005394]" />
+            <h3 className="text-lg font-semibold text-gray-900">Top Recommended Matches</h3>
           </div>
-          <button className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
+          <button className="flex items-center gap-1 text-sm font-medium text-[#005394] transition-colors hover:text-[#00477f]">
             View All
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="h-4 w-4" />
           </button>
         </div>
 
         <div className="space-y-4">
           {topMatches.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-gray-300 p-8 text-center text-gray-600">
+            <div className="rounded-2xl border border-dashed border-[#cfd8e5] bg-[#f7f9fc] p-8 text-center text-gray-600">
               Ranking data will appear here once the FastAPI backend is running with the matching endpoint.
             </div>
           ) : (
             topMatches.map((match) => (
               <div
                 key={`${match.event_name}-${match.name}`}
-                className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-blue-50 rounded-lg border border-blue-100 hover:shadow-md transition-shadow"
+                className="flex items-center justify-between gap-4 rounded-2xl border border-[#d5e0f7] bg-gradient-to-r from-white to-[#f2f7ff] p-4 shadow-sm transition-shadow hover:shadow-md"
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <p className="font-semibold text-gray-900">{match.name}</p>
-                    <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
+                    <span className="rounded-full bg-[#e6effb] px-2 py-0.5 text-xs text-[#005394]">
                       {splitTags(match.expertise_tags)[0] || match.board_role || "Specialist"}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="mt-1 text-sm text-gray-600">
                     {match.event_name} · {match.company || "IA West volunteer"}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="text-right">
                     <p className="text-sm text-gray-600">Match Score</p>
-                    <p className="text-2xl font-semibold text-blue-600">
+                    <p className="text-2xl font-semibold text-[#005394]">
                       {(match.score * 100).toFixed(0)}%
                     </p>
                   </div>
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+                  <button className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-[#00477f]">
                     Connect
                   </button>
                 </div>

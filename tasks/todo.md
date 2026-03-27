@@ -2,6 +2,279 @@
 
 ## Current Work
 
+### Cat3 Fullstack Port Conflict Recovery
+
+_Execution board for fixing `./start_cat3_fullstack.sh` when the backend port is already occupied and the launcher currently reports a generic startup failure._
+
+- [x] Reproduce the backend failure from the captured log and confirm the exact occupied-port path in the launcher.
+- [x] Patch the launcher to surface explicit startup diagnostics and reuse an already-running CAT3 backend when `/api/health` is already available.
+- [x] Tighten the frontend launch contract so the readiness probe cannot silently drift to a different Vite port.
+- [x] Add focused launcher tests and record verification plus any remaining sandbox limits.
+
+#### Review
+
+- Root cause: the failing WSL run was not a dependency-sync regression. The backend log showed `ERROR: [Errno 98] Address already in use`, but the launcher surfaced that as a generic readiness failure instead of recognizing a duplicate bind or printing the real log-tail message.
+- Fixes:
+  - Updated `Category 3 - IA West Smart Match CRM/scripts/start_fullstack.py` to probe `/api/health` before launching the backend and reuse an already-running CAT3 FastAPI instance on `:8000`.
+  - Added backend port-conflict recovery so a duplicate bind now resolves to either `Already running` for the CAT3 API or an explicit `Port 127.0.0.1:8000 already in use` message with the backend log path.
+  - Added `--strictPort` to the Vite launch command and now prefer the frontend log tail on startup failure so occupied `:5173` errors are surfaced directly instead of a vague `Process exited with code 1`.
+  - Added focused regression coverage in `Category 3 - IA West Smart Match CRM/tests/test_start_fullstack.py`.
+- Verification:
+  - `python3 -m py_compile "Category 3 - IA West Smart Match CRM/scripts/start_fullstack.py" "Category 3 - IA West Smart Match CRM/tests/test_start_fullstack.py"` -> passed.
+  - `python3 -m pytest "Category 3 - IA West Smart Match CRM/tests/test_start_fullstack.py" -q` -> `5 passed in 0.10s`.
+  - `./start_cat3_fullstack.sh --help` -> passed.
+  - `timeout 20s ./start_cat3_fullstack.sh --skip-install --no-browser` -> failed fast in this sandbox with `PermissionError: [Errno 1] Operation not permitted`, which confirms the launcher now surfaces the backend log-tail error instead of a generic exit code.
+  - Full live boot remains unverified inside this Codex sandbox because local socket binding is restricted here, so the occupied-port fix still needs one run on your machine for end-to-end confirmation.
+
+### Cat3 Fullstack Launcher UX + Startup Reliability
+
+_Execution board for making `./start_cat3_fullstack.sh` readable in WSL2/Windows Terminal and reducing false “stuck on sync” startup failures._
+
+- [x] Inspect the current fullstack launcher flow and identify why startup appears stuck before backend/frontend launch.
+- [x] Replace the raw dependency flood with staged terminal status output and check-mark completion states.
+- [x] Split the fullstack launcher onto a slim Python dependency set so React + FastAPI boot does not pull optional voice/ML packages by default.
+- [x] Add startup readiness checks so the launcher reports whether backend and frontend actually became available.
+- [x] Update launcher docs and run lightweight verification checks.
+
+#### Review
+
+- Root cause 1: `start_fullstack.py` always ran `pip install -r requirements.txt`, which pulled optional voice/ML dependencies such as `kittentts`, `torch`, and CUDA wheels even though the React + FastAPI launcher does not need them to boot.
+- Root cause 2: the previous launcher handed control directly to child processes with no readiness check, so “not starting” failures were opaque and the terminal gave no staged progress.
+- Fixes:
+  - Reworked `Category 3 - IA West Smart Match CRM/scripts/start_fullstack.py` to render a staged terminal status board with check marks for environment, runtime, dependency sync, backend readiness, frontend readiness, and overall ready state.
+  - Added cached install-state tracking so repeated runs skip Python/npm sync when `requirements-fullstack.txt` and `package-lock.json` are unchanged.
+  - Added `Category 3 - IA West Smart Match CRM/requirements-fullstack.txt` for the slim React + FastAPI launcher path.
+  - Added `--force-install`, `--full-install`, `--backend-host`, and `--frontend-host` flags.
+  - On Unix/WSL, backend/frontend logs are now written to temp log files and the launcher waits for `http://127.0.0.1:8000/api/health` and `http://127.0.0.1:5173` before reporting success.
+- Verification:
+  - `python3 -m py_compile "Category 3 - IA West Smart Match CRM/scripts/start_fullstack.py"` -> passed.
+  - Additional live bind verification is limited in this Codex environment because local socket binding is sandbox-restricted.
+
+### Cat3 Fullstack Pip Install Visibility Fix
+
+_Execution board for making dependency sync visibly report pip install progress during `./start_cat3_fullstack.sh`._
+
+- [x] Confirm root cause of hidden output in the fullstack launcher install step.
+- [x] Remove quiet pip mode and enable visible progress output in the startup script.
+- [x] Run a lightweight verification check and record outcome.
+
+#### Review
+
+- Root cause: `Category 3 - IA West Smart Match CRM/scripts/start_fullstack.py` invoked pip with `-q`, which suppresses dependency install output and makes long installs appear stalled.
+- Fix: updated launcher dependency sync command to run `pip install --progress-bar on -r requirements.txt` and updated the sync message to indicate live pip output.
+- Verification: `python3 -m py_compile "Category 3 - IA West Smart Match CRM/scripts/start_fullstack.py"` -> passed.
+
+### Cat3 Fullstack Dependency Sync Fix (Pillow Conflict)
+
+_Execution board for resolving the launcher-time pip resolver failure: `streamlit==1.42.2` vs `Pillow==12.1.1` in `Category 3 - IA West Smart Match CRM/requirements.txt`._
+
+- [x] Reproduce/inspect the failing dependency set from the startup path and identify the conflicting pins.
+- [x] Apply the minimal requirements pin change that restores resolver compatibility for the existing Streamlit runtime.
+- [x] Run focused verification checks and record any environment limits that prevent full end-to-end install validation.
+
+#### Review
+
+- Root cause: `Category 3 - IA West Smart Match CRM/requirements.txt` pinned `streamlit==1.42.2` together with `Pillow==12.1.1`, which conflicts with Streamlit 1.42.x dependency bounds and triggers `ResolutionImpossible` during the startup script dependency sync.
+- Fix: updated the Pillow pin to `Pillow==11.3.0` in `Category 3 - IA West Smart Match CRM/requirements.txt` to remain in the latest 11.x line while staying compatible with Streamlit 1.42.x.
+- Verification performed:
+  - Confirmed requirement file edit with line-numbered file inspection.
+  - Attempted full `pip install -r requirements.txt`, but this environment currently cannot resolve external hosts (`pypi.org`, `github.com`), so a complete install test is blocked by network DNS failures unrelated to the dependency-pin fix.
+- Residual risk:
+  - Full dependency install needs one online verification run in your normal environment (where pip can access package indexes) to confirm end-to-end startup now passes.
+
+### CAT3 React + FastAPI Cross-Environment Launcher
+
+_Execution board for adding an easy launcher that starts the Category 3 React frontend + FastAPI backend across Windows and WSL2 with environment detection and teammate-friendly run guidance._
+
+- [x] Confirm existing startup scripts/ports and define the new launcher contract for React (`:5173`) + FastAPI (`:8000`).
+- [x] Implement a cross-environment launcher under `Category 3 - IA West Smart Match CRM/scripts/` that detects Windows vs WSL/Linux and starts both services.
+- [x] Add root-level convenience wrappers so non-technical teammates can run from the repo root on Windows or WSL.
+- [x] Update README instructions with a concise “quick start” path for the new launcher.
+- [x] Run a dry verification pass (syntax/help or safe checks) and record outcomes in review notes.
+
+#### Review
+
+- Defined and implemented a dedicated v3 launch contract for React + FastAPI with defaults `frontend:5173` and `backend:8000`.
+- Added cross-environment launcher: `Category 3 - IA West Smart Match CRM/scripts/start_fullstack.py`.
+  - Detects `windows`, `wsl`, or `linux`.
+  - Ensures `.venv` exists and syncs Python deps from `requirements.txt` (unless `--skip-install`).
+  - Ensures frontend deps (`npm install`) when `frontend/node_modules` is missing.
+  - Starts `uvicorn src.api.main:app --reload` plus `npm run dev -- --host ... --port ...`.
+  - Windows opens separate consoles; WSL/Linux runs both in one terminal with shutdown handling.
+- Added teammate-friendly wrappers:
+  - Category scripts: `scripts/start_fullstack.sh`, `scripts/start_fullstack.ps1`, `scripts/start_fullstack.cmd`
+  - Repo-root wrappers: `start_cat3_fullstack.sh`, `start_cat3_fullstack.ps1`, `start_cat3_fullstack.cmd`
+- Updated docs:
+  - `Category 3 - IA West Smart Match CRM/README.md` now has a quick-start section for the new launcher.
+  - Root `README.md` now includes one-line quick launch commands.
+- Verification:
+  - `python3 -m py_compile "Category 3 - IA West Smart Match CRM/scripts/start_fullstack.py"` passed.
+  - `bash -n "Category 3 - IA West Smart Match CRM/scripts/start_fullstack.sh" "start_cat3_fullstack.sh"` passed.
+  - `python3 "Category 3 - IA West Smart Match CRM/scripts/start_fullstack.py" --help` returned expected CLI options.
+
+### GSD Roadmap Analyze v3.0 False Incomplete Investigation
+
+_Execution board for inspecting why `node /home/danny/.codex/get-shit-done/bin/gsd-tools.cjs roadmap analyze` reports `roadmap_complete: false` for v3.0 phases even though `.planning/ROADMAP.md` shows shipped/completed state._
+
+- [x] Reproduce the current `roadmap analyze` output for v3.0 phases and capture which fields are false.
+- [x] Compare the relevant `.planning/ROADMAP.md` milestone and phase markup against the analyzer/parser conditions.
+- [x] Determine whether the false status reflects genuinely incomplete sprint artifacts or a parser/tooling mismatch, then record the exact cause below.
+
+#### Review
+
+- `roadmap analyze` reports `disk_status: "complete"` with matching plan/summary counts for v3.0 phases, but `roadmap_complete: false` for each phase.
+- Root cause is a parser mismatch in `/home/danny/.codex/get-shit-done/bin/lib/roadmap.cjs`: phase completion is detected only from checklist lines matching `- [x] ... Phase N:`. The active roadmap uses `### Phase N: ... ✅` headings plus completed plan checkboxes instead, so the regex never matches and `roadmap_complete` falls back to `false`.
+- Conclusion: this does not indicate real incomplete sprint work. The active roadmap marks v3.0 shipped and complete; the analyzer is checking for a different phase-status representation than the one in this repo’s current roadmap format.
+
+### V3.0 Sprint Remaining Work Check
+
+_Execution board for `$gsd-autonomous check for anything left for V3.0 sprint`. Scope is limited to confirming whether v3.0 still has incomplete phases, blocking follow-ups, or worktree drift that should keep the sprint open._
+
+- [x] Reconcile `.planning/ROADMAP.md`, `.planning/STATE.md`, archived v3.0 milestone docs, and `gsd-tools` output for phase completion status.
+- [x] Inspect the current git/worktree state plus retained follow-ups to determine whether any remaining items are blocking sprint work or post-closeout backlog.
+- [x] Record the conclusion, evidence, and any residual non-blocking follow-ups in the review section.
+
+#### Review
+
+- `.planning/STATE.md`, `.planning/ROADMAP.md`, and `.planning/milestones/v3.0-MILESTONE-AUDIT.md` are aligned on the shipped-state claim: v3.0 is complete, all phases 8-12 are done, and the retained follow-ups are manual/non-blocking.
+- Phase verification artifacts for `09.1`, `10`, `11`, and `12` do not expose any unverified must-have requirements. The recurring gaps are environment/UAT items: missing Playwright browser runtime for browser-backed QR/feedback evidence, missing `uvicorn` in the local `.venv` during 09.1, and the existing non-blocking frontend bundle-size warning.
+- `node /home/danny/.codex/get-shit-done/bin/gsd-tools.cjs roadmap analyze` still reports `roadmap_complete: false` for every v3.0 phase while also reporting `disk_status: "complete"`, `completed_phases: 7`, and `progress_percent: 100`. Based on the current planning artifacts, this reads as a tooling/parser mismatch rather than unfinished sprint scope.
+- Current `git status --short` shows the v3.0 planning and implementation work is still uncommitted relative to `HEAD`. That is a real closeout/handoff gap if this sprint must end on a clean committed worktree, but it does not contradict the planning verdict that the product scope is complete.
+- `tasks/todo.md` still contains an older unchecked Phase 8.5 recovery board, but `.planning/phases/08.5-fastapi-backend-react-promotion/08.5-VERIFICATION.md` is already `status: passed` and the shipped roadmap/state docs mark Phase 8.5 complete. Treat those unchecked items as stale bookkeeping, not active sprint scope.
+- Blocking remaining work: none found in the planning artifacts for the shipped React/FastAPI path.
+- Accepted follow-ups: browser-backed QR/feedback UAT, live rehearsal / voice-path UAT, bundle/code-splitting cleanup, legacy Streamlit feedback-path cleanup, and the separate `gsd-tools roadmap analyze` false-incomplete investigation.
+
+### v3.0 Audit Findings Fix Pass
+
+_Execution board for `$ecc-build-fix` against the 2026-03-26 audit findings recorded above. Scope is limited to the cited Category 3 backend, frontend, and targeted test files._
+
+- [x] Fix backend optimizer weight application so matching APIs use the latest server-side effective weights by default while still allowing explicit overrides.
+- [x] Harden the QR generate/scan flow against open redirects and pin the QR dependencies in `requirements.txt`.
+- [x] Remove silent frontend fallbacks that convert API failures into false empty-state data for feedback and QR stats, and keep the feedback submission flow from wiping visible optimizer state on refresh failures.
+- [x] Replace the dashboard coverage pulse/discovery narrative with source-backed regional summaries derived from live calendar and pipeline data.
+- [x] Make the calendar selected-day assignment panel respect the active coverage filter.
+- [x] Add real dialog accessibility behavior for the feedback and outreach overlays.
+- [x] Strengthen targeted API tests through the FastAPI HTTP boundary for matching, calendar, feedback, and QR behavior.
+- [x] Run targeted backend/frontend verification and capture outcomes plus residual risks here.
+
+#### Review
+
+- Backend matching now resolves optimizer history server-side by default via `get_effective_weights()`, and feedback submissions record the actual weights in use when the caller does not send an override.
+- QR generation now ignores user-supplied `base_url` at the API boundary, validates `destination_url` against the app host or approved Insights Association domains, and returns `400` for invalid redirect targets; `qrcode` and `Pillow` are pinned in `requirements.txt`.
+- FastAPI handlers under `src/api/` were converted to `async def` so real ASGI-boundary verification can run in-process, and `tests/asgi_client.py` now exercises validation, redirects, CORS, and JSON serialization without bypassing the HTTP layer.
+- Frontend API helpers no longer silently fall back from `/api/calendar/*`, `/api/qr/stats`, or `/api/feedback/stats` to legacy/empty payloads; the affected pages now surface explicit warning banners while keeping any successful primary data.
+- `FeedbackForm` now preserves optimizer state from the submit response if the follow-up stats refresh fails, instead of zeroing the visible matcher state after a successful submission.
+- The dashboard coverage pulse/feed now derives its regional cards and coordinator callouts from live calendar coverage, assignment overlays, and member-inquiry counts; month labels also use local date parsing to avoid timezone drift on `YYYY-MM-DD` strings.
+- The day-detail assignment panel on the calendar now filters overlays against the currently visible events, so hidden events no longer leak into the selected-day side rail.
+- The feedback and outreach overlays now use the shared Radix dialog primitives for focus trapping, escape handling, and proper modal semantics.
+- Verification:
+  - `cd 'Category 3 - IA West Smart Match CRM' && timeout 240s ./.venv/bin/python -m pytest tests/test_api_matching.py tests/test_api_calendar.py tests/test_api_qr.py tests/test_api_feedback.py -q` -> `26 passed, 29 warnings in 6.13s`
+  - `cd 'Category 3 - IA West Smart Match CRM/frontend' && npm run build` -> passed in `30.08s`; Vite still reports a `1,023.68 kB` JS chunk warning.
+- Residual risks:
+  - Browser-backed UAT for the QR and feedback flows is still absent, so the modal/accessibility improvements were verified via build plus API/tests, not end-to-end browser automation.
+  - QR and feedback persistence are still file-backed read/modify/write flows without locking, so concurrent writes remain race-prone.
+  - The targeted backend tests now hit the real ASGI boundary for the reviewed routes, but broader API coverage outside matching/calendar/feedback/QR still relies on older patterns.
+
+### Codebase Map Refresh + v3.0 Audit
+
+_Execution board for `$gsd-map-codebase` followed by `$ecc-code-review` on the uncommitted v3.0 session work. Review scope is the current worktree relative to `HEAD`, because the Phase 10-12 closeout changes have not been committed yet._
+
+- [x] Reconcile repo state, `.planning/STATE.md`, `tasks/lessons.md`, and the current git diff so the audit scope is explicit.
+- [x] Refresh `.planning/codebase/CONCERNS.md` against the current `Category 3 - IA West Smart Match CRM/` worktree state.
+- [x] Re-audit Category 3 backend, frontend, tests, and planning artifacts for concrete debt, bugs, security, performance, and fragility concerns.
+- [x] Replace the stale concerns doc with the refreshed current-state findings and note verification evidence.
+- [x] Refresh `.planning/codebase/` using mapper agents without broadening scope beyond the current codebase state.
+- [x] Review the Phase 09.1-12 backend/frontend/planning changes for security, quality, and standards issues.
+- [x] Record findings, verification evidence, and residual risks in this section.
+
+#### Review
+
+- Refreshed `.planning/codebase/CONCERNS.md` for 2026-03-26 against the current worktree state rather than the last committed milestone snapshot.
+- Highest-signal findings now called out in the doc: shipped-planning vs uncommitted-code drift, `DATA_DIR` split-brain paths, duplicate feedback systems, synthetic calendar semantics, unauthenticated/open-redirect API surfaces, eager React bundle growth, and missing React/concurrency coverage.
+- Verification: manually audited the current Phase 09.1-12 backend/frontend files plus `.planning/STATE.md`, `.planning/ROADMAP.md`, `.gitignore`, and the current git diff before rewriting the concerns map.
+- Refreshed `.planning/codebase/STACK.md` and `.planning/codebase/INTEGRATIONS.md` against the current Category 3 worktree state instead of the older Streamlit-only snapshot.
+- Mapping now captures the hybrid runtime: legacy Streamlit shell in `Category 3 - IA West Smart Match CRM/src/app.py`, implemented FastAPI backend in `Category 3 - IA West Smart Match CRM/src/api/main.py`, and Vite/React frontend in `Category 3 - IA West Smart Match CRM/frontend/`.
+- Integration inventory now records the active Gemini REST client, university scraping targets, local file-backed persistence and caches, Playwright/browser dependencies, and the promoted React/FastAPI contract surface.
+- Final refreshed codebase map counts: `ARCHITECTURE.md` 179 lines, `STRUCTURE.md` 253, `CONCERNS.md` 195, `CONVENTIONS.md` 129, `TESTING.md` 243, `STACK.md` 101, `INTEGRATIONS.md` 113.
+- Audit verification rerun:
+  - `cd 'Category 3 - IA West Smart Match CRM' && timeout 240s ./.venv/bin/python -m pytest tests/test_api_matching.py tests/test_api_calendar.py tests/test_api_qr.py tests/test_api_feedback.py -q` -> `17 passed, 22 warnings in 49.17s`
+  - `cd 'Category 3 - IA West Smart Match CRM/frontend' && npm run build` -> passed in `2m 11s`; Vite still reports a `959.80 kB` JS chunk warning.
+- Highest-severity review findings:
+  - `Category 3 - IA West Smart Match CRM/src/api/routers/qr.py` + `src/qr/service.py`: QR generation/scan currently allows open redirects because `destination_url` and `base_url` are accepted and replayed without allow-list validation.
+  - `Category 3 - IA West Smart Match CRM/src/api/routers/matching.py`, `src/matching/engine.py`, and `src/feedback/service.py`: Phase 12 optimizer weights are surfaced as analytics but are not applied by the backend unless the client explicitly passes weight overrides, which does not match the shipped-state planning claims.
+  - `Category 3 - IA West Smart Match CRM/frontend/src/lib/api.ts`: calendar/QR/feedback fetch helpers silently convert backend failures into fallback or zero-state UI data, which can hide contract breakage and reset visible optimizer state.
+  - `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Dashboard.tsx`: the regional density-map/feed presents fabricated operational conclusions from hard-coded points rather than source-backed coverage data.
+  - `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/AIMatching.tsx` and `frontend/src/lib/api.ts` are now monolithic review hotspots at `868` and `1110` lines respectively, and there are still no checked-in frontend tests.
+- Additional medium/low findings:
+  - `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Calendar.tsx`: the coverage filter only filters events; the selected-day assignment overlay still shows assignments for hidden events.
+  - `Category 3 - IA West Smart Match CRM/frontend/src/app/pages/Dashboard.tsx`: month bucketing uses `new Date("YYYY-MM-DD")`, which can shift labels at US month boundaries.
+  - `Category 3 - IA West Smart Match CRM/requirements.txt`: `qrcode` and `Pillow` were added unpinned.
+  - `Category 3 - IA West Smart Match CRM/frontend/node_modules/` is present locally and is not ignored by the repo root `.gitignore`, which makes future worktree audits noisy.
+- Residual risks:
+  - Browser-backed QR/feedback UAT is still absent.
+  - QR and feedback file persistence remain race-prone because both features use unlocked read/modify/write updates against local JSON and JSONL files.
+  - The new API tests mainly call router functions directly, so the real HTTP boundary still lacks coverage for redirect restrictions, validation behavior, and CORS/serialization concerns.
+
+### v3.0 Autonomous Closeout From Phase 09.1
+
+_Execution board for `$gsd-autonomous --from 9.1`. Source of truth is `.planning/ROADMAP.md` + `.planning/STATE.md`; `roadmap analyze` currently under-reports roadmap completion for earlier phases, so this run scopes to Phases 09.1, 10, 11, and 12 only._
+
+- [x] Reconcile the milestone state with the current phase queue and keep this board aligned while the autonomous run is in flight.
+- [x] Phase 09.1: plan the V1.2 React rebrand from the existing `09.1-CONTEXT.md`, execute the approved work, and verify the user-facing result.
+- [x] Phase 10: gather/write CONTEXT, plan master-calendar + recovery-period work, execute it, and verify both backend and frontend behavior.
+- [x] Phase 11: gather/write CONTEXT, plan QR + ROI tracking work, execute it, and verify generation, scan tracking, and analytics behavior.
+- [x] Phase 12: gather/write CONTEXT, plan feedback-loop + weight-optimization work, execute it, and verify the end-to-end data flow.
+- [x] After all remaining phases: update `.planning/ROADMAP.md`, `.planning/STATE.md`, and phase verification artifacts to the truthful final state.
+- [x] Run milestone audit / completion / cleanup steps required by the autonomous workflow and record outcomes here.
+
+#### Review
+
+- Phase 09.1 is now closed at the merged-build level with summary artifacts `09.1-01/02/03-SUMMARY.md` plus `09.1-VERIFICATION.md`.
+- Integrated verification: `cd 'Category 3 - IA West Smart Match CRM/frontend' && npm run build` passed after restoring the accidentally dropped `/ai-matching` route during merge review.
+- Residual environment gaps recorded in the verification doc: the local `.venv` is missing `uvicorn`, and the Playwright browser runtime could not be installed in-session, so no browser-backed screenshot evidence was captured.
+- Phase 10 is now closed with `10-01-SUMMARY.md`, `10-02-SUMMARY.md`, and `10-VERIFICATION.md`.
+- Verification: `timeout 60s ./.venv/bin/python -m pytest tests/test_api_matching.py tests/test_api_calendar.py -q` -> `9 passed, 22 warnings in 9.48s`; `cd 'Category 3 - IA West Smart Match CRM/frontend' && npm run build` passed with the existing non-blocking chunk-size warning only.
+- Phase 11 is now closed with `11-01-SUMMARY.md`, `11-02-SUMMARY.md`, and `11-VERIFICATION.md`.
+- Verification: `cd 'Category 3 - IA West Smart Match CRM' && timeout 120s ./.venv/bin/python -m pytest tests/test_api_matching.py tests/test_api_calendar.py tests/test_api_qr.py -q` -> `13 passed, 22 warnings in 10.91s`; `cd 'Category 3 - IA West Smart Match CRM/frontend' && npm run build` passed in `43.05s` with the existing non-blocking chunk-size warning only.
+- Integration correction during review: `frontend/src/lib/api.ts` now normalizes backend `referral_codes`, `membership_interest_count`, and `qr_data_url`, which was required for live QR previews and ROI history to display correctly on the React surfaces.
+- Phase 12 is now closed with `12-01-SUMMARY.md`, `12-02-SUMMARY.md`, and `12-VERIFICATION.md`.
+- Verification: `cd 'Category 3 - IA West Smart Match CRM' && timeout 180s ./.venv/bin/python -m pytest tests/test_api_matching.py tests/test_api_calendar.py tests/test_api_qr.py tests/test_api_feedback.py -q` -> `17 passed, 22 warnings in 20.67s`; `cd 'Category 3 - IA West Smart Match CRM/frontend' && npm run build` passed in `2m 57s` with the existing non-blocking chunk-size warning only.
+- Milestone closeout completed: wrote `.planning/milestones/v3.0-MILESTONE-AUDIT.md`, updated `.planning/PROJECT.md`, `.planning/MILESTONES.md`, `.planning/ROADMAP.md`, and `.planning/STATE.md` to shipped state, and retained the active phase directories as the canonical detailed record instead of deleting them.
+
+### Phase 8.5 FastAPI + React Promotion Recovery
+
+_Autonomous resume point from `.planning/phases/08.5-fastapi-backend-react-promotion/08.5-CONTEXT.md`: planning exists, execution not started. This section owns the backend/API promotion, React app promotion, live data wiring, and phase-closeout artifact updates._
+
+- [x] Reconcile Phase 8.5 backend contract against the current codebase and keep task tracking aligned with `.planning/` state.
+- [x] Create the FastAPI package at `Category 3 - IA West Smart Match CRM/src/api/` with app wiring, CORS, and data/matching/outreach routers.
+- [x] Keep the matching API on `src/matching/engine.py` contracts, normalize rank payload fields for frontend consumers, and avoid Streamlit-import hazards in backend modules.
+- [x] Add targeted backend API coverage in `Category 3 - IA West Smart Match CRM/tests/test_api_data.py` and `Category 3 - IA West Smart Match CRM/tests/test_api_matching.py`.
+- [x] Promote `Category 3 - IA West Smart Match CRM/docs/mockup/V1.1/IA-West_UI/` into `Category 3 - IA West Smart Match CRM/frontend/`, fix its standalone Vite/package setup, and add a typed API client.
+- [x] Wire the React pages to live `/api/*` data with loading/error states and preserve the existing V1.1 visual language.
+- [ ] Install missing Python and npm dependencies in a disposable/local environment for Phase 8.5 verification.
+- [ ] Run focused verification:
+  - Python: `test_api_data.py`, `test_api_matching.py`, and a `uvicorn src.api.main:app` smoke start.
+  - Frontend: `npm install` then `npm run build` under `Category 3 - IA West Smart Match CRM/frontend/`.
+- [ ] Fix any verification failures discovered by that first install/build/test pass.
+- [ ] Write Phase 8.5 summaries / verification artifacts and update `.planning/ROADMAP.md` + `.planning/STATE.md` from "execution in progress" to the truthful verified state.
+
+#### Review
+
+- Landed in the worktree:
+  - FastAPI package at `Category 3 - IA West Smart Match CRM/src/api/` with `main.py`, `data.py`, `matching.py`, and `outreach.py`.
+  - Targeted API tests at `Category 3 - IA West Smart Match CRM/tests/test_api_data.py` and `Category 3 - IA West Smart Match CRM/tests/test_api_matching.py`.
+  - React frontend promoted into `Category 3 - IA West Smart Match CRM/frontend/` with Vite bootstrap files, typed API client, and API-backed rewrites of Dashboard, Opportunities, Volunteers, AI Matching, Pipeline, Calendar, and Outreach.
+- Manual code correction applied during review:
+  - Fixed the outreach ICS router to call `generate_ics(..., date_str=...)` instead of the invalid `event_date=` keyword.
+- Verification attempted:
+  - `python3 -m pytest 'Category 3 - IA West Smart Match CRM/tests/test_api_data.py' -q` -> failed at import time with `ModuleNotFoundError: No module named 'fastapi'`.
+  - `python3 -m pytest 'Category 3 - IA West Smart Match CRM/tests/test_api_matching.py' -q` -> failed at import time with the same missing `fastapi` dependency.
+  - Created disposable venv: `python3 -m venv /tmp/hbf-phase85-venv`.
+  - Began requesting Python dependency installation into `/tmp/hbf-phase85-venv`, but the session was interrupted before that install/build step completed. Treat the verification environment as incomplete and re-check before reuse.
+- Next-session resume point:
+  - GSD status should stay on Phase 8.5 execution.
+  - Next logical command after environment setup is `$gsd-execute-phase 8.5` continued through verification, then phase summaries/verification docs once the first clean test/build pass is complete.
+
 ### CRM Routing and Jarvis Fix Pass
 
 _Overlap with **Frontend Routing and Match Engine QA Fix Pass** below: that pass owns the initial router/query-param sync + Match Engine regression work; this pass closes the Jarvis discovery wiring, NemoClaw documentation, coordinator/Jarvis UI ordering, sign-out follow-up, and the dated Playwright demo re-check._

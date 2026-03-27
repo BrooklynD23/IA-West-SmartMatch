@@ -54,6 +54,17 @@ def _find_event_row(events_df: Any, event_name: str) -> Any:
 
 def _normalize_ranked_match(result: dict[str, Any]) -> dict[str, Any]:
     score = float(result.get("total_score", 0.0) or 0.0)
+    factor_scores = dict(result.get("factor_scores", {}))
+    weighted_factor_scores = dict(result.get("weighted_factor_scores", {}))
+    recovery_score = float(factor_scores.get("volunteer_fatigue", 0.0) or 0.0)
+    fatigue_burden = round(max(0.0, min(1.0, 1.0 - recovery_score)), 4)
+    recovery_status = (
+        "On Cooldown"
+        if fatigue_burden >= 0.75
+        else "Needs Rest"
+        if fatigue_burden >= 0.40
+        else "Available"
+    )
     normalized = {
         "rank": int(result.get("rank", 0) or 0),
         "name": str(result.get("speaker_name", "")),
@@ -67,8 +78,11 @@ def _normalize_ranked_match(result: dict[str, Any]) -> dict[str, Any]:
         "score": score,
         "match_score": score,
         "total_score": score,
-        "factor_scores": dict(result.get("factor_scores", {})),
-        "weighted_factor_scores": dict(result.get("weighted_factor_scores", {})),
+        "factor_scores": factor_scores,
+        "weighted_factor_scores": weighted_factor_scores,
+        "volunteer_fatigue": fatigue_burden,
+        "recovery_status": recovery_status,
+        "recovery_label": recovery_status,
         # Compatibility aliases while the frontend migrates off the engine field names.
         "speaker_name": str(result.get("speaker_name", "")),
         "speaker_title": str(result.get("speaker_title", "")),
@@ -105,7 +119,7 @@ def _rank_matches(body: RankRequest) -> list[dict[str, Any]]:
 
 
 @router.post("/rank")
-def rank(body: RankRequest) -> list[dict[str, Any]]:
+async def rank(body: RankRequest) -> list[dict[str, Any]]:
     """Return frontend-oriented ranked matches for a target event."""
     try:
         return _rank_matches(body)
@@ -116,7 +130,7 @@ def rank(body: RankRequest) -> list[dict[str, Any]]:
 
 
 @router.post("/score")
-def score(body: ScoreRequest) -> dict[str, Any]:
+async def score(body: ScoreRequest) -> dict[str, Any]:
     """Return the detailed factor scores for one speaker-event pair."""
     try:
         matches = _rank_matches(
@@ -134,6 +148,9 @@ def score(body: ScoreRequest) -> dict[str, Any]:
                     "speaker_name": name,
                     "event_name": str(match.get("event_name", body.event_name)),
                     "total_score": float(match.get("total_score", 0.0) or 0.0),
+                    "volunteer_fatigue": float(match.get("volunteer_fatigue", 0.0) or 0.0),
+                    "recovery_status": str(match.get("recovery_status", "")),
+                    "recovery_label": str(match.get("recovery_label", "")),
                     "factor_scores": dict(match.get("factor_scores", {})),
                     "weighted_factor_scores": dict(match.get("weighted_factor_scores", {})),
                 }
