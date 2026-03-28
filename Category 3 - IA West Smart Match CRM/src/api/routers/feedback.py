@@ -8,6 +8,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from src.api.demo_db import load_demo_feedback_stats
+from src.api.smartmatch_db import load_live_feedback_stats
 from src.feedback.service import build_feedback_stats, record_feedback
 
 router = APIRouter()
@@ -45,6 +46,12 @@ async def submit(body: FeedbackSubmitRequest) -> dict[str, Any]:
 @router.get("/stats")
 async def stats() -> dict[str, Any]:
     """Return aggregate feedback stats, pain score, and weight history."""
+    try:
+        payload = load_live_feedback_stats()
+        if payload:
+            return {**payload, "source": "live"}
+    except Exception:
+        pass
     try:
         payload = build_feedback_stats()
         if payload.get("total_feedback", 0):

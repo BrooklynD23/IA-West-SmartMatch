@@ -9,6 +9,7 @@ from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
 
 from src.api.demo_db import load_demo_qr_stats
+from src.api.smartmatch_db import load_live_qr_stats
 from src.qr.service import build_qr_stats, generate_qr_artifact, record_qr_scan
 
 router = APIRouter()
@@ -79,6 +80,12 @@ async def stats(
     referral_code: str | None = None,
 ) -> dict[str, Any]:
     """Return aggregate QR generation, scan, and ROI stats."""
+    try:
+        payload = load_live_qr_stats()
+        if payload:
+            return {**payload, "source": "live"}
+    except Exception:
+        pass
     try:
         payload = build_qr_stats(
             speaker_name=speaker_name,

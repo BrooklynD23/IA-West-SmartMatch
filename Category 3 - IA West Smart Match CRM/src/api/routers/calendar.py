@@ -9,6 +9,7 @@ import pandas as pd
 from fastapi import APIRouter, HTTPException
 
 from src.api.demo_db import load_demo_calendar_assignments, load_demo_calendar_events
+from src.api.smartmatch_db import load_live_calendar_assignments, load_live_calendar_events
 from src.data_loader import load_calendar, load_events, load_speakers
 from src.matching.factors import resolve_event_region, volunteer_recovery_details
 from src.ui.data_helpers import load_pipeline_data
@@ -262,6 +263,12 @@ def _live_event_rows() -> list[dict[str, Any]]:
 async def events() -> list[dict[str, Any]]:
     """Return normalized calendar event rows with coverage metadata."""
     try:
+        rows = load_live_calendar_events()
+        if rows:
+            return [{**row, "source": "live"} for row in rows]
+    except Exception:
+        pass
+    try:
         rows = _live_event_rows()
         if rows:
             return rows
@@ -273,6 +280,12 @@ async def events() -> list[dict[str, Any]]:
 @router.get("/assignments")
 async def assignments() -> list[dict[str, Any]]:
     """Return assignment overlays derived from the pipeline sample rows."""
+    try:
+        rows = load_live_calendar_assignments()
+        if rows:
+            return [{**row, "source": "live"} for row in rows]
+    except Exception:
+        pass
     try:
         rows = _assignment_rows()
         if rows:
