@@ -258,7 +258,7 @@ Plans:
 | 13. Demo Polish | 1/1 | Complete    | 2026-03-27 |
 | 14. Visual Resilience | 2/2 | Complete    | 2026-03-27 |
 | 15. Build Quality + Playwright Evidence | 2/2 | Complete    | 2026-03-28 |
-| 16. Voice/Mic UAT Guide | 1/1 | Complete   | 2026-03-28 |
+| 16. Voice/Mic UAT Guide | 1/1 | Complete    | 2026-03-28 |
 
 ---
 
