@@ -192,7 +192,7 @@ Plans:
 - [x] **Phase 14: Visual Resilience** — Graceful fallback graphics with Demo Mode indicator (completed 2026-03-27)
 - [x] **Phase 15: Build Quality + Playwright Evidence** — Fix chunk-size warning and capture browser test evidence for QR and feedback flows (completed 2026-03-28)
 - [x] **Phase 16: Voice/Mic UAT Guide** — Structured human walkthrough document for live voice path (completed 2026-03-28)
-- [ ] **Phase 17: Persistent Database Layer + Web Crawler Live Feed** — Introduce Layer 0 (persistent SQLite), remap Layer 1 (demo.db) and Layer 2 (CSV), seed all layers with IA West data, and add real-time Gemini/Tavily web crawler activity feed for coordinators
+- [x] **Phase 17: Persistent Database Layer + Web Crawler Live Feed** — Introduce Layer 0 (persistent SQLite), remap Layer 1 (demo.db) and Layer 2 (CSV), seed all layers with IA West data, and add real-time Gemini/Tavily web crawler activity feed for coordinators (completed 2026-03-28)
 
 ### Phase Details
 
@@ -268,7 +268,7 @@ Plans:
 Plans:
 - [x] 17-01-PLAN.md — Create `smartmatch.db` schema, seed script with IA West data, and migrate Layer 0 into all API endpoints
 - [x] 17-02-PLAN.md — Web crawler backend: Gemini/Tavily integration, SSE feed endpoint, `web_crawler_events` table
-- [ ] 17-03-PLAN.md — Frontend crawler live feed UI: real-time scrolling activity panel and trigger button
+- [x] 17-03-PLAN.md — Frontend crawler live feed UI: real-time scrolling activity panel and trigger button
 
 
 ### Progress
@@ -279,7 +279,7 @@ Plans:
 | 14. Visual Resilience | 2/2 | Complete    | 2026-03-27 |
 | 15. Build Quality + Playwright Evidence | 2/2 | Complete    | 2026-03-28 |
 | 16. Voice/Mic UAT Guide | 1/1 | Complete    | 2026-03-28 |
-| 17. Persistent Database Layer + Web Crawler Live Feed | 2/3 | In Progress|  |
+| 17. Persistent Database Layer + Web Crawler Live Feed | 3/3 | Complete    | 2026-03-28 |
 
 ---
 
@@ -289,4 +289,4 @@ Plans:
 
 ## Current Status
 
-v3.1 extended with Phase 17. Phases 13-16 complete. Phase 17 (Persistent Database Layer + Web Crawler Live Feed) not started — 3 plans queued.
+v3.1 complete. All phases 13-17 complete. Pre-demo 1.0 audit passed (2026-03-28). Router state pre-selection fix applied to AIMatching. Ready for demo.

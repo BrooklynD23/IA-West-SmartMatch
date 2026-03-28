@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router";
 import {
   Activity,
   BarChart3,
@@ -302,10 +303,13 @@ function ProgressBar({ value, tone }: { value: number; tone: string }) {
 }
 
 export function AIMatching() {
+  const location = useLocation();
+  const preselectedEventName = (location.state as { eventName?: string } | null)?.eventName ?? "";
+
   const [events, setEvents] = useState<CppEvent[]>([]);
   const [pipeline, setPipeline] = useState<PipelineRecord[]>([]);
   const [assignments, setAssignments] = useState<CalendarAssignmentSummary[]>([]);
-  const [selectedEventName, setSelectedEventName] = useState("");
+  const [selectedEventName, setSelectedEventName] = useState(preselectedEventName);
   const [matches, setMatches] = useState<RankedMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [ranking, setRanking] = useState(false);
@@ -332,7 +336,11 @@ export function AIMatching() {
         }
         const data = result.data;
         setEvents(data);
-        setSelectedEventName(data[0]?.["Event / Program"] ?? "");
+        // Honour router state pre-selection from Opportunities page; fall back to first event only when no state was passed.
+        const hasMatch = preselectedEventName && data.some((e) => e["Event / Program"] === preselectedEventName);
+        if (!hasMatch) {
+          setSelectedEventName(data[0]?.["Event / Program"] ?? "");
+        }
         if (result.source === "demo") {
           setIsMockData(true);
         }
@@ -341,7 +349,9 @@ export function AIMatching() {
         if (active) {
           // Backend unreachable — use Layer-3 mock constants
           setEvents(MOCK_EVENTS);
-          setSelectedEventName(MOCK_EVENTS[0]?.["Event / Program"] ?? "");
+          if (!preselectedEventName) {
+            setSelectedEventName(MOCK_EVENTS[0]?.["Event / Program"] ?? "");
+          }
           setMatches(MOCK_RANKED_MATCHES);
           setIsMockData(true);
           setError(err instanceof Error ? err.message : "Failed to load events.");
