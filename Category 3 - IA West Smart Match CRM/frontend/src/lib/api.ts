@@ -20,6 +20,19 @@ export interface CppEvent {
   "Contact Email / Phone (published)"?: string;
 }
 
+export interface CrawlerEvent {
+  url: string;
+  title: string;
+  status: "crawling" | "found" | "error" | "done";
+  timestamp: string;
+}
+
+export interface CrawlerResultsResponse {
+  events: Array<Record<string, unknown>>;
+  count: number;
+  source: string;
+}
+
 export interface PipelineRecord {
   event_name: string;
   speaker_name: string;
@@ -1108,4 +1121,14 @@ export async function initiateWorkflow(
       event_name: eventName,
     }),
   });
+}
+
+export async function startCrawl(): Promise<{ status: string }> {
+  return requestJson<{ status: string }>("/api/crawler/start", {
+    method: "POST",
+  });
+}
+
+export async function fetchCrawlerResults(): Promise<CrawlerResultsResponse> {
+  return requestJson<CrawlerResultsResponse>("/api/crawler/results");
 }
