@@ -5,7 +5,8 @@
 - ✅ **v1.0 Sprint 5 Closeout** — Phases 1-3 (shipped 2026-03-21) | [Archive](milestones/v1.0-ROADMAP.md)
 - ✅ **v2.0 Jarvis Agent Coordinator** — Phases 4-7 (shipped 2026-03-24) | [Archive](milestones/v2.0-ROADMAP.md)
 - ✅ **v3.0 Production UI & Demo Polish** — Phases 8-12 (shipped 2026-03-26) | [Archive](milestones/v3.0-ROADMAP.md)
-- 🚧 **v3.1 Demo Readiness** — Phases 13-16 (in progress)
+- ✅ **v3.1 Demo Readiness** — Phases 13-17 (shipped 2026-03-28)
+- 🚧 **v3.2 Tech Debt Cleanup** — Phases 18-19 (in progress)
 
 <details>
 <summary>✅ v3.0 Production UI & Demo Polish (Phases 8-12) - SHIPPED 2026-03-26</summary>
@@ -283,10 +284,62 @@ Plans:
 
 ---
 
+---
+
+## v3.2 Tech Debt Cleanup
+
+### Phases
+
+- [ ] **Phase 18: Tech Debt Cleanup — Code Fixes** — Fix 4 code-level items from v3.1 audit
+- [ ] **Phase 19: Human UAT Sign-off** — Complete all deferred human validation items from phases 14-16
+
+### Phase Details
+
+### Phase 18: Tech Debt Cleanup — Code Fixes
+**Goal:** Resolve all code-level tech debt identified in the v3.1 audit — type safety gap, frozen crawler timestamps, stale Playwright docstrings, and TypeScript build errors.
+**Depends on:** Phase 17
+**Requirements:** DEBT-01, DEBT-02, DEBT-03, DEBT-04
+**Gap Closure:** Closes code-fixable tech debt from v3.1 audit
+**Success Criteria** (what must be TRUE):
+  1. `WithSource<T>` in `frontend/src/lib/api.ts` includes `"csv"` as a valid source type and `isMockData` is true when source is `"csv"`
+  2. Crawler timestamp in `src/api/routers/crawler.py` calls `.isoformat()` (with parentheses) so each event gets a distinct timestamp
+  3. DB-01–CRAWLER-03 requirements are added to REQUIREMENTS.md traceability table with Phase 17 mapped
+  4. framer-motion TypeScript errors in LandingPage.tsx and LoginPage.tsx are resolved and `npm run build` reports zero TS errors from those files
+**Plans:** 0/1 plans
+
+Plans:
+- [ ] 18-01-PLAN.md — Fix WithSource csv type, crawler timestamp, REQUIREMENTS.md doc gap, framer-motion TS errors
+
+### Phase 19: Human UAT Sign-off
+**Goal:** A human reviewer completes all deferred UAT walkthroughs from v3.1 and any remaining code cleanup (stale docstrings) is resolved, so the codebase has zero outstanding audit items.
+**Depends on:** Phase 18
+**Requirements:** UAT-01, UAT-02, UAT-03, UAT-04, UAT-05
+**Gap Closure:** Closes all human validation items from v3.1 audit
+**Success Criteria** (what must be TRUE):
+  1. Human confirms Demo Mode badge is visible when backend is offline (Phase 14 UAT)
+  2. Human confirms badge is absent when live data is returned (Phase 14 UAT)
+  3. Human inspects `react-qr-flow.png` and `react-feedback-flow.png` and confirms meaningful content is visible (Phase 15 UAT)
+  4. Playwright test docstrings updated to reference `smartmatch.db` as Layer 0 (Phase 15 doc fix)
+  5. Human completes live voice/audio WebRTC end-to-end walkthrough via the UAT guide (Phase 16 UAT)
+  6. Human confirms multi-card simultaneous rendering for `prepare_campaign` intent (Phase 16 UAT)
+**Plans:** 0/1 plans
+
+Plans:
+- [ ] 19-01-PLAN.md — UAT checklist execution + Playwright docstring update
+
+### Progress
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 18. Tech Debt Cleanup — Code Fixes | 0/1 | Pending | — |
+| 19. Human UAT Sign-off | 0/1 | Pending | — |
+
+---
+
 ## Backlog / Parking Lot
 
 - **Gmail Send Integration** — Wire generated outreach email to Gmail API (OAuth2) so coordinators can send directly from the modal instead of copy-pasting. Potential post-hackathon.
 
 ## Current Status
 
-v3.1 complete. All phases 13-17 complete. Pre-demo 1.0 audit passed (2026-03-28). Router state pre-selection fix applied to AIMatching. Ready for demo.
+v3.1 complete. All phases 13-17 complete. Pre-demo 1.0 audit passed (2026-03-28). v3.2 tech debt phases 18-19 added (2026-03-28).
