@@ -331,7 +331,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 18. Tech Debt Cleanup — Code Fixes | 1/1 | Complete   | 2026-03-28 |
+| 18. Tech Debt Cleanup — Code Fixes | 1/1 | Complete    | 2026-03-28 |
 | 19. Human UAT Sign-off | 0/1 | Pending | — |
 
 ---
