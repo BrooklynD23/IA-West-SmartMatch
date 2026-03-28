@@ -17,6 +17,7 @@ from src.api.smartmatch_db import (
     load_live_poc_contacts,
     load_live_specialists,
 )
+from src.data_loader import load_courses
 from src.ui.data_helpers import (
     load_cpp_events,
     load_event_calendar,
@@ -24,6 +25,7 @@ from src.ui.data_helpers import (
     load_poc_contacts,
     load_specialists,
 )
+from src.utils import format_course_display_name, format_course_identifier
 
 router = APIRouter()
 
@@ -85,6 +87,37 @@ async def calendar() -> list[dict]:
     return _load_rows_with_fallback(
         load_live_event_calendar, load_demo_event_calendar, load_event_calendar
     )
+
+
+@router.get("/courses")
+async def courses() -> list[dict]:
+    """Return the CPP course schedule with enriched display keys."""
+    try:
+        df, _ = load_courses()
+        rows = []
+        for _, row in df.iterrows():
+            course_key = format_course_identifier(row.get("Course"), row.get("Section"))
+            display_name = format_course_display_name(
+                row.get("Course"), row.get("Section"), row.get("Title")
+            )
+            rows.append({
+                "course_key": course_key,
+                "display_name": display_name,
+                "Instructor": str(row.get("Instructor", "") or ""),
+                "Course": str(row.get("Course", "") or ""),
+                "Section": str(row.get("Section", "") or ""),
+                "Title": str(row.get("Title", "") or ""),
+                "Days": str(row.get("Days", "") or ""),
+                "Start Time": str(row.get("Start Time", "") or ""),
+                "End Time": str(row.get("End Time", "") or ""),
+                "Enrl Cap": int(row.get("Enrl Cap", 0) or 0),
+                "Mode": str(row.get("Mode", "") or ""),
+                "Guest Lecture Fit": str(row.get("Guest Lecture Fit", "") or ""),
+                "source": "csv",
+            })
+        return rows
+    except Exception as exc:
+        raise _server_error(exc) from exc
 
 
 @router.get("/contacts")

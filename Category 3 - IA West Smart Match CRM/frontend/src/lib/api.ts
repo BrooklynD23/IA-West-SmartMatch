@@ -1131,6 +1131,39 @@ export async function initiateWorkflow(
   });
 }
 
+export interface CppCourse {
+  course_key: string;
+  display_name: string;
+  Instructor: string;
+  Course: string;
+  Section: string;
+  Title: string;
+  Days: string;
+  "Start Time": string;
+  "End Time": string;
+  "Enrl Cap": number;
+  Mode: string;
+  "Guest Lecture Fit": string;
+  source: string;
+}
+
+export async function fetchCourses(): Promise<CppCourse[]> {
+  const raw = await requestJson<unknown>("/api/data/courses");
+  return toRecordArray(raw) as unknown as CppCourse[];
+}
+
+export async function rankSpeakersForCourse(
+  courseKey: string,
+  limit = 5,
+  weights?: FactorWeights,
+): Promise<RankedMatch[]> {
+  const payload = await requestJson<Array<Record<string, unknown>>>("/api/matching/rank-for-course", {
+    method: "POST",
+    body: JSON.stringify({ course_key: courseKey, limit, weights }),
+  });
+  return payload.map(normalizeRankedMatch);
+}
+
 export async function startCrawl(): Promise<{ status: string }> {
   return requestJson<{ status: string }>("/api/crawler/start", {
     method: "POST",

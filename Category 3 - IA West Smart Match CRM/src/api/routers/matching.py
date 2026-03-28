@@ -4,12 +4,14 @@ from __future__ import annotations
 
 from typing import Any
 
+import numpy as np
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from src.data_loader import load_calendar, load_events, load_speakers
+from src.data_loader import load_calendar, load_courses, load_events, load_speakers
 from src.embeddings import load_embedding_lookup_dicts
-from src.matching.engine import rank_speakers_for_event
+from src.matching.engine import rank_speakers_for_course, rank_speakers_for_event
+from src.utils import format_course_identifier
 
 router = APIRouter()
 
@@ -116,6 +118,48 @@ def _rank_matches(body: RankRequest) -> list[dict[str, Any]]:
         weights=body.weights,
     )
     return [_normalize_ranked_match(result) for result in ranked]
+
+
+class CourseRankRequest(BaseModel):
+    course_key: str
+    limit: int = Field(default=5, ge=1, le=100)
+    weights: dict[str, float] | None = None
+
+
+@router.post("/rank-for-course")
+async def rank_for_course(body: CourseRankRequest) -> list[dict[str, Any]]:
+    """Return ranked volunteers for a CPP course guest lecture slot."""
+    try:
+        speakers_df, _ = load_speakers()
+        calendar_df, _ = load_calendar()
+        courses_df, _ = load_courses()
+        speaker_embeddings, _, course_embeddings = load_embedding_lookup_dicts()
+
+        course_row = None
+        for _, row in courses_df.iterrows():
+            if format_course_identifier(row.get("Course"), row.get("Section")) == body.course_key:
+                course_row = row
+                break
+
+        if course_row is None:
+            raise HTTPException(status_code=404, detail=f"Course not found: {body.course_key}")
+
+        course_embedding = course_embeddings.get(body.course_key, np.array([]))
+
+        ranked = rank_speakers_for_course(
+            course_row=course_row,
+            speakers_df=speakers_df,
+            speaker_embeddings=speaker_embeddings,
+            course_embedding=course_embedding,
+            ia_event_calendar=calendar_df,
+            top_n=body.limit,
+            weights=body.weights,
+        )
+        return [_normalize_ranked_match(result) for result in ranked]
+    except HTTPException:
+        raise
+    except Exception as exc:  # pragma: no cover - defensive API boundary
+        raise _server_error(exc) from exc
 
 
 @router.post("/rank")

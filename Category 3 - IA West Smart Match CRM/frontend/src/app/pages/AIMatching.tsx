@@ -3,7 +3,9 @@ import { useLocation } from "react-router";
 import {
   Activity,
   BarChart3,
+  BookOpen,
   Calendar,
+  Clock,
   Mail,
   MapPin,
   MessageSquareHeart,
@@ -15,14 +17,17 @@ import {
 import {
   emptyFeedbackStatsSummary,
   fetchCalendarAssignments,
+  fetchCourses,
   fetchEvents,
   fetchFeedbackStats,
   fetchPipeline,
   initiateWorkflow,
   rankSpeakers,
+  rankSpeakersForCourse,
   splitTags,
-  type CppEvent,
   type CalendarAssignmentSummary,
+  type CppCourse,
+  type CppEvent,
   type FeedbackStatsSummary,
   type PipelineRecord,
   type RankedMatch,
@@ -306,10 +311,13 @@ export function AIMatching() {
   const location = useLocation();
   const preselectedEventName = (location.state as { eventName?: string } | null)?.eventName ?? "";
 
+  const [matchMode, setMatchMode] = useState<"events" | "courses">("events");
   const [events, setEvents] = useState<CppEvent[]>([]);
+  const [courses, setCourses] = useState<CppCourse[]>([]);
   const [pipeline, setPipeline] = useState<PipelineRecord[]>([]);
   const [assignments, setAssignments] = useState<CalendarAssignmentSummary[]>([]);
   const [selectedEventName, setSelectedEventName] = useState(preselectedEventName);
+  const [selectedCourseKey, setSelectedCourseKey] = useState("");
   const [matches, setMatches] = useState<RankedMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [ranking, setRanking] = useState(false);
@@ -361,6 +369,27 @@ export function AIMatching() {
         if (active) {
           setLoading(false);
         }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    fetchCourses()
+      .then((data) => {
+        if (active) {
+          setCourses(data);
+          if (data.length > 0 && !selectedCourseKey) {
+            setSelectedCourseKey(data[0].course_key);
+          }
+        }
+      })
+      .catch(() => {
+        // Courses unavailable — mode will show empty selector gracefully
       });
 
     return () => {
@@ -437,21 +466,27 @@ export function AIMatching() {
   }, []);
 
   useEffect(() => {
-    if (!selectedEventName) {
+    const targetKey = matchMode === "events" ? selectedEventName : selectedCourseKey;
+    if (!targetKey) {
       return;
     }
 
     let active = true;
     setRanking(true);
     setError(null);
+    setMatches([]);
 
-    rankSpeakers(
-      selectedEventName,
-      5,
+    const weights =
       Object.keys(feedbackStats.current_weights).length > 0
         ? feedbackStats.current_weights
-        : undefined,
-    )
+        : undefined;
+
+    const rankPromise =
+      matchMode === "events"
+        ? rankSpeakers(selectedEventName, 5, weights)
+        : rankSpeakersForCourse(selectedCourseKey, 5, weights);
+
+    rankPromise
       .then((data) => {
         if (active) {
           setMatches(data);
@@ -460,8 +495,9 @@ export function AIMatching() {
       .catch((err: unknown) => {
         if (active) {
           setError(err instanceof Error ? err.message : "Failed to rank speakers.");
-          // If already in mock mode (events were demo), use mock matches as safety net
-          setMatches(isMockData ? MOCK_RANKED_MATCHES : []);
+          if (matchMode === "events") {
+            setMatches(isMockData ? MOCK_RANKED_MATCHES : []);
+          }
         }
       })
       .finally(() => {
@@ -473,10 +509,12 @@ export function AIMatching() {
     return () => {
       active = false;
     };
-  }, [selectedEventName, feedbackStats.current_weights]);
+  }, [matchMode, selectedEventName, selectedCourseKey, feedbackStats.current_weights]);
 
   const selectedEvent =
     events.find((event) => event["Event / Program"] === selectedEventName) ?? null;
+  const selectedCourse =
+    courses.find((course) => course.course_key === selectedCourseKey) ?? null;
 
   const openWorkflowModal = async (match: RankedMatch) => {
     if (!selectedEventName) {
@@ -523,27 +561,71 @@ export function AIMatching() {
           </h1>
         </div>
         <p className="text-slate-600">
-          Rank specialists against live CPP opportunities and review the top-five picture with
-          score, factor, and fatigue context.
+          {matchMode === "events"
+            ? "Rank specialists against live CPP opportunities and review the top-five picture with score, factor, and fatigue context."
+            : "Rank specialists as guest lecturers for CPP course sections, weighted by Guest Lecture Fit and topic alignment."}
         </p>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <label className="mb-2 block text-sm font-medium text-slate-700">Select event</label>
-        <select
-          value={selectedEventName}
-          onChange={(event) => setSelectedEventName(event.target.value)}
-          className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+      {/* Mode toggle */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => setMatchMode("events")}
+          className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition ${
+            matchMode === "events"
+              ? "bg-blue-600 text-white shadow-sm"
+              : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+          }`}
         >
-          {events.map((event) => (
-            <option key={event["Event / Program"]} value={event["Event / Program"]}>
-              {event["Event / Program"]}
-            </option>
-          ))}
-        </select>
+          <Target className="h-4 w-4" />
+          Events
+        </button>
+        <button
+          onClick={() => setMatchMode("courses")}
+          className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition ${
+            matchMode === "courses"
+              ? "bg-blue-600 text-white shadow-sm"
+              : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+          }`}
+        >
+          <BookOpen className="h-4 w-4" />
+          Courses
+        </button>
       </div>
 
-      {selectedEvent ? (
+      {matchMode === "events" ? (
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <label className="mb-2 block text-sm font-medium text-slate-700">Select event</label>
+          <select
+            value={selectedEventName}
+            onChange={(event) => setSelectedEventName(event.target.value)}
+            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          >
+            {events.map((event) => (
+              <option key={event["Event / Program"]} value={event["Event / Program"]}>
+                {event["Event / Program"]}
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <label className="mb-2 block text-sm font-medium text-slate-700">Select course</label>
+          <select
+            value={selectedCourseKey}
+            onChange={(e) => setSelectedCourseKey(e.target.value)}
+            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          >
+            {courses.map((course) => (
+              <option key={course.course_key} value={course.course_key}>
+                {course.display_name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {matchMode === "events" && selectedEvent ? (
         <div className="rounded-3xl border border-blue-100 bg-gradient-to-r from-blue-50 via-white to-slate-50 p-6 shadow-sm">
           <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -592,6 +674,71 @@ export function AIMatching() {
 
           <div className="mt-4 flex flex-wrap gap-2">
             {[selectedEvent.Category, ...splitTags(selectedEvent["Volunteer Roles (fit)"] || "").slice(0, 3)]
+              .filter(Boolean)
+              .map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-full bg-blue-600 px-3 py-1 text-sm font-medium text-white"
+                >
+                  {tag}
+                </span>
+              ))}
+          </div>
+        </div>
+      ) : matchMode === "courses" && selectedCourse ? (
+        <div className="rounded-3xl border border-blue-100 bg-gradient-to-r from-blue-50 via-white to-slate-50 p-6 shadow-sm">
+          <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-900">
+                {selectedCourse.display_name}
+              </h2>
+              <p className="mt-1 max-w-3xl text-slate-700">
+                Instructor: {selectedCourse.Instructor}
+              </p>
+            </div>
+            <span
+              className={`rounded-full px-3 py-1 text-sm font-medium text-white ${
+                selectedCourse["Guest Lecture Fit"] === "High"
+                  ? "bg-emerald-600"
+                  : selectedCourse["Guest Lecture Fit"] === "Medium"
+                    ? "bg-amber-500"
+                    : "bg-slate-500"
+              }`}
+            >
+              {selectedCourse["Guest Lecture Fit"]} Fit
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm">
+              <Calendar className="h-4 w-4 text-blue-600" />
+              <span className="text-sm text-slate-700">
+                <span className="font-medium">Days:</span> {selectedCourse.Days}
+              </span>
+            </div>
+            <div className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm">
+              <Clock className="h-4 w-4 text-blue-600" />
+              <span className="text-sm text-slate-700">
+                <span className="font-medium">Time:</span>{" "}
+                {selectedCourse["Start Time"]}–{selectedCourse["End Time"]}
+              </span>
+            </div>
+            <div className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm">
+              <MapPin className="h-4 w-4 text-blue-600" />
+              <span className="text-sm text-slate-700">
+                <span className="font-medium">Mode:</span> {selectedCourse.Mode}
+              </span>
+            </div>
+            <div className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm">
+              <Users className="h-4 w-4 text-blue-600" />
+              <span className="text-sm text-slate-700">
+                <span className="font-medium">Cap:</span> {selectedCourse["Enrl Cap"]} students
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            {["Guest Lecture", selectedCourse.Mode, `${selectedCourse["Enrl Cap"]} seats`]
               .filter(Boolean)
               .map((tag) => (
                 <span
