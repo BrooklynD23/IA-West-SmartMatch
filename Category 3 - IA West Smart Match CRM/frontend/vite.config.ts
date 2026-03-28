@@ -25,4 +25,30 @@ export default defineConfig({
     },
   },
   assetsInclude: ["**/*.svg", "**/*.csv"],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id: string) {
+          if (id.includes("node_modules")) {
+            if (
+              id.includes("react-dom") ||
+              id.includes("react-router") ||
+              (id.includes("/react/") && !id.includes("react-"))
+            ) {
+              return "vendor-react";
+            }
+            if (id.includes("recharts") || id.includes("d3-")) {
+              return "vendor-charts";
+            }
+            if (id.includes("@mui/") || id.includes("@radix-ui/")) {
+              return "vendor-ui";
+            }
+            if (id.includes("@emotion/")) {
+              return "vendor-emotion";
+            }
+          }
+        },
+      },
+    },
+  },
 });
