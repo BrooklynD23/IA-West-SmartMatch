@@ -1,5 +1,5 @@
 {
-  "record_count": 2,
+  "record_count": 3,
   "records": [
     {
       "destination_url": "https://www.insightsassociation.org/",
@@ -26,7 +26,20 @@
       "scan_url": "http://localhost:8000/api/qr/scan/IAW-KTQRNE3TJOQY",
       "speaker_name": "Adam Portner",
       "updated_at": "2026-03-28T23:32:00.864602Z"
+    },
+    {
+      "destination_url": "https://www.insightsassociation.org/",
+      "event_name": "AI Hackathon (CPP hub page)",
+      "generated_at": "2026-03-29T01:36:21.658071Z",
+      "generation_count": 1,
+      "last_scanned_at": "",
+      "membership_interest_count": 0,
+      "referral_code": "IAW-XDTFNFV2NBKX",
+      "scan_count": 0,
+      "scan_url": "http://localhost:8000/api/qr/scan/IAW-XDTFNFV2NBKX",
+      "speaker_name": "Dr. Yufan Lin",
+      "updated_at": "2026-03-29T01:36:21.658071Z"
     }
   ],
-  "updated_at": "2026-03-28T23:32:00.868999Z"
+  "updated_at": "2026-03-29T01:36:21.658444Z"
 }

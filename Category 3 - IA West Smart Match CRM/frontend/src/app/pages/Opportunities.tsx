@@ -11,7 +11,7 @@ import {
   Users,
 } from "lucide-react";
 
-import { fetchEvents, splitTags, type CppEvent } from "@/lib/api";
+import { fetchCrawlerResults, fetchEvents, splitTags, type CppEvent } from "@/lib/api";
 
 type OpportunityCard = {
   id: string;
@@ -25,6 +25,27 @@ type OpportunityCard = {
   audience: string;
   url: string;
 };
+
+function mapCrawlerToOpportunity(
+  event: Record<string, unknown>,
+  index: number,
+): OpportunityCard {
+  const title = String(event.title || `Discovered Opportunity ${index + 1}`);
+  const schoolName = String(event.school_name || event.url || "Web Discovery");
+  const url = String(event.url || "");
+  return {
+    id: `crawler-${url}-${index}`,
+    name: title,
+    university: schoolName,
+    date: "See link for details",
+    location: schoolName,
+    role: "Guest speaker",
+    tags: ["Web Discovery"],
+    type: "Discovered",
+    audience: "Students",
+    url,
+  };
+}
 
 function mapEventToOpportunity(event: CppEvent, index: number): OpportunityCard {
   const name = event["Event / Program"] || `Opportunity ${index + 1}`;
@@ -62,12 +83,16 @@ export function Opportunities() {
   useEffect(() => {
     let active = true;
 
-    fetchEvents()
-      .then((result) => {
+    Promise.all([fetchEvents(), fetchCrawlerResults()])
+      .then(([eventsResult, crawlerResult]) => {
         if (!active) {
           return;
         }
-        setOpportunities(result.data.map(mapEventToOpportunity));
+        const csvOpportunities = eventsResult.data.map(mapEventToOpportunity);
+        const crawlerOpportunities = crawlerResult.events
+          .filter((e) => e.status === "found" && e.url && e.title)
+          .map((e, i) => mapCrawlerToOpportunity(e as Record<string, unknown>, i));
+        setOpportunities([...csvOpportunities, ...crawlerOpportunities]);
       })
       .catch((err: unknown) => {
         if (!active) {

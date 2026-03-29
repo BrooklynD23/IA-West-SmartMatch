@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { CheckCircle2, Globe, Loader2, XCircle, RefreshCw } from "lucide-react";
+import { CheckCircle2, Globe, Loader2, Trash2, XCircle, RefreshCw } from "lucide-react";
 
 import { Button } from "@/app/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { startCrawl, fetchCrawlerResults, type CrawlerEvent } from "@/lib/api";
+import { startCrawl, fetchCrawlerResults, clearCrawlerResults, type CrawlerEvent } from "@/lib/api";
 import { useCrawlerStatus } from "@/app/components/CrawlerContext";
 
 interface CrawlerFeedProps {
@@ -148,8 +148,19 @@ export function CrawlerFeed({ className }: CrawlerFeedProps) {
     setSavedLabel(null);
   }
 
+  function handleClearResults() {
+    clearCrawlerResults()
+      .then(() => {
+        setEvents([]);
+        setIsDone(false);
+        setSavedLabel(null);
+      })
+      .catch(() => {});
+  }
+
   const foundCount = events.filter((ev) => ev.status === "found").length;
   const isDisabled = isLive || crawlRunning;
+  const hasSavedResults = events.length > 0 && !isLive && !crawlRunning;
 
   return (
     <Card className={className}>
@@ -159,24 +170,38 @@ export function CrawlerFeed({ className }: CrawlerFeedProps) {
             <Globe className="h-4 w-4" />
             Web Crawler Feed
           </CardTitle>
-          <Button
-            size="sm"
-            variant={isDisabled ? "outline" : "default"}
-            onClick={handleStartCrawl}
-            disabled={isDisabled}
-            title={crawlRunning && !isLive ? "Crawl already running" : undefined}
-          >
-            {isLive ? (
-              <>
-                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                Crawling…
-              </>
-            ) : crawlRunning ? (
-              "Running…"
-            ) : (
-              "Start Crawl"
+          <div className="flex items-center gap-2">
+            {hasSavedResults && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleClearResults}
+                title="Clear all saved crawler results from the database"
+                className="text-red-600 hover:text-red-700 hover:border-red-300"
+              >
+                <Trash2 className="mr-1 h-3 w-3" />
+                Clear
+              </Button>
             )}
-          </Button>
+            <Button
+              size="sm"
+              variant={isDisabled ? "outline" : "default"}
+              onClick={handleStartCrawl}
+              disabled={isDisabled}
+              title={crawlRunning && !isLive ? "Crawl already running" : undefined}
+            >
+              {isLive ? (
+                <>
+                  <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                  Crawling…
+                </>
+              ) : crawlRunning ? (
+                "Running…"
+              ) : (
+                "Start Crawl"
+              )}
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>

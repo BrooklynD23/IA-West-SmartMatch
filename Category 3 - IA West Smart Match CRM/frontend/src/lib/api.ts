@@ -1174,6 +1174,12 @@ export async function fetchCrawlerResults(): Promise<CrawlerResultsResponse> {
   return requestJson<CrawlerResultsResponse>("/api/crawler/results");
 }
 
+export async function clearCrawlerResults(): Promise<{ deleted: number; status: string }> {
+  return requestJson<{ deleted: number; status: string }>("/api/crawler/results", {
+    method: "DELETE",
+  });
+}
+
 export interface CrawlerStatusResponse {
   state: "idle" | "running" | "done";
   started_at: string | null;

@@ -127,6 +127,14 @@ def load_crawler_events() -> list[dict[str, Any]]:
     )
 
 
+def delete_all_crawler_events() -> int:
+    """Delete all rows from web_crawler_events. Returns the number of rows deleted."""
+    with _connect() as conn:
+        cursor = conn.execute("DELETE FROM web_crawler_events")
+        conn.commit()
+        return cursor.rowcount
+
+
 def insert_crawler_event(event: dict[str, Any]) -> None:
     """Insert a single web crawler event record into smartmatch.db.
 

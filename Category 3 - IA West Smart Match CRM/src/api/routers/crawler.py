@@ -12,7 +12,7 @@ from typing import Any
 from fastapi import APIRouter, BackgroundTasks
 from fastapi.responses import StreamingResponse
 
-from src.api.smartmatch_db import insert_crawler_event, load_crawler_events
+from src.api.smartmatch_db import delete_all_crawler_events, insert_crawler_event, load_crawler_events
 from src.config import GEMINI_API_KEY
 from src.gemini_client import web_search
 
@@ -43,6 +43,29 @@ SEED_URLS: tuple[str, ...] = (
     "https://www.ucla.edu/",
     "https://www.pdx.edu/",
 )
+
+# Keywords that suggest a URL/title represents an actual event rather than a homepage.
+_EVENT_KEYWORDS: frozenset[str] = frozenset({
+    "hackathon", "conference", "summit", "workshop", "seminar", "symposium",
+    "webinar", "expo", "forum", "panel", "lecture", "career fair", "networking",
+    "competition", "challenge", "event", "bootcamp", "colloquium", "congress",
+    "showcase", "demo day", "info session", "orientation", "itc", "ia west",
+})
+
+
+def _is_event_relevant(url: str, title: str) -> bool:
+    """Return True only when the URL/title looks like a real event, not a homepage.
+
+    Rejects:
+    - Root/near-root URLs (path depth < 2) unless the title contains an event keyword.
+    - Entries where neither the URL path nor the title contain any event keyword.
+    """
+    from urllib.parse import urlparse
+    parsed = urlparse(url.lower())
+    path_parts = [p for p in parsed.path.split("/") if p]
+    combined = (title + " " + " ".join(path_parts)).lower()
+    return any(kw in combined for kw in _EVENT_KEYWORDS)
+
 
 SEARCH_QUERIES: tuple[str, ...] = (
     "Cal Poly Pomona AI hackathon 2026 directed schools",
@@ -143,19 +166,22 @@ async def _run_crawl_body(now: Any) -> None:
 
         # Simulate a basic "found" for seed URLs
         title = url.split("//")[1].split("/")[0] if "//" in url else url
-        event_record = {
-            "url": url,
-            "title": title,
-            "description": f"Seed URL: {url}",
-            "school_name": title,
-            "crawled_at": now(),
-            "source": "seed",
-            "status": "found",
-        }
-        try:
-            insert_crawler_event(event_record)
-        except Exception as exc:
-            _log.warning("Failed to persist seed event %s: %s", url, exc)
+        if _is_event_relevant(url, title):
+            event_record = {
+                "url": url,
+                "title": title,
+                "description": f"Seed URL: {url}",
+                "school_name": title,
+                "crawled_at": now(),
+                "source": "seed",
+                "status": "found",
+            }
+            try:
+                insert_crawler_event(event_record)
+            except Exception as exc:
+                _log.warning("Failed to persist seed event %s: %s", url, exc)
+        else:
+            _log.debug("Skipping non-event seed URL: %s", url)
 
         await _push_event({
             "url": url,
@@ -182,6 +208,9 @@ async def _run_crawl_body(now: Any) -> None:
         for result in results:
             url = result.get("url", "")
             title = result.get("title", "")
+            if not _is_event_relevant(url, title):
+                _log.debug("Skipping non-event search result: %s | %s", title, url)
+                continue
             event_record = {
                 "url": url,
                 "title": title,
@@ -267,3 +296,21 @@ async def crawler_results() -> dict[str, Any]:
         return {"events": events, "count": len(events), "source": "live"}
     except Exception:
         return {"events": [], "count": 0, "source": "none"}
+
+
+@router.delete("/results")
+async def clear_crawler_results() -> dict[str, Any]:
+    """Delete all crawler events from smartmatch.db (Layer 0 reset).
+
+    Use this to flush non-event entries before re-running a crawl.
+    """
+    try:
+        deleted = delete_all_crawler_events()
+        _crawl_state["state"] = "idle"
+        _crawl_state["started_at"] = None
+        _crawl_state["finished_at"] = None
+        _crawl_state["error"] = None
+        return {"deleted": deleted, "status": "cleared"}
+    except Exception as exc:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
