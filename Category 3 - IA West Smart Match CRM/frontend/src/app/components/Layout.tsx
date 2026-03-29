@@ -9,9 +9,11 @@ import {
   Mail,
   Menu,
   X,
+  Loader2,
 } from "lucide-react";
 import { useState } from "react";
 import { ScrollToTop } from "./ScrollToTop";
+import { CrawlerProvider, useCrawlerStatus } from "./CrawlerContext";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -23,11 +25,26 @@ const navigation = [
   { name: "Outreach", href: "/outreach", icon: Mail },
 ];
 
+function CrawlBanner() {
+  const { status } = useCrawlerStatus();
+  if (status?.state !== "running") return null;
+  return (
+    <div className="flex items-center gap-2 bg-blue-600 px-4 py-1.5 text-sm text-white">
+      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+      <span>Web crawl in progress…</span>
+      <Link to="/outreach" className="ml-auto underline underline-offset-2 hover:no-underline">
+        View feed
+      </Link>
+    </div>
+  );
+}
+
 export function Layout() {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
+    <CrawlerProvider>
     <div className="min-h-screen bg-background">
       <ScrollToTop />
       {/* Mobile sidebar backdrop */}
@@ -109,6 +126,7 @@ export function Layout() {
 
       {/* Main content */}
       <div className="lg:pl-64">
+        <CrawlBanner />
         {/* Mobile header */}
         <header className="sticky top-0 z-30 border-b border-sidebar-border bg-sidebar px-4 py-3 lg:hidden">
           <div className="flex items-center justify-between">
@@ -135,5 +153,6 @@ export function Layout() {
         </main>
       </div>
     </div>
+    </CrawlerProvider>
   );
 }

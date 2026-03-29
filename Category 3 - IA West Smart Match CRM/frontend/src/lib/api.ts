@@ -1173,3 +1173,14 @@ export async function startCrawl(): Promise<{ status: string }> {
 export async function fetchCrawlerResults(): Promise<CrawlerResultsResponse> {
   return requestJson<CrawlerResultsResponse>("/api/crawler/results");
 }
+
+export interface CrawlerStatusResponse {
+  state: "idle" | "running" | "done";
+  started_at: string | null;
+  finished_at: string | null;
+  error: string | null;
+}
+
+export async function fetchCrawlerStatus(): Promise<CrawlerStatusResponse> {
+  return requestJson<CrawlerStatusResponse>("/api/crawler/status");
+}

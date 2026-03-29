@@ -22,6 +22,14 @@ _log = logging.getLogger(__name__)
 # Module-level queue: single-crawl demo scope. maxsize=100 prevents unbounded growth.
 _crawler_queue: asyncio.Queue[dict[str, Any] | None] = asyncio.Queue(maxsize=100)
 
+# Module-level crawl state: tracks whether a crawl is idle, running, or done.
+_crawl_state: dict[str, Any] = {
+    "state": "idle",
+    "started_at": None,
+    "finished_at": None,
+    "error": None,
+}
+
 # Directed school seed URLs derived from IA West CSV data
 SEED_URLS: tuple[str, ...] = (
     "https://www.cpp.edu/cba/digital-innovation/what-we-do/ai-hackathon.shtml",
@@ -100,9 +108,20 @@ async def _run_crawl() -> None:
     """Crawl IA West directed school pages; push events to SSE queue and persist to DB."""
     def now() -> str:
         return datetime.now(timezone.utc).isoformat()
+
+    _crawl_state["state"] = "running"
+    _crawl_state["started_at"] = now()
+    _crawl_state["finished_at"] = None
+    _crawl_state["error"] = None
+
     try:
         await _run_crawl_body(now)
+    except Exception as exc:
+        _crawl_state["error"] = str(exc)
+        raise
     finally:
+        _crawl_state["state"] = "done"
+        _crawl_state["finished_at"] = now()
         try:
             _crawler_queue.put_nowait(None)
         except asyncio.QueueFull:
@@ -221,9 +240,21 @@ async def crawler_feed() -> StreamingResponse:
     )
 
 
+@router.get("/status")
+async def crawler_status() -> dict[str, Any]:
+    """Return current crawl state: idle | running | done."""
+    return {**_crawl_state}
+
+
 @router.post("/start")
 async def start_crawl(background_tasks: BackgroundTasks) -> dict[str, str]:
-    """Trigger a background crawl targeting IA West directed school pages."""
+    """Trigger a background crawl targeting IA West directed school pages.
+
+    Returns 409 if a crawl is already in progress.
+    """
+    if _crawl_state["state"] == "running":
+        from fastapi import HTTPException
+        raise HTTPException(status_code=409, detail="Crawl already running")
     background_tasks.add_task(_run_crawl)
     return {"status": "started"}
 

@@ -35,6 +35,7 @@ FRONTEND_READY_TIMEOUT_SECONDS = 45.0
 EXISTING_BACKEND_PROBE_SECONDS = 1.5
 BACKEND_PORT_CONFLICT_GRACE_SECONDS = 5.0
 LOG_TAIL_LINES = 12
+MIN_NODE_MAJOR = 20
 
 
 @dataclass
@@ -280,6 +281,33 @@ def run_logged_command(
         raise RuntimeError(f"Command failed. See log: {log_path}")
 
     return log_path
+
+
+def node_major_version() -> int | None:
+    node_cmd = shutil.which("node")
+    if not node_cmd:
+        return None
+    result = subprocess.run(
+        [node_cmd, "-v"],
+        cwd=str(ROOT_DIR),
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=False,
+    )
+    if result.returncode != 0:
+        return None
+    version = (result.stdout or "").strip()
+    if version.startswith("v"):
+        version = version[1:]
+    parts = version.split(".")
+    if not parts:
+        return None
+    try:
+        return int(parts[0])
+    except ValueError:
+        return None
 
 
 def find_python(env_name: str) -> str:
@@ -782,7 +810,21 @@ def main() -> int:
 
     npm_cmd = shutil.which("npm")
     if not npm_cmd:
-        raise RuntimeError("npm is not installed or not on PATH. Install Node.js 18+ and retry.")
+        raise RuntimeError("npm is not installed or not on PATH. Install Node.js 20+ and retry.")
+
+    node_major = node_major_version()
+    if node_major is None:
+        raise RuntimeError(
+            "Could not read Node.js version. Install Node.js 20+ from https://nodejs.org/ "
+            f"or run `nvm install` / `fnm install` in {path_label(FRONTEND_DIR)} (see .nvmrc)."
+        )
+    if node_major < MIN_NODE_MAJOR:
+        raise RuntimeError(
+            f"Node.js {MIN_NODE_MAJOR}+ is required (React Router 7 declares engines.node >=20). "
+            f"This machine reports Node {node_major}.x. "
+            f"Switch version in {path_label(FRONTEND_DIR)} via .nvmrc / .node-version, "
+            "or install Node 20 LTS from https://nodejs.org/"
+        )
 
     if args.skip_install:
         board.update("python_deps", "done", "Skipped (--skip-install)")

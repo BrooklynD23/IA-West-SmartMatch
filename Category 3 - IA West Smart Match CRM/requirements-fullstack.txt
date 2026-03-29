@@ -3,6 +3,7 @@
 # avoids pulling optional Streamlit voice/ML packages like torch/CUDA.
 
 python-dotenv==1.0.1
+tavily-python>=0.7.0
 pandas>=2.2.3
 numpy==1.26.4
 fastapi>=0.115.0

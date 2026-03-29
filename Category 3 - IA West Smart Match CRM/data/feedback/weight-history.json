@@ -1,0 +1,284 @@
+{
+  "snapshot_count": 3,
+  "snapshots": [
+    {
+      "acceptance_rate": 1.0,
+      "accepted": 1,
+      "adjustments": [
+        {
+          "delta": 0.0064,
+          "factor": "topic_relevance",
+          "from_weight": 0.22,
+          "rationale": "Average coordinator rating (4.00) is below target",
+          "to_weight": 0.2264
+        },
+        {
+          "delta": 0.0087,
+          "factor": "role_fit",
+          "from_weight": 0.18,
+          "rationale": "Average coordinator rating (4.00) is below target",
+          "to_weight": 0.1887
+        },
+        {
+          "delta": -0.0102,
+          "factor": "geographic_proximity",
+          "from_weight": 0.18,
+          "rationale": "Rebalanced from aggregate feedback",
+          "to_weight": 0.1698
+        },
+        {
+          "delta": 0.0121,
+          "factor": "calendar_fit",
+          "from_weight": 0.12,
+          "rationale": "Attendance is lagging behind accepted matches",
+          "to_weight": 0.1321
+        },
+        {
+          "delta": -0.0057,
+          "factor": "volunteer_fatigue",
+          "from_weight": 0.1,
+          "rationale": "Rebalanced from aggregate feedback",
+          "to_weight": 0.0943
+        },
+        {
+          "delta": -0.0028,
+          "factor": "historical_conversion",
+          "from_weight": 0.05,
+          "rationale": "Rebalanced from aggregate feedback",
+          "to_weight": 0.0472
+        },
+        {
+          "delta": -0.0028,
+          "factor": "student_interest",
+          "from_weight": 0.05,
+          "rationale": "Rebalanced from aggregate feedback",
+          "to_weight": 0.0472
+        },
+        {
+          "delta": -0.0028,
+          "factor": "event_urgency",
+          "from_weight": 0.05,
+          "rationale": "Rebalanced from aggregate feedback",
+          "to_weight": 0.0472
+        },
+        {
+          "delta": -0.0028,
+          "factor": "coverage_diversity",
+          "from_weight": 0.05,
+          "rationale": "Rebalanced from aggregate feedback",
+          "to_weight": 0.0472
+        }
+      ],
+      "baseline_weights": {
+        "calendar_fit": 0.12,
+        "coverage_diversity": 0.05,
+        "event_urgency": 0.05,
+        "geographic_proximity": 0.18,
+        "historical_conversion": 0.05,
+        "role_fit": 0.18,
+        "student_interest": 0.05,
+        "topic_relevance": 0.22,
+        "volunteer_fatigue": 0.1
+      },
+      "declined": 0,
+      "pain_score": 36.0,
+      "timestamp": "2026-03-28T01:15:36.023943Z",
+      "total_feedback": 1,
+      "weights": {
+        "calendar_fit": 0.1321,
+        "coverage_diversity": 0.0472,
+        "event_urgency": 0.0472,
+        "geographic_proximity": 0.1698,
+        "historical_conversion": 0.0472,
+        "role_fit": 0.1887,
+        "student_interest": 0.0472,
+        "topic_relevance": 0.2264,
+        "volunteer_fatigue": 0.0943
+      }
+    },
+    {
+      "acceptance_rate": 1.0,
+      "accepted": 2,
+      "adjustments": [
+        {
+          "delta": 0.0064,
+          "factor": "topic_relevance",
+          "from_weight": 0.22,
+          "rationale": "Average coordinator rating (4.00) is below target",
+          "to_weight": 0.2264
+        },
+        {
+          "delta": 0.0087,
+          "factor": "role_fit",
+          "from_weight": 0.18,
+          "rationale": "Average coordinator rating (4.00) is below target",
+          "to_weight": 0.1887
+        },
+        {
+          "delta": -0.0102,
+          "factor": "geographic_proximity",
+          "from_weight": 0.18,
+          "rationale": "Rebalanced from aggregate feedback",
+          "to_weight": 0.1698
+        },
+        {
+          "delta": 0.0121,
+          "factor": "calendar_fit",
+          "from_weight": 0.12,
+          "rationale": "Attendance is lagging behind accepted matches",
+          "to_weight": 0.1321
+        },
+        {
+          "delta": -0.0057,
+          "factor": "volunteer_fatigue",
+          "from_weight": 0.1,
+          "rationale": "Rebalanced from aggregate feedback",
+          "to_weight": 0.0943
+        },
+        {
+          "delta": -0.0028,
+          "factor": "historical_conversion",
+          "from_weight": 0.05,
+          "rationale": "Rebalanced from aggregate feedback",
+          "to_weight": 0.0472
+        },
+        {
+          "delta": -0.0028,
+          "factor": "student_interest",
+          "from_weight": 0.05,
+          "rationale": "Rebalanced from aggregate feedback",
+          "to_weight": 0.0472
+        },
+        {
+          "delta": -0.0028,
+          "factor": "event_urgency",
+          "from_weight": 0.05,
+          "rationale": "Rebalanced from aggregate feedback",
+          "to_weight": 0.0472
+        },
+        {
+          "delta": -0.0028,
+          "factor": "coverage_diversity",
+          "from_weight": 0.05,
+          "rationale": "Rebalanced from aggregate feedback",
+          "to_weight": 0.0472
+        }
+      ],
+      "baseline_weights": {
+        "calendar_fit": 0.12,
+        "coverage_diversity": 0.05,
+        "event_urgency": 0.05,
+        "geographic_proximity": 0.18,
+        "historical_conversion": 0.05,
+        "role_fit": 0.18,
+        "student_interest": 0.05,
+        "topic_relevance": 0.22,
+        "volunteer_fatigue": 0.1
+      },
+      "declined": 0,
+      "pain_score": 36.0,
+      "timestamp": "2026-03-28T07:57:47.955709Z",
+      "total_feedback": 2,
+      "weights": {
+        "calendar_fit": 0.1321,
+        "coverage_diversity": 0.0472,
+        "event_urgency": 0.0472,
+        "geographic_proximity": 0.1698,
+        "historical_conversion": 0.0472,
+        "role_fit": 0.1887,
+        "student_interest": 0.0472,
+        "topic_relevance": 0.2264,
+        "volunteer_fatigue": 0.0943
+      }
+    },
+    {
+      "acceptance_rate": 1.0,
+      "accepted": 3,
+      "adjustments": [
+        {
+          "delta": 0.0035,
+          "factor": "role_fit",
+          "from_weight": 0.18,
+          "rationale": "Average coordinator rating (4.00) is below target",
+          "to_weight": 0.1835
+        },
+        {
+          "delta": -0.0149,
+          "factor": "geographic_proximity",
+          "from_weight": 0.18,
+          "rationale": "Rebalanced from aggregate feedback",
+          "to_weight": 0.1651
+        },
+        {
+          "delta": 0.0084,
+          "factor": "calendar_fit",
+          "from_weight": 0.12,
+          "rationale": "Attendance is lagging behind accepted matches",
+          "to_weight": 0.1284
+        },
+        {
+          "delta": -0.0083,
+          "factor": "volunteer_fatigue",
+          "from_weight": 0.1,
+          "rationale": "Rebalanced from aggregate feedback",
+          "to_weight": 0.0917
+        },
+        {
+          "delta": 0.0142,
+          "factor": "historical_conversion",
+          "from_weight": 0.05,
+          "rationale": "Membership-interest outcomes are available for attribution",
+          "to_weight": 0.0642
+        },
+        {
+          "delta": 0.005,
+          "factor": "student_interest",
+          "from_weight": 0.05,
+          "rationale": "Membership-interest outcomes indicate student-facing signal strength",
+          "to_weight": 0.055
+        },
+        {
+          "delta": -0.0041,
+          "factor": "event_urgency",
+          "from_weight": 0.05,
+          "rationale": "Rebalanced from aggregate feedback",
+          "to_weight": 0.0459
+        },
+        {
+          "delta": -0.0041,
+          "factor": "coverage_diversity",
+          "from_weight": 0.05,
+          "rationale": "Rebalanced from aggregate feedback",
+          "to_weight": 0.0459
+        }
+      ],
+      "baseline_weights": {
+        "calendar_fit": 0.12,
+        "coverage_diversity": 0.05,
+        "event_urgency": 0.05,
+        "geographic_proximity": 0.18,
+        "historical_conversion": 0.05,
+        "role_fit": 0.18,
+        "student_interest": 0.05,
+        "topic_relevance": 0.22,
+        "volunteer_fatigue": 0.1
+      },
+      "declined": 0,
+      "pain_score": 32.6,
+      "timestamp": "2026-03-28T23:30:57.663757Z",
+      "total_feedback": 3,
+      "weights": {
+        "calendar_fit": 0.1284,
+        "coverage_diversity": 0.0459,
+        "event_urgency": 0.0459,
+        "geographic_proximity": 0.1651,
+        "historical_conversion": 0.0642,
+        "role_fit": 0.1835,
+        "student_interest": 0.055,
+        "topic_relevance": 0.2202,
+        "volunteer_fatigue": 0.0917
+      }
+    }
+  ],
+  "updated_at": "2026-03-28T23:30:57.664480Z"
+}

@@ -1,0 +1,32 @@
+{
+  "record_count": 2,
+  "records": [
+    {
+      "destination_url": "https://www.insightsassociation.org/",
+      "event_name": "AI for a Better Future Hackathon",
+      "generated_at": "2026-03-27T23:03:17.786219Z",
+      "generation_count": 10,
+      "last_scanned_at": "",
+      "membership_interest_count": 0,
+      "referral_code": "IAW-MX4S5D6OVJM2",
+      "scan_count": 0,
+      "scan_url": "http://localhost:8000/api/qr/scan/IAW-MX4S5D6OVJM2",
+      "speaker_name": "Travis Miller",
+      "updated_at": "2026-03-28T06:21:53.992639Z"
+    },
+    {
+      "destination_url": "https://www.insightsassociation.org/",
+      "event_name": "AI Hackathon (CPP hub page)",
+      "generated_at": "2026-03-28T23:32:00.864602Z",
+      "generation_count": 1,
+      "last_scanned_at": "",
+      "membership_interest_count": 0,
+      "referral_code": "IAW-KTQRNE3TJOQY",
+      "scan_count": 0,
+      "scan_url": "http://localhost:8000/api/qr/scan/IAW-KTQRNE3TJOQY",
+      "speaker_name": "Adam Portner",
+      "updated_at": "2026-03-28T23:32:00.864602Z"
+    }
+  ],
+  "updated_at": "2026-03-28T23:32:00.868999Z"
+}

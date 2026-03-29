@@ -200,6 +200,8 @@ copy .env.example .env
 
 Edit `.env` and set secrets as needed (never commit real keys). **`GEMINI_API_KEY`** is optional if you use **Demo Mode** in the UI.
 
+**`TAVILY_API_KEY`** (optional) enables the **Tavily** search fallback for the **Web Intelligence** web crawler in the React app (Dashboard / Outreach). The crawler tries **Gemini** grounded search first when `GEMINI_API_KEY` is set; if that returns no hits, it uses Tavily. Seed URLs still run without either key. Copy the variable from `.env.example` and paste your key from [Tavily](https://tavily.com). The `tavily-python` package is declared in `requirements.txt` and `requirements-fullstack.txt`; resync the venv after pulling if Tavily import errors appear.
+
 ### New venv on Python 3.12 (Jarvis TTS on a 3.13 machine)
 
 Step-by-step: **section 3** in [docs/handoffs/jarvis-voice-webrtc-enablement.md](docs/handoffs/jarvis-voice-webrtc-enablement.md).
@@ -229,6 +231,10 @@ Voice-capable coordinator: text/voice input, STT/TTS (when installed), Gemini in
 ### Volunteer Dashboard & Expansion Map
 
 Utilization analytics and geographic views.
+
+### Web Intelligence (React + FastAPI)
+
+**Outreach** and **Dashboard** include a **Web Crawler Feed** that streams progress over Server-Sent Events (`/api/crawler/feed`). Configure **`GEMINI_API_KEY`** and/or **`TAVILY_API_KEY`** in `.env` (see [Environment setup](#environment-setup)) for live discovery beyond the built-in seed URLs.
 
 ---
 

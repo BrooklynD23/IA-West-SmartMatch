@@ -84,7 +84,11 @@
       "Bash(.venv/bin/python -m pytest tests/ -x -q --ignore=tests/test_e2e_flows.py)",
       "Bash(.venv/bin/python -m pytest tests/ -q --ignore=tests/test_e2e_flows.py)",
       "Bash(git fetch:*)",
-      "Bash(git remote:*)"
+      "Bash(git remote:*)",
+      "Skill(gsd:debug)",
+      "Bash(head -3 ./data/*.csv)",
+      "Skill(gsd:new-project)",
+      "Skill(gsd:pause-work)"
     ]
   },
   "outputStyle": "Explanatory",

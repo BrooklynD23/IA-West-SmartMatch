@@ -43,6 +43,7 @@ These are useful for audit history, but they are not implementation authority:
 - Imports: use `from src...`
 - Launch command: `streamlit run src/app.py`
 - AI provider decision: new provider work should target the Gemini Developer API; the checked-in runtime now uses Gemini for embeddings and text generation
+- **Web Intelligence crawler (FastAPI):** optional **`TAVILY_API_KEY`** in `.env` backs Tavily search when Gemini grounded web search returns no results for crawler queries; seed URL phases do not require API keys (see `.env.example` and project `README.md`)
 - Embedding cache: flat artifacts under `cache/` using `.npy` vectors, `.json` metadata, and `cache_manifest.json`; the app can bootstrap missing caches on first load when `GEMINI_API_KEY` is configured
 - Scrape cache: `cache/scrapes/<sha256(url)>.json`
 - Email cache: `cache/emails/<hashed-key>.json`
@@ -61,4 +62,4 @@ These are useful for audit history, but they are not implementation authority:
 - Latest targeted Phase 3 regression set is green: `tests/test_discovery_tab.py tests/test_matches_tab.py tests/test_engine.py tests/test_app.py tests/test_acceptance.py tests/test_volunteer_dashboard.py` -> `87 passed in 6.56s`.
 - Latest preflight baseline passes with warnings only for un-warmed live caches: missing embedding artifacts plus empty or absent `cache/scrapes/`, `cache/extractions/`, `cache/explanations/`, and `cache/emails/`.
 - Sprint 5 review artifact: `Category 3 - IA West Smart Match CRM/docs/reviews/2026-03-21-sprint5-code-review.md`.
-- Manual demo-day steps still require a machine with `GEMINI_API_KEY` to warm live caches, a rehearsal pass using the real environment, and completion of the human-run logs under `docs/testing/`.
+- Manual demo-day steps still require a machine with `GEMINI_API_KEY` to warm live caches, a rehearsal pass using the real environment, and completion of the human-run logs under `docs/testing/`. For **Web Intelligence** crawler demos with rich search hits, add **`TAVILY_API_KEY`** (and/or ensure `GEMINI_API_KEY` is set) per `.env.example`.

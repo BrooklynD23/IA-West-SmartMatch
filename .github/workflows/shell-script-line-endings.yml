@@ -1,0 +1,17 @@
+name: Shell Script Line Endings
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  verify-shell-line-endings:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Verify shell scripts use LF
+        run: python3 scripts/check_shell_line_endings.py

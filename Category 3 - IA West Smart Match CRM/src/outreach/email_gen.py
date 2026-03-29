@@ -119,37 +119,59 @@ def save_cached_email(
 
 
 # ---------------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------------
+
+IA_WEST_URL: str = "https://www.insightsassociation.org/ia-west"
+
+
+# ---------------------------------------------------------------------------
 # Prompt template
 # ---------------------------------------------------------------------------
 
 EMAIL_SYSTEM_PROMPT: str = """\
 You are a professional outreach coordinator for IA West (Insights Association \
 West Chapter), a volunteer-run professional association for market research \
-and data analytics professionals.
+and data analytics professionals in the Western United States.
 
-Your job is to draft personalized outreach emails inviting board member \
-volunteers to participate in university events.  The emails should be:
+Your job is to draft personalized outreach emails inviting volunteers or event \
+point-of-contacts to participate in IA West-affiliated university events.
 
-1. Professional but warm -- not stiff corporate language
-2. Specific -- reference the speaker's actual expertise and the event's \
-   actual details
-3. Concise -- 150-200 words maximum for the email body
-4. Action-oriented -- clear call-to-action at the end
+MANDATORY RULES — every email MUST follow these without exception:
+
+1. OPENING PARAGRAPH: The very first paragraph of the body must briefly \
+   introduce IA West — who we are, what we do, and our mission to connect \
+   market research professionals with the next generation of researchers. \
+   Keep it to 2-3 sentences.
+
+2. IA WEST LINK: Somewhere in the body (typically at the end of the opening \
+   paragraph or in the closing), include a natural, inline hyperlink to the \
+   IA West chapter page: {ia_west_url}
+   Write it as an HTML anchor: <a href="{ia_west_url}">IA West chapter page</a>
+
+3. TONE: Professional but warm — not stiff corporate language.
+
+4. SPECIFICITY: Reference the recipient's actual expertise and the event's \
+   actual details.
+
+5. LENGTH: 150-200 words maximum for the email body.
+
+6. CALL-TO-ACTION: End with a clear, specific ask.
 
 You MUST return a JSON object with exactly these keys:
-{
+{{
   "subject_line": "<string>",
   "greeting": "<string>",
-  "body": "<string>",
+  "body": "<string — HTML allowed for the hyperlink>",
   "closing": "<string>",
-  "full_email": "<string -- the complete email ready to send>"
-}\
-"""
+  "full_email": "<string — the complete email ready to send, with the link>"
+}}\
+""".format(ia_west_url=IA_WEST_URL)
 
 EMAIL_USER_PROMPT_TEMPLATE: str = """\
 Generate a personalized outreach email for the following volunteer-event match.
 
-SPEAKER PROFILE:
+SPEAKER / CONTACT PROFILE:
 - Name: {speaker_name}
 - Title: {speaker_title}
 - Company: {speaker_company}
@@ -172,13 +194,18 @@ MATCH QUALITY:
 - Geographic Proximity: {geo_score:.0%}
 
 Compose an email from IA West chapter leadership inviting {speaker_name} to \
-volunteer as a {volunteer_role} at {event_name}.  Reference their specific \
-expertise in {speaker_expertise} and explain why this is a great match.
+volunteer as a {volunteer_role} at {event_name}.
+
+REMEMBER:
+- Open with a short IA West introduction (who we are + mission).
+- Embed the IA West chapter page link ({ia_west_url}) naturally in the body.
+- Reference their specific expertise in {speaker_expertise} and explain why \
+  this is a great match.
 
 The value proposition should emphasize:
 - Impact on students (next generation of market researchers)
-- Visibility for the speaker and their company
-- IA West community building
+- Visibility for the speaker and their company within the IA West community
+- IA West's mission of connecting industry professionals with academia
 - Low time commitment (typically 2-4 hours)\
 """
 
@@ -197,7 +224,11 @@ def _fallback_email(
     subject = f"Volunteer Opportunity: {volunteer_role} at {event_name}"
     greeting = f"Dear {speaker_name},"
     body = (
-        f"I hope this message finds you well. On behalf of IA West, "
+        f"I hope this message finds you well. IA West (Insights Association West Chapter) "
+        f"is a volunteer-run professional association connecting market research and data "
+        f"analytics professionals across the Western United States with the next generation "
+        f"of researchers. You can learn more about our chapter at "
+        f'<a href="{IA_WEST_URL}">our IA West chapter page</a>.\n\n'
         f"I am reaching out because your expertise in {speaker_expertise} "
         f"makes you an excellent match for an upcoming opportunity.\n\n"
         f"We are looking for a {volunteer_role} for {event_name}, and "
@@ -294,6 +325,7 @@ def generate_outreach_email(
         topic_score=topic_score,
         role_score=role_score,
         geo_score=geo_score,
+        ia_west_url=IA_WEST_URL,
     )
 
     messages = [{"role": "user", "content": user_prompt}]

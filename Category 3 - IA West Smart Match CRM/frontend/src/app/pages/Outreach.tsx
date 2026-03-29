@@ -312,6 +312,9 @@ export function Outreach() {
               </button>
             </div>
           </div>
+
+          {/* Web Intelligence — left column so it persists visually alongside other menus */}
+          <CrawlerFeed />
         </div>
 
         <div className="lg:col-span-2 bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
@@ -525,19 +528,6 @@ export function Outreach() {
         </div>
       ) : null}
 
-      {/* Web Intelligence — discover new events via web crawler */}
-      <div className="rounded-2xl border border-[#d5e0f7] bg-white p-6 shadow-sm">
-        <div className="mb-4 flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-[#005394]" />
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">Web Intelligence</h3>
-            <p className="text-sm text-gray-600">
-              Run the web crawler to discover new IA West directed school pages and events.
-            </p>
-          </div>
-        </div>
-        <CrawlerFeed />
-      </div>
     </div>
   );
 }

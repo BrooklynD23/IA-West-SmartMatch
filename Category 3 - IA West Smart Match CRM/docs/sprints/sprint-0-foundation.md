@@ -132,6 +132,9 @@ GEMINI_API_KEY=AIza...
 GEMINI_EMBEDDING_MODEL=gemini-embedding-001
 GEMINI_TEXT_MODEL=gemini-2.5-flash-lite
 
+# === Tavily (optional — FastAPI Web Intelligence / crawler fallback) ===
+TAVILY_API_KEY=tvly-dev-...
+
 # === Application Configuration ===
 APP_ENV=development
 LOG_LEVEL=INFO

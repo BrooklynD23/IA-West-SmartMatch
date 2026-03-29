@@ -5,7 +5,7 @@
 CAT ?= 4
 CATEGORY_DIR := $(shell ls -d "Category $(CAT) - "* 2>/dev/null | head -1)
 
-.PHONY: help setup install run test lint clean
+.PHONY: help setup install run test lint check-shell-eol clean
 
 help:
 	@echo "Available targets:"
@@ -14,6 +14,7 @@ help:
 	@echo "  make run CAT=N      — Run Streamlit app for category N"
 	@echo "  make test CAT=N     — Run tests for category N"
 	@echo "  make lint           — Run ruff linter across all Python files"
+	@echo "  make check-shell-eol — Fail if any *.sh file uses CRLF"
 	@echo "  make clean          — Remove __pycache__ and .pytest_cache"
 
 setup:
@@ -38,6 +39,9 @@ test:
 lint:
 	@command -v ruff >/dev/null 2>&1 || pip install ruff -q
 	ruff check .
+
+check-shell-eol:
+	python scripts/check_shell_line_endings.py
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true

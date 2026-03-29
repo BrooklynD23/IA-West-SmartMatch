@@ -2,6 +2,20 @@
 
 ## Current Work
 
+### v3.1 Autonomous Recovery + Phase 14 Visual Resilience
+
+_Execution board for repairing GSD milestone state, retro-verifying Phase 13, and continuing autonomous delivery through Phase 14 Visual Resilience._
+
+- [ ] Reconcile `.planning/STATE.md` and `.planning/ROADMAP.md` so GSD resolves `v3.1 Demo Readiness` as the active milestone and phase discovery returns phases 13-16.
+- [ ] Create the missing Phase 13 verification artifacts from the already-landed code, complete any required human/manual verification, and mark Phase 13 complete across roadmap/state/requirements.
+- [ ] Implement Phase 14 backend fallback infrastructure: `data/demo.db`, seed script, FastAPI demo DB helpers, router fallback wiring, and focused tests.
+- [ ] Implement Phase 14 frontend resilience: shared mock data, `DemoModeBadge`, source-aware API helpers, and page-level `isMockData` handling on Dashboard, AI Matching, Pipeline, and Volunteers.
+- [ ] Run focused verification for Phase 14 and update planning artifacts (`VERIFICATION.md`, roadmap progress, state, requirements traceability) to the truthful post-execution state.
+
+#### Review
+
+- Pending.
+
 ### Cat3 Fullstack Port Conflict Recovery
 
 _Execution board for fixing `./start_cat3_fullstack.sh` when the backend port is already occupied and the launcher currently reports a generic startup failure._
