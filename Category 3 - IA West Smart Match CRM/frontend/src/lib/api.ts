@@ -51,7 +51,7 @@ export interface CalendarRecord {
 }
 
 export type CoverageStatus = "covered" | "partial" | "needs_coverage" | "unknown";
-export type RecoveryStatus = "Available" | "Needs Rest" | "On Cooldown" | "Unknown";
+export type RecoveryStatus = "Available" | "Needs Rest" | "Rest Recommended" | "Unknown";
 
 export interface CalendarEventSummary {
   event_id: string;
@@ -446,12 +446,12 @@ function normalizeRecoveryStatus(value: unknown, score?: number): RecoveryStatus
   if (raw === "needs rest" || raw === "steady" || raw === "busy") {
     return "Needs Rest";
   }
-  if (raw === "on cooldown" || raw === "at risk" || raw === "cooldown") {
-    return "On Cooldown";
+  if (raw === "on cooldown" || raw === "at risk" || raw === "cooldown" || raw === "rest recommended") {
+    return "Rest Recommended";
   }
   if (typeof score === "number") {
     if (score >= 0.75) {
-      return "On Cooldown";
+      return "Rest Recommended";
     }
     if (score >= 0.4) {
       return "Needs Rest";
@@ -467,8 +467,8 @@ function recoveryLabel(status: RecoveryStatus): string {
       return "Available";
     case "Needs Rest":
       return "Needs Rest";
-    case "On Cooldown":
-      return "On Cooldown";
+    case "Rest Recommended":
+      return "Rest Recommended";
     default:
       return "Recovery unknown";
   }
@@ -480,7 +480,7 @@ function recoveryTone(status: RecoveryStatus): string {
       return "#0f766e";
     case "Needs Rest":
       return "#c47c00";
-    case "On Cooldown":
+    case "Rest Recommended":
       return "#b91c1c";
     default:
       return "#5a6472";
@@ -1189,4 +1189,21 @@ export interface CrawlerStatusResponse {
 
 export async function fetchCrawlerStatus(): Promise<CrawlerStatusResponse> {
   return requestJson<CrawlerStatusResponse>("/api/crawler/status");
+}
+
+export interface UniversityContact {
+  name: string;
+  email: string;
+  host_unit: string;
+  event_name: string;
+  source: "university";
+}
+
+export async function fetchUniversityContacts(): Promise<UniversityContact[]> {
+  try {
+    const data = await requestJson<unknown>("/api/data/university-contacts");
+    return Array.isArray(data) ? (data as UniversityContact[]) : [];
+  } catch {
+    return [];
+  }
 }

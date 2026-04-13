@@ -10,6 +10,7 @@ from __future__ import annotations
 import csv
 from pathlib import Path
 
+from src.config import get_writable_dir
 from src.ui.data_helpers import _data_dir, _load_pipeline_data_cached
 
 # ---------------------------------------------------------------------------
@@ -24,7 +25,13 @@ PIPELINE_STAGES: dict[str, int] = {
     "Member Inquiry": 4,
 }
 
-PIPELINE_CSV: Path = _data_dir() / "pipeline_sample_data.csv"
+def _pipeline_write_path() -> Path:
+    return get_writable_dir("data") / "pipeline_sample_data.csv"
+
+
+def _pipeline_read_path() -> Path:
+    p = _pipeline_write_path()
+    return p if p.exists() else (_data_dir() / "pipeline_sample_data.csv")
 
 CSV_FIELDNAMES: list[str] = [
     "event_name",
@@ -42,8 +49,8 @@ CSV_FIELDNAMES: list[str] = [
 
 
 def _write_pipeline_csv(rows: list[dict]) -> None:
-    """Write *rows* back to ``PIPELINE_CSV`` (overwrites the file)."""
-    with PIPELINE_CSV.open("w", newline="", encoding="utf-8") as fh:
+    """Write *rows* back to the pipeline CSV (overwrites the file)."""
+    with _pipeline_write_path().open("w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=CSV_FIELDNAMES, extrasaction="ignore")
         writer.writeheader()
         writer.writerows(rows)

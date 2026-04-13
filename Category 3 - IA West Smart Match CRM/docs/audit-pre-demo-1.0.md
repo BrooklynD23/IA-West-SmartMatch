@@ -26,8 +26,8 @@
 | Dashboard — KPIs/charts | **Pass** | `/dashboard` | Live summary cards and charts present. |
 | Connect → Outreach Workflow modal, dismiss | **Pass** | `/dashboard` | Modal opened and closed cleanly. |
 | Web Crawler Feed + Start Crawl | **Pass** | `/dashboard` | “Crawling…” then completion ~41s. |
-| Opportunities — Find Best Matches → AI Matching | **Pass** | `/opportunities` → `/ai-matching` | Navigation OK. |
-| Match Volunteers — event pre-selected (router state) | **Fail** | `/opportunities` → `/ai-matching` | `Opportunities` passes `navigate(..., { state: { eventName } })`, but `AIMatching` overwrites selection with `data[0]` in `fetchEvents`; combobox stayed default event. |
+| Opportunities — Find Best Matches → AI Matching | **Pass** | `/opportunities` → `/ai-matching` | Click a card (gets blue ring) to select; top button carries `{ state: { eventName } }` to AI Matching. |
+| Match Volunteers — event pre-selected (router state) | **Pass (fixed 2026-04-13)** | `/opportunities` → `/ai-matching` | `Opportunities` now tracks `selectedOpportunityName` state; both the per-card "Match Volunteers" button and the top "Find Best Matches" button pass router state. `AIMatching` reads `location.state?.eventName` and pre-selects. |
 | AI Matching — rankings, Record Feedback | **Pass** | `/ai-matching` | Rankings loaded; feedback submitted. |
 | Outreach — templates, Web Intelligence, Start Crawl | **Pass** | `/outreach` | Templates, quick actions, crawler section present. |
 | Volunteers / Pipeline / Calendar — load | **Pass (light)** | `/volunteers`, `/pipeline`, `/calendar` | No hard route failures; thin initial a11y snapshots before full paint. |
@@ -111,7 +111,9 @@ No uncaught exceptions observed on exercised flows.
 
 ## Recommended fix before Demo 1.0 (product)
 
-**Router state for event pre-selection on AI Matching:** In `AIMatching`, read `useLocation().state?.eventName` and set `selectedEventName` after events load **without** unconditionally overwriting with `data[0]` when navigation state is present.
+~~**Router state for event pre-selection on AI Matching:** In `AIMatching`, read `useLocation().state?.eventName` and set `selectedEventName` after events load **without** unconditionally overwriting with `data[0]` when navigation state is present.~~
+
+**Fixed 2026-04-13** — `Opportunities.tsx` now maintains `selectedOpportunityName` state with a visible ring highlight on the selected card. Both the top "Find Best Matches" button and per-card "Match Volunteers" buttons pass `{ state: { eventName } }` via React Router. `AIMatching.tsx` already reads `location.state?.eventName` correctly — no changes needed there.
 
 ---
 

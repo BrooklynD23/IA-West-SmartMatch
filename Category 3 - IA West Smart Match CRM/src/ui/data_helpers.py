@@ -84,7 +84,12 @@ def _load_poc_contacts_cached() -> tuple[Any, ...]:
 
 @functools.lru_cache(maxsize=1)
 def _load_pipeline_data_cached() -> tuple[dict[str, str], ...]:
-    csv_path = _data_dir() / "pipeline_sample_data.csv"
+    import os as _os
+    tmp_path = Path("/tmp/iawest-crm/data/pipeline_sample_data.csv")
+    if (_os.getenv("VERCEL") or str(_data_dir()).startswith("/var/task")) and tmp_path.exists():
+        csv_path = tmp_path
+    else:
+        csv_path = _data_dir() / "pipeline_sample_data.csv"
     try:
         with csv_path.open(newline="", encoding="utf-8") as fh:
             rows = list(csv.DictReader(fh))
@@ -120,7 +125,12 @@ def _load_cpp_events_cached() -> tuple[dict[str, str], ...]:
 
 @functools.lru_cache(maxsize=1)
 def _load_qr_manifest_cached() -> tuple[dict[str, Any], ...]:
-    json_path = _data_dir() / "qr" / "manifest.json"
+    import os as _os
+    tmp_path = Path("/tmp/iawest-crm/data/qr/manifest.json")
+    if (_os.getenv("VERCEL") or str(_data_dir()).startswith("/var/task")) and tmp_path.exists():
+        json_path = tmp_path
+    else:
+        json_path = _data_dir() / "qr" / "manifest.json"
     try:
         with json_path.open(encoding="utf-8") as fh:
             payload = json.load(fh)
@@ -138,7 +148,12 @@ def _load_qr_manifest_cached() -> tuple[dict[str, Any], ...]:
 
 @functools.lru_cache(maxsize=1)
 def _load_qr_scan_log_cached() -> tuple[dict[str, Any], ...]:
-    jsonl_path = _data_dir() / "qr" / "scan-log.jsonl"
+    import os as _os
+    tmp_path = Path("/tmp/iawest-crm/data/qr/scan-log.jsonl")
+    if (_os.getenv("VERCEL") or str(_data_dir()).startswith("/var/task")) and tmp_path.exists():
+        jsonl_path = tmp_path
+    else:
+        jsonl_path = _data_dir() / "qr" / "scan-log.jsonl"
     try:
         with jsonl_path.open(encoding="utf-8") as fh:
             rows = []

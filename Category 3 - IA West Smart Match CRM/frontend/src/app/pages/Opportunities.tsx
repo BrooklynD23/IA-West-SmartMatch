@@ -79,6 +79,7 @@ export function Opportunities() {
   const [opportunities, setOpportunities] = useState<OpportunityCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedOpportunityName, setSelectedOpportunityName] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -153,11 +154,18 @@ export function Opportunities() {
           </p>
         </div>
         <button
-          onClick={() => navigate("/ai-matching")}
+          onClick={() =>
+            navigate(
+              "/ai-matching",
+              selectedOpportunityName
+                ? { state: { eventName: selectedOpportunityName } }
+                : undefined,
+            )
+          }
           className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-white shadow-sm transition-colors hover:bg-[#00477f]"
         >
           <Sparkles className="w-5 h-5" />
-          Find Best Matches
+          {selectedOpportunityName ? `Match: ${selectedOpportunityName.slice(0, 28)}${selectedOpportunityName.length > 28 ? "…" : ""}` : "Find Best Matches"}
         </button>
       </div>
 
@@ -263,7 +271,8 @@ export function Opportunities() {
           : filteredOpportunities.map((opportunity) => (
               <div
                 key={opportunity.id}
-                className="rounded-2xl border border-[#d5e0f7] bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+                onClick={() => setSelectedOpportunityName(opportunity.name)}
+                className={`rounded-2xl border bg-white p-6 shadow-sm transition-shadow hover:shadow-md cursor-pointer ${selectedOpportunityName === opportunity.name ? "border-[#005394] ring-2 ring-[#005394]" : "border-[#d5e0f7]"}`}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">

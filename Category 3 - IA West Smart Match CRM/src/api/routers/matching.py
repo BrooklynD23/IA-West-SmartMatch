@@ -61,7 +61,7 @@ def _normalize_ranked_match(result: dict[str, Any]) -> dict[str, Any]:
     recovery_score = float(factor_scores.get("volunteer_fatigue", 0.0) or 0.0)
     fatigue_burden = round(max(0.0, min(1.0, 1.0 - recovery_score)), 4)
     recovery_status = (
-        "On Cooldown"
+        "Rest Recommended"
         if fatigue_burden >= 0.75
         else "Needs Rest"
         if fatigue_burden >= 0.40

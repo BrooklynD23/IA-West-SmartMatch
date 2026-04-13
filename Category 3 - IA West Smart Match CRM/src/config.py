@@ -16,6 +16,17 @@ DATA_DIR = PROJECT_ROOT / os.getenv("DATA_DIR", "data")
 CACHE_DIR = PROJECT_ROOT / os.getenv("CACHE_DIR", "cache")
 
 
+def get_writable_dir(subpath: str) -> Path:
+    """Return /tmp/iawest-crm/<subpath> on Vercel, PROJECT_ROOT/<subpath> locally."""
+    import os as _os
+    if _os.getenv("VERCEL") or str(PROJECT_ROOT).startswith("/var/task"):
+        base = Path("/tmp/iawest-crm") / subpath
+    else:
+        base = PROJECT_ROOT / subpath
+    base.mkdir(parents=True, exist_ok=True)
+    return base
+
+
 def _secret_or_env(name: str, default: str = "") -> str:
     """Read a config value from env first, then Streamlit secrets if available."""
     env_value = os.getenv(name)

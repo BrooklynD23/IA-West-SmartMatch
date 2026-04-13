@@ -472,7 +472,7 @@ def _recurrence_pressure(event_date_or_recurrence: object) -> float:
 def _recovery_status_from_fatigue(fatigue_score: float) -> str:
     """Translate a fatigue burden score into a coordinator-facing status."""
     if fatigue_score >= 0.75:
-        return "On Cooldown"
+        return "Rest Recommended"
     if fatigue_score >= 0.40:
         return "Needs Rest"
     return "Available"

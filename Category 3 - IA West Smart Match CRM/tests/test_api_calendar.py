@@ -48,7 +48,7 @@ def test_calendar_assignments_endpoint_returns_overlay_metadata() -> None:
     assert "recent_assignment_count" in first
     assert "status_color" in first
     assert first["coverage_status"] in {"covered", "partial", "needs_coverage"}
-    assert first["recovery_status"] in {"Available", "Needs Rest", "On Cooldown"}
+    assert first["recovery_status"] in {"Available", "Needs Rest", "Rest Recommended"}
 
 
 def test_calendar_events_http_boundary_returns_json_payload() -> None:

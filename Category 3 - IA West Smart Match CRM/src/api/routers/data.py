@@ -120,6 +120,34 @@ async def courses() -> list[dict]:
         raise _server_error(exc) from exc
 
 
+@router.get("/university-contacts")
+async def university_contacts() -> list[dict]:
+    """University contacts from data_cpp_events_contacts.csv."""
+    try:
+        rows = load_cpp_events()
+        contacts: list[dict] = []
+        seen: set[str] = set()
+        skip_names = {"", "see page", "see hub page for current routing/contact"}
+        for row in rows:
+            name = row.get("Point(s) of Contact (published)", "").strip()
+            if name.lower() in skip_names:
+                continue
+            key = f"{name}|{row.get('Event / Program', '')}"
+            if key in seen:
+                continue
+            seen.add(key)
+            contacts.append({
+                "name": name,
+                "email": row.get("Contact Email / Phone (published)", "").strip(),
+                "host_unit": row.get("Host / Unit", "").strip(),
+                "event_name": row.get("Event / Program", "").strip(),
+                "source": "university",
+            })
+        return contacts
+    except Exception as exc:
+        raise _server_error(exc) from exc
+
+
 @router.get("/contacts")
 async def contacts() -> list[dict]:
     """Return point-of-contact records."""

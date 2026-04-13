@@ -105,7 +105,7 @@ function recoveryTone(status: CalendarAssignmentSummary["recovery_status"]) {
       return "border-emerald-200 bg-emerald-50 text-emerald-700";
     case "Needs Rest":
       return "border-amber-200 bg-amber-50 text-amber-700";
-    case "On Cooldown":
+    case "Rest Recommended":
       return "border-rose-200 bg-rose-50 text-rose-700";
     default:
       return "border-slate-200 bg-slate-50 text-slate-700";
@@ -118,7 +118,7 @@ function recoveryFill(status: CalendarAssignmentSummary["recovery_status"]) {
       return "bg-emerald-500";
     case "Needs Rest":
       return "bg-amber-500";
-    case "On Cooldown":
+    case "Rest Recommended":
       return "bg-rose-500";
     default:
       return "bg-slate-400";
@@ -135,7 +135,7 @@ function summaryCounts(events: CalendarEventSummary[], assignments: CalendarAssi
   const averageFatigue = assignments.length
     ? assignments.reduce((sum, assignment) => sum + assignment.volunteer_fatigue, 0) / assignments.length
     : 0;
-  const cooldownCount = assignments.filter((assignment) => assignment.recovery_status === "On Cooldown").length;
+  const cooldownCount = assignments.filter((assignment) => assignment.recovery_status === "Rest Recommended").length;
 
   return {
     covered,

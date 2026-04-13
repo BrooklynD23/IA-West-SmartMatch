@@ -408,7 +408,7 @@ export function Dashboard() {
       )
     : 0;
   const cooldownCount = calendarAssignments.filter(
-    (assignment) => assignment.recovery_status === "On Cooldown",
+    (assignment) => assignment.recovery_status === "Rest Recommended",
   ).length;
   const leadAdjustment = feedbackStats.recommended_adjustments[0] ?? null;
   const regionalPulse = buildRegionalPulse(calendarEvents, calendarAssignments, pipeline);
@@ -590,7 +590,7 @@ export function Dashboard() {
             <p className="mt-1 text-sm text-gray-600">From the assignment overlay data</p>
           </div>
           <div className="rounded-2xl border border-[#d5e0f7] bg-[#f7f9fc] p-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-gray-500">On cooldown</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Rest Recommended</p>
             <p className="mt-2 text-3xl font-semibold text-gray-900">{cooldownCount}</p>
             <p className="mt-1 text-sm text-gray-600">Volunteers the matcher should avoid</p>
           </div>

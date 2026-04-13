@@ -14,6 +14,7 @@ import {
 import {
   fetchEvents,
   fetchSpecialists,
+  fetchUniversityContacts,
   generateEmail,
   generateIcs,
   generateQrAsset,
@@ -21,6 +22,7 @@ import {
   type QrCodeAsset,
   type OutreachEmailResponse,
   type Specialist,
+  type UniversityContact,
 } from "@/lib/api";
 import { QRCodeCard } from "@/components/QRCodeCard";
 import { CrawlerFeed } from "@/components/CrawlerFeed";
@@ -92,12 +94,13 @@ export function Outreach() {
   const [recentEmails, setRecentEmails] = useState<RecentEmail[]>([]);
   const [lastGenerated, setLastGenerated] = useState<OutreachEmailResponse | null>(null);
   const [qrAsset, setQrAsset] = useState<QrCodeAsset | null>(null);
+  const [universityContacts, setUniversityContacts] = useState<UniversityContact[]>([]);
 
   useEffect(() => {
     let active = true;
 
-    Promise.all([fetchSpecialists(), fetchEvents()])
-      .then(([specialistResult, eventResult]) => {
+    Promise.all([fetchSpecialists(), fetchEvents(), fetchUniversityContacts()])
+      .then(([specialistResult, eventResult, uniContacts]) => {
         if (!active) {
           return;
         }
@@ -107,6 +110,7 @@ export function Outreach() {
         setEvents(eventRows);
         setSelectedSpeaker(specialistRows[0]?.name ?? "");
         setSelectedEvent(eventRows[0]?.["Event / Program"] ?? "");
+        setUniversityContacts(uniContacts);
       })
       .catch((err: unknown) => {
         if (active) {
@@ -154,7 +158,11 @@ export function Outreach() {
     setError(null);
 
     try {
-      const generated = await generateEmail(selectedSpeaker, selectedEvent);
+      const isUniRecipient = selectedSpeaker.startsWith("__uni__");
+      const effectiveName = isUniRecipient
+        ? selectedSpeaker.replace(/^__uni__/, "").split("|")[0]
+        : selectedSpeaker;
+      const generated = await generateEmail(effectiveName, selectedEvent);
       setLastGenerated(generated);
       setSubject(generated.email_data.subject_line);
       setBody(
@@ -162,7 +170,7 @@ export function Outreach() {
       );
       setRecentEmails((previous) => [
         {
-          to: selectedSpeaker,
+          to: effectiveName,
           subject: generated.email_data.subject_line,
           date: new Date().toLocaleDateString("en-US", {
             month: "short",
@@ -340,11 +348,22 @@ export function Outreach() {
                   onChange={(event) => setSelectedSpeaker(event.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  {specialists.map((speaker) => (
-                    <option key={speaker.name} value={speaker.name}>
-                      {speaker.name}
-                    </option>
-                  ))}
+                  <optgroup label="IA West Volunteers">
+                    {specialists.map((speaker) => (
+                      <option key={speaker.name} value={speaker.name}>
+                        {speaker.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                  {selectedTemplate.category === "university" && universityContacts.length > 0 && (
+                    <optgroup label="University Contacts (CPP)">
+                      {universityContacts.map((c, i) => (
+                        <option key={`${c.name}-${i}`} value={`__uni__${c.name}|${c.event_name}`}>
+                          CPP – {c.name} ({c.event_name})
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
                 </select>
               </div>
               <div>

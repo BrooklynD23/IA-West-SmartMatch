@@ -13,6 +13,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import qrcode
 
+from src.config import get_writable_dir
 from src.ui.data_helpers import (
     _data_dir,
     _load_qr_manifest_cached,
@@ -39,6 +40,18 @@ def _manifest_path() -> Path:
 
 def _scan_log_path() -> Path:
     return _qr_dir() / SCAN_LOG_FILENAME
+
+
+def _qr_write_dir() -> Path:
+    return get_writable_dir("data/qr")
+
+
+def _qr_write_manifest_path() -> Path:
+    return _qr_write_dir() / MANIFEST_FILENAME
+
+
+def _qr_write_scan_log_path() -> Path:
+    return _qr_write_dir() / SCAN_LOG_FILENAME
 
 
 def _utc_now() -> str:
@@ -133,21 +146,17 @@ def _read_manifest_records() -> list[dict[str, Any]]:
 
 
 def _write_manifest_records(records: list[dict[str, Any]]) -> None:
-    qr_dir = _qr_dir()
-    qr_dir.mkdir(parents=True, exist_ok=True)
     payload = {
         "updated_at": _utc_now(),
         "record_count": len(records),
         "records": records,
     }
-    _manifest_path().write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    _qr_write_manifest_path().write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
     _load_qr_manifest_cached.cache_clear()
 
 
 def _append_scan_log(entry: dict[str, Any]) -> None:
-    qr_dir = _qr_dir()
-    qr_dir.mkdir(parents=True, exist_ok=True)
-    with _scan_log_path().open("a", encoding="utf-8") as fh:
+    with _qr_write_scan_log_path().open("a", encoding="utf-8") as fh:
         fh.write(json.dumps(entry, sort_keys=True))
         fh.write("\n")
     _load_qr_scan_log_cached.cache_clear()

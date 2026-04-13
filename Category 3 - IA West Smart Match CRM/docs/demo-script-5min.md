@@ -61,7 +61,7 @@
 | "**Role Fit** — 18% — combines exact canonical matching (judge to judge, speaker to speaker) with fuzzy token-set similarity. A board president is inferred to be a capable speaker even if their title doesn't say it." | Point to the Role Fit bar. |
 | "**Calendar Fit** — 12% — finds the nearest IA West chapter event within a 30-day window of the opportunity date. The score decays linearly: a perfect same-week alignment scores 1.0; a 30-day gap scores 0.5. We want speakers engaged when IA West already has regional momentum." | Point to the Calendar Fit bar. |
 | "And the one judges always ask about: **Volunteer Fatigue**." | Pause. |
-| "Fatigue is a composite of four sub-pressures: how many active pipeline assignments the speaker currently holds, how far those assignments have progressed through the funnel, the travel burden of recent events, and the intensity of event recurrence — weekly commitments cost more than one-off appearances. We invert that pressure into a recovery score. Anyone above 0.75 fatigue is marked 'On Cooldown' and dropped from recommendations entirely. Between 0.40 and 0.75 is 'Needs Rest' — they still show up in results but ranked lower." | If the UI has a volunteer recovery panel or fatigue indicator, point to it. |
+| "Fatigue is a composite of four sub-pressures: how many active pipeline assignments the speaker currently holds, how far those assignments have progressed through the funnel, the travel burden of recent events, and the intensity of event recurrence — weekly commitments cost more than one-off appearances. We invert that pressure into a recovery score. Anyone above 0.75 fatigue is marked 'Rest Recommended' and dropped from recommendations entirely. Between 0.40 and 0.75 is 'Needs Rest' — they still show up in results but ranked lower." | If the UI has a volunteer recovery panel or fatigue indicator, point to it. |
 | "The composite score is a weighted sum across all eight factors. The weights are tunable — if IA West decides geographic proximity matters more than calendar fit this quarter, they slide one number." | If there are weight sliders, briefly show them. |
 
 ---
@@ -131,7 +131,7 @@
 | Matching factors | **8** |
 | Embedding dimensions (Gemini) | **1,536** |
 | CPP courses in dataset | **35** (10 high-fit) |
-| Fatigue "On Cooldown" threshold | **≥ 0.75** |
+| Fatigue "Rest Recommended" threshold | **≥ 0.75** |
 | Pipeline stages | **6** |
 | Test suite coverage | **82%** (358+ tests) |
 

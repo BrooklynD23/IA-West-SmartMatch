@@ -14,18 +14,18 @@ from pathlib import Path
 from typing import Any
 
 from src.config import (
-    EMAIL_CACHE_DIR,
     EMAIL_MAX_TOKENS,
     EMAIL_MODEL,
     EMAIL_TEMPERATURE,
     GEMINI_API_KEY,
+    get_writable_dir as _get_writable_dir,
 )
 from src.gemini_client import generate_text
 
 logger = logging.getLogger(__name__)
 
 # Intentionally shadows config import; tests patch this attribute.
-EMAIL_CACHE_DIR = Path(EMAIL_CACHE_DIR)
+EMAIL_CACHE_DIR = _get_writable_dir("cache/emails")
 
 
 # ---------------------------------------------------------------------------

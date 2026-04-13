@@ -83,7 +83,7 @@ function percentage(value: number) {
 function recoveryState(score: number) {
   if (score >= 0.75) {
     return {
-      label: "On Cooldown",
+      label: "Rest Recommended",
       tone: "bg-rose-50 text-rose-700 border-rose-200",
     };
   }
