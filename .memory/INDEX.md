@@ -11,6 +11,7 @@ Agents append entries here when creating a new memory file. Format:
 
 ## Entries
 
+- [2026-04-14] [cat3] Portals, demo DB seed, QR attendance, agentic outreach SSE, demo narrative — .memory/context/2026-04-14-cat3-portals-demo-narrative.md; Category 3 - IA West Smart Match CRM/docs/demo-narrative-2026-04-14.md
 - [2026-03-15] [cross-cutting] Master Sprint Plan + Strategic Review completed — MASTER_SPRINT_PLAN.md, STRATEGIC_REVIEW.md
 - [2026-03-15] [cross-cutting] Adversarial reviews completed for all 5 categories — revised tier rankings, must-add features identified
 - [2026-03-15] [cat5] Sprint plan created for CropSense AI — 4 sprints, 107.5h, Day 4 vertical slice gate — Category 5/SPRINT_PLAN.md

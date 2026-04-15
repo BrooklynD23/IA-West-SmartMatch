@@ -137,9 +137,11 @@ class TestGenerateOutreachEmail:
         from src.outreach.email_gen import generate_outreach_email
 
         captured_messages: list[Any] = []
+        captured_system: list[str] = []
 
         def capture_generate_text(messages: Any, **kwargs: Any) -> str:
             captured_messages.extend(messages)
+            captured_system.append(str(kwargs.get("system_instruction", "")))
             return FAKE_LLM_RESPONSE
 
         with patch("src.outreach.email_gen.EMAIL_CACHE_DIR", tmp_path), \
@@ -158,6 +160,10 @@ class TestGenerateOutreachEmail:
         assert "AI, machine learning, market research" in user_content
         assert "AI for a Better Future Hackathon" in user_content
         assert "87%" in user_content  # match score as percentage
+        assert "Cal Poly Pomona" in user_content
+        assert "school or campus event coordinator" in user_content
+        assert captured_system and "school" in captured_system[0].lower()
+        assert "not an ia west administrator" in captured_system[0].lower()
 
 
 class TestEmailCacheKey:
@@ -171,8 +177,8 @@ class TestEmailCacheKey:
         event = _make_event()
         scores = _make_match_scores()
 
-        key1 = _email_cache_key(speaker, event, scores)
-        key2 = _email_cache_key(speaker, event, scores)
+        key1 = _email_cache_key(speaker, event, scores, "school_coordinator")
+        key2 = _email_cache_key(speaker, event, scores, "school_coordinator")
         assert key1 == key2
 
     def test_different_speakers_produce_different_keys(self) -> None:
@@ -182,8 +188,8 @@ class TestEmailCacheKey:
         event = _make_event()
         scores = _make_match_scores()
 
-        key1 = _email_cache_key(_make_speaker(Name="Alice"), event, scores)
-        key2 = _email_cache_key(_make_speaker(Name="Bob"), event, scores)
+        key1 = _email_cache_key(_make_speaker(Name="Alice"), event, scores, "school_coordinator")
+        key2 = _email_cache_key(_make_speaker(Name="Bob"), event, scores, "school_coordinator")
         assert key1 != key2
 
     def test_different_events_produce_different_keys(self) -> None:
@@ -193,9 +199,20 @@ class TestEmailCacheKey:
         speaker = _make_speaker()
         scores = _make_match_scores()
 
-        key1 = _email_cache_key(speaker, _make_event(**{"Event / Program": "Event A"}), scores)
-        key2 = _email_cache_key(speaker, _make_event(**{"Event / Program": "Event B"}), scores)
+        key1 = _email_cache_key(speaker, _make_event(**{"Event / Program": "Event A"}), scores, "school_coordinator")
+        key2 = _email_cache_key(speaker, _make_event(**{"Event / Program": "Event B"}), scores, "school_coordinator")
         assert key1 != key2
+
+    def test_different_voice_produces_different_keys(self) -> None:
+        """Same speaker/event but different voice must not share cache."""
+        from src.outreach.email_gen import _email_cache_key
+
+        speaker = _make_speaker()
+        event = _make_event()
+        scores = _make_match_scores()
+        school = _email_cache_key(speaker, event, scores, "school_coordinator")
+        chapter = _email_cache_key(speaker, event, scores, "ia_west_chapter")
+        assert school != chapter
 
 
 class TestCachePersistence:
@@ -220,8 +237,8 @@ class TestCachePersistence:
         }
 
         with patch("src.outreach.email_gen.EMAIL_CACHE_DIR", tmp_path):
-            save_cached_email(speaker, event, scores, email)
-            loaded = load_cached_email(speaker, event, scores)
+            save_cached_email(speaker, event, scores, "school_coordinator", email)
+            loaded = load_cached_email(speaker, event, scores, "school_coordinator")
 
         assert loaded is not None
         assert loaded["subject_line"] == "Test Subject"
@@ -232,7 +249,7 @@ class TestCachePersistence:
         from src.outreach.email_gen import load_cached_email
 
         with patch("src.outreach.email_gen.EMAIL_CACHE_DIR", tmp_path):
-            result = load_cached_email(_make_speaker(), _make_event(), _make_match_scores())
+            result = load_cached_email(_make_speaker(), _make_event(), _make_match_scores(), "school_coordinator")
 
         assert result is None
 
@@ -249,6 +266,7 @@ class TestFallbackEmail:
             speaker_expertise="AI",
             event_name="Hackathon",
             volunteer_role="Judge",
+            voice="school_coordinator",
         )
 
         required_keys = {"subject_line", "greeting", "body", "closing", "full_email"}
@@ -265,10 +283,25 @@ class TestFallbackEmail:
             speaker_expertise="",
             event_name="",
             volunteer_role="",
+            voice="school_coordinator",
         )
 
         assert "subject_line" in result
         assert "full_email" in result
+
+    def test_fallback_ia_west_chapter_voice(self) -> None:
+        """IA West chapter voice uses legacy chapter-leadership template."""
+        from src.outreach.email_gen import _fallback_email
+
+        result = _fallback_email(
+            speaker_name="Dr. Chen",
+            speaker_expertise="analytics",
+            event_name="Hackathon",
+            volunteer_role="Judge",
+            voice="ia_west_chapter",
+        )
+        assert "IA West (Insights Association West Chapter)" in result["body"]
+        assert "IA West Chapter Leadership" in result["closing"]
 
 
 class TestGenerateEmailJsonParsing:

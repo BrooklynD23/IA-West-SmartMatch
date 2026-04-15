@@ -73,6 +73,39 @@ async def scan(referral_code: str, membership_interest: bool = False) -> Redirec
     return RedirectResponse(url=str(result["redirect_url"]), status_code=307)
 
 
+class AttendanceCheckinRequest(BaseModel):
+    event_id: str
+    student_id: str
+    check_in_time: str
+    scan_duration_minutes: int | None = None
+
+
+@router.post("/attendance/checkin")
+async def attendance_checkin(body: AttendanceCheckinRequest) -> dict[str, Any]:
+    """Record a student QR attendance check-in."""
+    try:
+        from src.qr.service import record_attendance_checkin
+        return record_attendance_checkin(
+            event_id=body.event_id,
+            student_id=body.student_id,
+            check_in_time=body.check_in_time,
+            scan_duration_minutes=body.scan_duration_minutes,
+        )
+    except Exception as exc:
+        raise _server_error(exc) from exc
+
+
+@router.get("/attendance/history/{student_id}")
+async def attendance_history(student_id: str) -> dict[str, Any]:
+    """Return QR attendance history for a student."""
+    try:
+        from src.qr.service import get_student_attendance_history
+        records = get_student_attendance_history(student_id)
+        return {"student_id": student_id, "records": records, "total": len(records)}
+    except Exception as exc:
+        raise _server_error(exc) from exc
+
+
 @router.get("/stats")
 async def stats(
     speaker_name: str | None = None,

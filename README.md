@@ -6,7 +6,7 @@ Repository for the **Hackathon for a Better Future 2026** competition entries.
 
 AI-orchestrated speaker-event matching platform for the Insights Association West Chapter. Uses Gemini LLMs to discover university engagement opportunities, match them with board member volunteers via an 8-factor scoring algorithm, and coordinate outreach through a voice-enabled command center.
 
-**Tech Stack:** Python 3.11 | Streamlit | Gemini API | KittenTTS | faster-whisper | Plotly | pandas | scikit-learn
+**Tech Stack:** Python 3.11 | Streamlit | React + Vite + FastAPI (fullstack path) | Gemini API | KittenTTS | faster-whisper | Plotly | pandas | scikit-learn
 
 **Highlights:**
 - 8-factor AI matching engine with interactive weight tuning and radar chart visualization
@@ -14,6 +14,7 @@ AI-orchestrated speaker-event matching platform for the Insights Association Wes
 - Human-in-the-loop approval workflow with action proposal cards
 - Background agent tool dispatch with live swimlane dashboard
 - University event discovery via web scraping with LLM extraction
+- **Student & event coordinator portals** on the React app with seeded `demo.db`, QR attendance API, and **agentic outreach** SSE (see [demo narrative](Category%203%20-%20IA%20West%20Smart%20Match%20CRM/docs/demo-narrative-2026-04-14.md))
 - 580 tests | 25/25 requirements delivered across v1.0 and v2.0 milestones
 
 See [Category 3 - IA West Smart Match CRM/README.md](Category%203%20-%20IA%20West%20Smart%20Match%20CRM/README.md) for full setup and usage instructions.

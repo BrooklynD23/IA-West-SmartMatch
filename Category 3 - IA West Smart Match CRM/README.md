@@ -236,6 +236,21 @@ Utilization analytics and geographic views.
 
 **Outreach** and **Dashboard** include a **Web Crawler Feed** that streams progress over Server-Sent Events (`/api/crawler/feed`). Configure **`GEMINI_API_KEY`** and/or **`TAVILY_API_KEY`** in `.env` (see [Environment setup](#environment-setup)) for live discovery beyond the built-in seed URLs.
 
+### Student & event coordinator portals (React + `demo.db`)
+
+The Vite app adds **role-specific workspaces** on top of the existing coordinator surfaces:
+
+- **Landing** — entry CTAs for Student Portal and Event Coordinator (login supports **URL query pre-selection** of role, e.g. deep links from the landing page).
+- **Login** — three-role picker (student, event coordinator, IA West admin) with **mock login** backed by seeded emails in `data/demo.db` (`POST /api/portals/auth/mock-login`).
+- **Student portal** — Home (nudges, recommendations), Events, History (attendance / streak), Connect (shared-interest suggestions); data from `/api/portals/...` (see `src/api/routers/portals.py`).
+- **Event coordinator portal** — Home, Events (e.g. Request Match → AI Matching), Outreach (threads + **Launch AI Outreach Agents**), Meetings; same router prefix.
+- **Agentic outreach (demo)** — `POST /api/outreach/agentic-workflow/stream` streams five named agents (Scout → Copywriter → Scheduler → Planner → Pipeline) for the coordinator UI (`AgenticOutreachPanel`).
+- **QR attendance** — `POST /api/qr/attendance/checkin` and `GET /api/qr/attendance/history/{student_id}` extend the QR API for event check-in and history (see `src/api/routers/qr.py`, `src/qr/service.py`).
+
+**Demo database:** run `python scripts/seed_demo_db.py` from this directory to (re)build **`data/demo.db`** with synchronized students, coordinators, registrations, outreach threads, meetings, retention nudges, mock roles, and related calendar/pipeline/demo tables as defined in the script.
+
+**Judge / teammate walkthrough:** [docs/demo-narrative-2026-04-14.md](docs/demo-narrative-2026-04-14.md) — verification snapshot, six-scene narrative, competitor comparison, and notes for the next visual design pass.
+
 ---
 
 ## Architecture (high level)
@@ -245,11 +260,16 @@ src/
   app.py                 # Streamlit entry
   config.py              # Configuration
   data_loader.py         # CSV pipeline
+  api/                   # FastAPI app (main.py, routers: data, calendar, qr, feedback, matching, outreach, crawler, portals)
   matching/              # Engine + factors
   scraping/              # University scraper
   coordinator/           # Intent, approval, tools, optional NemoClaw adapter
   ui/                    # Pages, command center, tabs
   voice/                 # TTS / STT wrappers
+  qr/                    # QR + attendance helpers used by API
+frontend/                # Vite + React (Dashboard, portals, agentic outreach UI, …)
+scripts/
+  seed_demo_db.py        # Seeds data/demo.db for portal + demo flows
 ```
 
 ---

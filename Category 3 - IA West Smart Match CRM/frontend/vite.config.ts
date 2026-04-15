@@ -19,7 +19,17 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": {
-        target: "http://localhost:8000",
+        // Use IPv4 literal so Windows + Node do not prefer ::1 when the API binds 127.0.0.1 only.
+        target: "http://127.0.0.1:8000",
+        changeOrigin: true,
+      },
+    },
+  },
+  preview: {
+    port: 4173,
+    proxy: {
+      "/api": {
+        target: "http://127.0.0.1:8000",
         changeOrigin: true,
       },
     },

@@ -44,5 +44,8 @@ All 5 categories already have substantial planning complete. Do not re-do this w
 | `PRD_SECTION_CAT[N].md` | FEATURES (detailed) | Done | All 5 |
 | Cat 4 prototype code | TEST + implementation | In-progress | Cat 4 |
 | Cat 3 CSV data | Data inputs ready | Available | Cat 3 |
+| Cat 3 React + FastAPI portals | Implementation + demo narrative | Shipped 2026-04-14 | Cat 3 |
 
 **The pipeline picks up at Stage 3 (DOC) for whichever category the team selects.**
+
+**Category 3 note (2026-04-14):** The fullstack app adds student/event-coordinator portals, `data/demo.db` seeding, QR attendance API extensions, and agentic outreach SSE; see `Category 3 - IA West Smart Match CRM/docs/demo-narrative-2026-04-14.md` and `.memory/context/2026-04-14-cat3-portals-demo-narrative.md` for verification and handoff.

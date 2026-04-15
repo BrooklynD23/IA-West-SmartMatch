@@ -1,5 +1,7 @@
 import { createBrowserRouter } from "react-router";
 import { Layout } from "./components/Layout";
+import { StudentLayout } from "./components/StudentLayout";
+import { CoordinatorPortalLayout } from "./components/CoordinatorPortalLayout";
 import { LandingPage } from "./pages/LandingPage";
 import { LoginPage } from "./pages/LoginPage";
 import { Dashboard } from "./pages/Dashboard";
@@ -9,13 +11,47 @@ import { Pipeline } from "./pages/Pipeline";
 import { Calendar } from "./pages/Calendar";
 import { Outreach } from "./pages/Outreach";
 import { AIMatching } from "./pages/AIMatching";
+import { StudentHome } from "./pages/student/StudentHome";
+import { StudentEvents } from "./pages/student/StudentEvents";
+import { StudentHistory } from "./pages/student/StudentHistory";
+import { StudentConnect } from "./pages/student/StudentConnect";
+import { StudentRewards } from "./pages/student/StudentRewards";
+import { CoordinatorHome } from "./pages/coordinator/CoordinatorHome";
+import { CoordinatorEvents } from "./pages/coordinator/CoordinatorEvents";
+import { CoordinatorOutreach } from "./pages/coordinator/CoordinatorOutreach";
+import { CoordinatorMeetings } from "./pages/coordinator/CoordinatorMeetings";
 
 export const router = createBrowserRouter([
   // Public routes (no sidebar)
   { path: "/", Component: LandingPage },
   { path: "/login", Component: LoginPage },
 
-  // Coordinator routes (with sidebar layout — pathless layout route)
+  // Student portal routes
+  {
+    path: "student-portal",
+    Component: StudentLayout,
+    children: [
+      { index: true, Component: StudentHome },
+      { path: "events", Component: StudentEvents },
+      { path: "history", Component: StudentHistory },
+      { path: "connect", Component: StudentConnect },
+      { path: "rewards", Component: StudentRewards },
+    ],
+  },
+
+  // Event coordinator portal routes
+  {
+    path: "coordinator-portal",
+    Component: CoordinatorPortalLayout,
+    children: [
+      { index: true, Component: CoordinatorHome },
+      { path: "events", Component: CoordinatorEvents },
+      { path: "outreach", Component: CoordinatorOutreach },
+      { path: "meetings", Component: CoordinatorMeetings },
+    ],
+  },
+
+  // IA Admin routes (with sidebar layout — pathless layout route)
   {
     Component: Layout,
     children: [

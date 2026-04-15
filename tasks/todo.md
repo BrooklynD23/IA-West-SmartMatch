@@ -2,6 +2,42 @@
 
 ## Current Work
 
+### 2026-04-15 — PR #11 merge conflict resolution
+
+_Execution board for reconciling `feature/cat3-portals-rewards-outreach-routing` with `origin/main` while preserving both the portal/outreach work and the recent frontend UX cleanup._
+
+- [x] Fetch the live GitHub `main` branch and reproduce the merge conflicts locally.
+- [x] Inspect the conflicting frontend files and identify where `main` adds UX polish versus where the branch adds portal flows and outreach routing.
+- [x] Resolve the dependency/UI conflict by keeping the portal branch's required UI stack while preserving `main`'s dashboard and navigation polish.
+- [x] Regenerate the frontend lockfile from the merged dependency graph and restore any merge-deleted shared UI primitives still required by the portal pages.
+- [x] Run focused frontend verification and record the outcome below.
+
+#### Review
+
+- Merged `origin/main` into `feature/cat3-portals-rewards-outreach-routing` locally and resolved the four frontend conflicts: `package.json`, regenerated `package-lock.json`, `Dashboard.tsx`, and `LandingPage.tsx`.
+- Preserved the portal branch's UI dependency footprint and restored the shared `src/app/components/ui/` primitives so the student/coordinator portal pages still have their required Radix/shadcn wrappers.
+- Kept `main`'s navigation polish by retaining the grouped sidebar/tooltips and clickable dashboard metric cards, while preserving the branch's portal login CTAs and dashboard logout flow.
+- Verification:
+  - `cd "Category 3 - IA West Smart Match CRM/frontend" && npm install` -> passed.
+  - `cd "Category 3 - IA West Smart Match CRM/frontend" && npm run build` -> passed with Vite `6.4.2`.
+
+### 2026-04-14 — Cat3 portals, demo DB, QR attendance, agentic outreach, UI hardening, demo narrative
+
+_Execution board closed: final verification and demo packaging for the React + FastAPI judge path._
+
+- [x] Extend `scripts/seed_demo_db.py` with synchronized demo entities (students, coordinators, registrations, outreach, meetings, retention nudges, mock login roles, related calendar/pipeline/QR tables per script).
+- [x] Ship `src/api/routers/portals.py` (student + coordinator reads, `POST /api/portals/auth/mock-login`).
+- [x] Extend QR API + service for attendance check-in and history (`/api/qr/attendance/...`).
+- [x] Ship agentic outreach SSE (`POST /api/outreach/agentic-workflow/stream`) and coordinator UI (`AgenticOutreachPanel` / modal).
+- [x] Student + coordinator portal pages, layouts, login with URL-param role pre-selection, landing CTAs; replace raw palette classes with semantic design tokens; add ARIA and keyboard fixes.
+- [x] Write verification snapshot + 6-scene narrative: `Category 3 - IA West Smart Match CRM/docs/demo-narrative-2026-04-14.md`; handoff memory: `.memory/context/2026-04-14-cat3-portals-demo-narrative.md`.
+
+#### Review
+
+- Delivered scope matches the session summary (portals, seed, APIs, SSE, UI audit, dated demo doc).
+- Canonical walkthrough for judges/teammates: `Category 3 - IA West Smart Match CRM/docs/demo-narrative-2026-04-14.md`.
+- Next (non-blocking): visual design pass items listed in that narrative (spacing, header hierarchy, optional student top-nav, page transitions).
+
 ### v3.1 Autonomous Recovery + Phase 14 Visual Resilience
 
 _Execution board for repairing GSD milestone state, retro-verifying Phase 13, and continuing autonomous delivery through Phase 14 Visual Resilience._

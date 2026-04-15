@@ -500,6 +500,76 @@ QR_STATS = {
     ],
 }
 
+MOCK_ROLES = [
+    {"role": "student", "email": "student@cal.edu", "name": "Alex Rivera", "id": "student-001"},
+    {"role": "event_coordinator", "email": "coordinator@cpp.edu", "name": "Jordan Lee", "id": "coord-001"},
+    {"role": "ia_admin", "email": "admin@iawest.org", "name": "IA Admin", "id": "admin-001"},
+]
+
+STUDENTS = [
+    {"student_id": "stu-001", "name": "Alex Rivera", "email": "alex.rivera@cal.edu", "school": "Cal Poly Pomona", "major": "Computer Science", "year": "Junior", "interests": "AI,machine learning,hackathons", "attendance_streak": 3, "events_attended": 2, "churn_risk": "low", "membership_interest": True, "suggested_connections": "stu-002,stu-003,stu-004,stu-006"},
+    {"student_id": "stu-002", "name": "Maria Santos", "email": "maria.santos@uci.edu", "school": "UC Irvine", "major": "Data Science", "year": "Senior", "interests": "data engineering,analytics,Python", "attendance_streak": 1, "events_attended": 2, "churn_risk": "medium", "membership_interest": False, "suggested_connections": "stu-001,stu-004,stu-006,stu-008"},
+    {"student_id": "stu-003", "name": "Kevin Park", "email": "kevin.park@ucr.edu", "school": "UC Riverside", "major": "Business Analytics", "year": "Sophomore", "interests": "fintech,product management,startups", "attendance_streak": 0, "events_attended": 1, "churn_risk": "high", "membership_interest": False, "suggested_connections": "stu-001,stu-005"},
+    {"student_id": "stu-004", "name": "Priya Mehta", "email": "priya.mehta@csuf.edu", "school": "Cal State Fullerton", "major": "Marketing Analytics", "year": "Senior", "interests": "market research,consumer insights,DEI", "attendance_streak": 5, "events_attended": 7, "churn_risk": "low", "membership_interest": True, "suggested_connections": "stu-001,stu-006"},
+    {"student_id": "stu-005", "name": "Tyler Johnson", "email": "tyler.j@cpp.edu", "school": "Cal Poly Pomona", "major": "Information Systems", "year": "Junior", "interests": "cybersecurity,networking,cloud", "attendance_streak": 2, "events_attended": 3, "churn_risk": "medium", "membership_interest": False, "suggested_connections": "stu-003,stu-007"},
+    {"student_id": "stu-006", "name": "Sophia Chen", "email": "sophia.chen@usc.edu", "school": "USC", "major": "Computational Social Science", "year": "Freshman", "interests": "AI,ethics,civic tech", "attendance_streak": 2, "events_attended": 2, "churn_risk": "low", "membership_interest": True, "suggested_connections": "stu-004,stu-008"},
+    {"student_id": "stu-007", "name": "Marcus Williams", "email": "m.williams@sdsu.edu", "school": "SDSU", "major": "Supply Chain Analytics", "year": "Senior", "interests": "operations,robotics,embedded systems", "attendance_streak": 0, "events_attended": 1, "churn_risk": "high", "membership_interest": False, "suggested_connections": "stu-005,stu-008"},
+    {"student_id": "stu-008", "name": "Nia Thompson", "email": "nia.t@ucla.edu", "school": "UCLA", "major": "Statistics", "year": "Junior", "interests": "data science,healthcare AI,NLP", "attendance_streak": 4, "events_attended": 5, "churn_risk": "low", "membership_interest": True, "suggested_connections": "stu-006,stu-007"},
+]
+
+EVENT_COORDINATORS = [
+    {"coordinator_id": "coord-001", "name": "Jordan Lee", "email": "jordan.lee@cpp.edu", "school": "Cal Poly Pomona", "department": "Innovation Programs", "hosted_events": "demo-event-01,demo-event-03", "contact_status": "active", "last_contact_date": "2026-04-01", "meeting_availability": "Mon,Wed,Fri 10am-3pm"},
+    {"coordinator_id": "coord-002", "name": "Samantha Torres", "email": "s.torres@uci.edu", "school": "UC Irvine", "department": "Career Services", "hosted_events": "demo-event-02", "contact_status": "pending", "last_contact_date": "2026-03-25", "meeting_availability": "Tue,Thu 1pm-5pm"},
+    {"coordinator_id": "coord-003", "name": "David Kim", "email": "d.kim@csuf.edu", "school": "Cal State Fullerton", "department": "Student Affairs", "hosted_events": "demo-event-05", "contact_status": "active", "last_contact_date": "2026-04-03", "meeting_availability": "Mon,Tue,Thu 9am-12pm"},
+    {"coordinator_id": "coord-004", "name": "Lisa Nguyen", "email": "l.nguyen@ucsd.edu", "school": "UC San Diego", "department": "Entrepreneurship Center", "hosted_events": "", "contact_status": "new", "last_contact_date": "", "meeting_availability": "Wed,Fri 2pm-6pm"},
+    {"coordinator_id": "coord-005", "name": "Marcus Brown", "email": "m.brown@usc.edu", "school": "USC", "department": "Computing Programs", "hosted_events": "demo-event-04", "contact_status": "active", "last_contact_date": "2026-04-05", "meeting_availability": "Mon-Fri 11am-2pm"},
+]
+
+STUDENT_REGISTRATIONS = [
+    {"registration_id": "reg-001", "student_id": "stu-001", "event_id": "demo-event-01", "event_name": "AI for a Better Future Hackathon", "registered_at": "2026-03-20T10:00:00Z", "status": "attended", "check_in_time": "2026-04-09T08:30:00Z", "check_out_time": "2026-04-09T17:00:00Z"},
+    {"registration_id": "reg-002", "student_id": "stu-001", "event_id": "demo-event-03", "event_name": "Bronco Startup Challenge", "registered_at": "2026-04-01T09:00:00Z", "status": "attended", "check_in_time": "2026-04-24T09:15:00Z", "check_out_time": "2026-04-24T16:45:00Z"},
+    {"registration_id": "reg-003", "student_id": "stu-002", "event_id": "demo-event-02", "event_name": "ITC Conference", "registered_at": "2026-03-28T14:00:00Z", "status": "attended", "check_in_time": "2026-04-18T09:00:00Z", "check_out_time": "2026-04-18T16:30:00Z"},
+    {"registration_id": "reg-004", "student_id": "stu-004", "event_id": "demo-event-01", "event_name": "AI for a Better Future Hackathon", "registered_at": "2026-03-19T11:00:00Z", "status": "attended", "check_in_time": "2026-04-09T08:45:00Z", "check_out_time": "2026-04-09T18:00:00Z"},
+    {"registration_id": "reg-005", "student_id": "stu-004", "event_id": "demo-event-04", "event_name": "IA West Annual Summit", "registered_at": "2026-04-02T10:00:00Z", "status": "registered", "check_in_time": None, "check_out_time": None},
+    {"registration_id": "reg-006", "student_id": "stu-005", "event_id": "demo-event-05", "event_name": "Tech Career Fair", "registered_at": "2026-04-10T12:00:00Z", "status": "registered", "check_in_time": None, "check_out_time": None},
+    {"registration_id": "reg-007", "student_id": "stu-006", "event_id": "demo-event-01", "event_name": "AI for a Better Future Hackathon", "registered_at": "2026-03-22T15:00:00Z", "status": "attended", "check_in_time": "2026-04-09T09:00:00Z", "check_out_time": "2026-04-09T16:00:00Z"},
+    {"registration_id": "reg-008", "student_id": "stu-008", "event_id": "demo-event-02", "event_name": "ITC Conference", "registered_at": "2026-03-30T09:00:00Z", "status": "attended", "check_in_time": "2026-04-18T08:30:00Z", "check_out_time": "2026-04-18T17:00:00Z"},
+    {"registration_id": "reg-009", "student_id": "stu-003", "event_id": "demo-event-03", "event_name": "Bronco Startup Challenge", "registered_at": "2026-04-05T11:00:00Z", "status": "attended", "check_in_time": "2026-04-24T09:30:00Z", "check_out_time": "2026-04-24T17:00:00Z"},
+    {"registration_id": "reg-010", "student_id": "stu-007", "event_id": "demo-event-05", "event_name": "Tech Career Fair", "registered_at": "2026-04-08T14:00:00Z", "status": "registered", "check_in_time": None, "check_out_time": None},
+    {"registration_id": "reg-011", "student_id": "stu-001", "event_id": "demo-event-04", "event_name": "IA West Annual Summit", "registered_at": "2026-04-03T10:00:00Z", "status": "registered", "check_in_time": None, "check_out_time": None},
+    {"registration_id": "reg-012", "student_id": "stu-008", "event_id": "demo-event-04", "event_name": "IA West Annual Summit", "registered_at": "2026-04-04T09:00:00Z", "status": "registered", "check_in_time": None, "check_out_time": None},
+    # Shared room with stu-001 / stu-004 / stu-006 at the hackathon (Connect tab: co-attendance signal)
+    {"registration_id": "reg-013", "student_id": "stu-002", "event_id": "demo-event-01", "event_name": "AI for a Better Future Hackathon", "registered_at": "2026-03-18T12:00:00Z", "status": "attended", "check_in_time": "2026-04-09T08:15:00Z", "check_out_time": "2026-04-09T16:45:00Z"},
+]
+
+OUTREACH_THREADS = [
+    {"thread_id": "thread-001", "coordinator_id": "coord-001", "event_id": "demo-event-01", "ia_contact": "Dr. Sarah Chen", "subject": "Hackathon Speaker Coordination", "status": "confirmed", "last_message_at": "2026-04-02T10:00:00Z", "message_count": 4, "next_action": "Send ICS invite"},
+    {"thread_id": "thread-002", "coordinator_id": "coord-002", "event_id": "demo-event-02", "ia_contact": "Priya Nair", "subject": "ITC Conference Panelist Setup", "status": "in_progress", "last_message_at": "2026-04-05T14:00:00Z", "message_count": 2, "next_action": "Confirm availability"},
+    {"thread_id": "thread-003", "coordinator_id": "coord-003", "event_id": "demo-event-05", "ia_contact": "Lisa Chang", "subject": "Tech Career Fair Recruiter Slot", "status": "awaiting_response", "last_message_at": "2026-04-01T11:00:00Z", "message_count": 1, "next_action": "Follow up in 3 days"},
+    {"thread_id": "thread-004", "coordinator_id": "coord-001", "event_id": "demo-event-03", "ia_contact": "Marcus Webb", "subject": "Startup Challenge Judge Invitation", "status": "in_progress", "last_message_at": "2026-04-06T09:00:00Z", "message_count": 3, "next_action": "Finalize logistics"},
+    {"thread_id": "thread-005", "coordinator_id": "coord-005", "event_id": "demo-event-04", "ia_contact": "Dr. Emily Park", "subject": "Summit Ethics Panel Speaker", "status": "confirmed", "last_message_at": "2026-04-07T16:00:00Z", "message_count": 5, "next_action": "Send final materials"},
+    {"thread_id": "thread-006", "coordinator_id": "coord-004", "event_id": "demo-event-05", "ia_contact": "", "subject": "New Partnership Inquiry", "status": "new", "last_message_at": "", "message_count": 0, "next_action": "Assign IA contact"},
+]
+
+MEETING_BOOKINGS = [
+    {"booking_id": "booking-001", "thread_id": "thread-001", "coordinator_id": "coord-001", "ia_contact": "Dr. Sarah Chen", "event_id": "demo-event-01", "title": "Pre-event speaker briefing", "scheduled_at": "2026-04-07T10:00:00Z", "duration_minutes": 30, "status": "confirmed", "meeting_link": "https://meet.iawest.org/hackathon-brief", "notes": "Review logistics and presentation slots"},
+    {"booking_id": "booking-002", "thread_id": "thread-004", "coordinator_id": "coord-001", "ia_contact": "Marcus Webb", "event_id": "demo-event-03", "title": "Judge orientation call", "scheduled_at": "2026-04-12T14:00:00Z", "duration_minutes": 45, "status": "pending_confirmation", "meeting_link": "https://meet.iawest.org/startup-orient", "notes": "Walk through judging criteria"},
+    {"booking_id": "booking-003", "thread_id": "thread-002", "coordinator_id": "coord-002", "ia_contact": "Priya Nair", "event_id": "demo-event-02", "title": "Panelist prep session", "scheduled_at": "2026-04-16T11:00:00Z", "duration_minutes": 60, "status": "confirmed", "meeting_link": "https://meet.iawest.org/itc-panel", "notes": "Discuss panel topics and format"},
+    {"booking_id": "booking-004", "thread_id": "thread-005", "coordinator_id": "coord-005", "ia_contact": "Dr. Emily Park", "event_id": "demo-event-04", "title": "Ethics panel planning meeting", "scheduled_at": "2026-04-25T15:00:00Z", "duration_minutes": 45, "status": "confirmed", "meeting_link": "https://meet.iawest.org/summit-ethics", "notes": "Finalize discussion questions"},
+    {"booking_id": "booking-005", "thread_id": "thread-003", "coordinator_id": "coord-003", "ia_contact": "Lisa Chang", "event_id": "demo-event-05", "title": "Career fair orientation", "scheduled_at": "2026-04-30T10:00:00Z", "duration_minutes": 30, "status": "pending_confirmation", "meeting_link": "https://meet.iawest.org/careerfair-orient", "notes": "Recruiter booth setup instructions"},
+]
+
+RETENTION_NUDGES = [
+    {"student_id": "stu-001", "nudge_type": "next_event", "message": "The Bronco Startup Challenge is coming up on Apr 24 — you're already registered!", "event_id": "demo-event-03", "cta_label": "View event details", "points_earned": 120},
+    {"student_id": "stu-002", "nudge_type": "re_engage", "message": "It's been a while since your last event. The ITC Conference is a great next step for data professionals.", "event_id": "demo-event-02", "cta_label": "Learn more", "points_earned": 50},
+    {"student_id": "stu-003", "nudge_type": "re_engage", "message": "You signed up for the Bronco Startup Challenge — don't miss out! It's in 10 days.", "event_id": "demo-event-03", "cta_label": "Add to calendar", "points_earned": 30},
+    {"student_id": "stu-004", "nudge_type": "membership", "message": "You've attended 7 IA events! You qualify for IA West student membership. Join to unlock networking, mentorship, and career resources.", "event_id": None, "cta_label": "Explore membership", "points_earned": 300},
+    {"student_id": "stu-005", "nudge_type": "next_event", "message": "The Tech Career Fair is your next chance to meet cybersecurity and cloud recruiters on Aug 15.", "event_id": "demo-event-05", "cta_label": "Prepare now", "points_earned": 60},
+    {"student_id": "stu-006", "nudge_type": "streak", "message": "You're on a 2-event streak! Attend the IA West Annual Summit to hit 3 and earn bonus recognition.", "event_id": "demo-event-04", "cta_label": "Register now", "points_earned": 180},
+    {"student_id": "stu-007", "nudge_type": "re_engage", "message": "No events attended yet this term. The Tech Career Fair has supply chain and operations roles — a perfect fit for your major.", "event_id": "demo-event-05", "cta_label": "Register free", "points_earned": 20},
+    {"student_id": "stu-008", "nudge_type": "membership", "message": "You've attended 5 events and flagged membership interest. Complete your profile to apply for IA West student membership.", "event_id": None, "cta_label": "Complete profile", "points_earned": 280},
+]
+
 FEEDBACK_STATS = {
     "total_feedback": 8,
     "accepted": 5,
@@ -785,6 +855,86 @@ def create_schema(connection: sqlite3.Connection) -> None:
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             payload_json TEXT NOT NULL
         );
+
+        CREATE TABLE students (
+            student_id TEXT PRIMARY KEY,
+            name TEXT,
+            email TEXT,
+            school TEXT,
+            major TEXT,
+            year TEXT,
+            interests TEXT,
+            attendance_streak INTEGER,
+            events_attended INTEGER,
+            churn_risk TEXT,
+            membership_interest INTEGER,
+            suggested_connections TEXT
+        );
+
+        CREATE TABLE mock_roles (
+            role TEXT,
+            email TEXT PRIMARY KEY,
+            name TEXT,
+            id TEXT
+        );
+
+        CREATE TABLE event_coordinators (
+            coordinator_id TEXT PRIMARY KEY,
+            name TEXT,
+            email TEXT,
+            school TEXT,
+            department TEXT,
+            hosted_events TEXT,
+            contact_status TEXT,
+            last_contact_date TEXT,
+            meeting_availability TEXT
+        );
+
+        CREATE TABLE student_registrations (
+            registration_id TEXT PRIMARY KEY,
+            student_id TEXT,
+            event_id TEXT,
+            event_name TEXT,
+            registered_at TEXT,
+            status TEXT,
+            check_in_time TEXT,
+            check_out_time TEXT
+        );
+
+        CREATE TABLE outreach_threads (
+            thread_id TEXT PRIMARY KEY,
+            coordinator_id TEXT,
+            event_id TEXT,
+            ia_contact TEXT,
+            subject TEXT,
+            status TEXT,
+            last_message_at TEXT,
+            message_count INTEGER,
+            next_action TEXT
+        );
+
+        CREATE TABLE meeting_bookings (
+            booking_id TEXT PRIMARY KEY,
+            thread_id TEXT,
+            coordinator_id TEXT,
+            ia_contact TEXT,
+            event_id TEXT,
+            title TEXT,
+            scheduled_at TEXT,
+            duration_minutes INTEGER,
+            status TEXT,
+            meeting_link TEXT,
+            notes TEXT
+        );
+
+        CREATE TABLE retention_nudges (
+            student_id TEXT PRIMARY KEY,
+            nudge_type TEXT,
+            message TEXT,
+            event_id TEXT,
+            cta_label TEXT,
+            points_earned INTEGER
+        );
         """
     )
 
@@ -907,6 +1057,85 @@ def insert_seed_data(connection: sqlite3.Connection) -> None:
     connection.execute(
         "INSERT INTO feedback_stats (payload_json) VALUES (?)",
         (json.dumps(FEEDBACK_STATS, sort_keys=True),),
+    )
+    connection.executemany(
+        """
+        INSERT INTO students (
+            student_id, name, email, school, major, year, interests,
+            attendance_streak, events_attended, churn_risk, membership_interest,
+            suggested_connections
+        ) VALUES (
+            :student_id, :name, :email, :school, :major, :year, :interests,
+            :attendance_streak, :events_attended, :churn_risk, :membership_interest,
+            :suggested_connections
+        )
+        """,
+        [
+            {**record, "membership_interest": int(record["membership_interest"])}
+            for record in STUDENTS
+        ],
+    )
+    connection.executemany(
+        "INSERT INTO mock_roles (role, email, name, id) VALUES (:role, :email, :name, :id)",
+        MOCK_ROLES,
+    )
+    connection.executemany(
+        """
+        INSERT INTO event_coordinators (
+            coordinator_id, name, email, school, department, hosted_events,
+            contact_status, last_contact_date, meeting_availability
+        ) VALUES (
+            :coordinator_id, :name, :email, :school, :department, :hosted_events,
+            :contact_status, :last_contact_date, :meeting_availability
+        )
+        """,
+        EVENT_COORDINATORS,
+    )
+    connection.executemany(
+        """
+        INSERT INTO student_registrations (
+            registration_id, student_id, event_id, event_name, registered_at,
+            status, check_in_time, check_out_time
+        ) VALUES (
+            :registration_id, :student_id, :event_id, :event_name, :registered_at,
+            :status, :check_in_time, :check_out_time
+        )
+        """,
+        STUDENT_REGISTRATIONS,
+    )
+    connection.executemany(
+        """
+        INSERT INTO outreach_threads (
+            thread_id, coordinator_id, event_id, ia_contact, subject, status,
+            last_message_at, message_count, next_action
+        ) VALUES (
+            :thread_id, :coordinator_id, :event_id, :ia_contact, :subject, :status,
+            :last_message_at, :message_count, :next_action
+        )
+        """,
+        OUTREACH_THREADS,
+    )
+    connection.executemany(
+        """
+        INSERT INTO meeting_bookings (
+            booking_id, thread_id, coordinator_id, ia_contact, event_id, title,
+            scheduled_at, duration_minutes, status, meeting_link, notes
+        ) VALUES (
+            :booking_id, :thread_id, :coordinator_id, :ia_contact, :event_id, :title,
+            :scheduled_at, :duration_minutes, :status, :meeting_link, :notes
+        )
+        """,
+        MEETING_BOOKINGS,
+    )
+    connection.executemany(
+        """
+        INSERT INTO retention_nudges (
+            student_id, nudge_type, message, event_id, cta_label, points_earned
+        ) VALUES (
+            :student_id, :nudge_type, :message, :event_id, :cta_label, :points_earned
+        )
+        """,
+        RETENTION_NUDGES,
     )
 
 

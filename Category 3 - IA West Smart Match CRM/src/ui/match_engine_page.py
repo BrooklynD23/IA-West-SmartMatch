@@ -187,6 +187,7 @@ def _render_outreach_workflow(
                 params["event"],
                 params["match_scores"],
                 fixture_key="email_generation",
+                voice="ia_west_chapter",
             )
             email = _normalize_email_payload(payload)
         _record_email_generation(params["speaker"], params["event"])
