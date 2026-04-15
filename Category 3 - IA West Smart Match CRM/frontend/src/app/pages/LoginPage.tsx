@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { motion } from "motion/react";
+import { GraduationCap, Building, ShieldCheck } from "lucide-react";
+import { mockLogin } from "../../lib/api";
 
 const panelReveal = {
   initial: { opacity: 0, y: 24 },
@@ -8,14 +10,59 @@ const panelReveal = {
   transition: { duration: 0.65, ease: [0.16, 1, 0.3, 1] as const },
 } as const;
 
+const ROLES = [
+  {
+    key: "student" as const,
+    label: "Student",
+    description: "View events, track attendance & get matched",
+    icon: GraduationCap,
+    email: "alex.rivera@cal.edu",
+  },
+  {
+    key: "event_coordinator" as const,
+    label: "Event Coordinator",
+    description: "Manage events, outreach & IA West contact",
+    icon: Building,
+    email: "jordan.lee@cpp.edu",
+  },
+  {
+    key: "ia_admin" as const,
+    label: "IA West Admin",
+    description: "Full admin access across all portals",
+    icon: ShieldCheck,
+    email: "admin@iawest.org",
+  },
+];
+
 export function LoginPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [searchParams] = useSearchParams();
+  const roleFromUrl = searchParams.get("role") as "student" | "event_coordinator" | "ia_admin" | null;
+  const [selectedRole, setSelectedRole] = useState<"student" | "event_coordinator" | "ia_admin">(roleFromUrl ?? "student");
+  const [email, setEmail] = useState(() => {
+    const initial = roleFromUrl ?? "student";
+    return ROLES.find((r) => r.key === initial)?.email ?? "";
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleCoordinatorLogin(event: FormEvent<HTMLFormElement>) {
+  async function handleLogin(email: string, role: string) {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await mockLogin(email, role);
+      sessionStorage.setItem("iaw_session", JSON.stringify({ user: response.user, role: response.role }));
+      navigate(response.redirect_path);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Login failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    navigate("/dashboard");
+    await handleLogin(email, selectedRole);
   }
 
   return (
@@ -28,7 +75,7 @@ export function LoginPage() {
             </span>
             <div className="leading-tight">
               <p className="font-semibold text-foreground">IA West Smart Match</p>
-              <p className="text-xs uppercase tracking-[0.28em] text-muted-foreground">Coordinator login</p>
+              <p className="text-xs uppercase tracking-[0.28em] text-muted-foreground">Portal login</p>
             </div>
           </Link>
           <Link to="/" className="text-sm font-medium text-muted-foreground transition hover:text-primary">
@@ -37,117 +84,126 @@ export function LoginPage() {
         </nav>
       </header>
 
-      <main className="mx-auto flex max-w-7xl items-center px-6 py-12 lg:px-8 lg:py-20">
-        <div className="grid w-full gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
-          <motion.div {...panelReveal} className="space-y-6">
-            <span className="public-pill">Public entry</span>
-            <div className="space-y-4">
-              <h1 className="font-[Inter_Tight] text-5xl font-semibold tracking-tight text-foreground md:text-6xl">
-                Sign in to the coordinator workspace.
-              </h1>
-              <p className="max-w-xl text-lg leading-8 text-muted-foreground">
-                The brand stays blue, bright, and minimal while coordinators move directly into the
-                operational dashboard.
-              </p>
-            </div>
+      <main className="mx-auto max-w-5xl px-6 py-12 lg:px-8 lg:py-16">
+        <motion.div {...panelReveal} className="mb-10 space-y-3 text-center">
+          <span className="public-pill">Demo Access</span>
+          <h1 className="font-[Inter_Tight] text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
+            Choose your portal
+          </h1>
+          <p className="mx-auto max-w-xl text-base leading-7 text-muted-foreground">
+            Select a role to explore the IA West Smart Match platform with pre-loaded demo data.
+          </p>
+        </motion.div>
 
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="public-panel p-5">
-                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                  Access
-                </p>
-                <p className="mt-3 text-2xl font-semibold text-primary">Coordinator</p>
-              </div>
-              <div className="public-panel p-5">
-                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                  Flow
-                </p>
-                <p className="mt-3 text-2xl font-semibold text-primary">Demo login</p>
-              </div>
-              <div className="public-panel p-5">
-                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                  Brand
-                </p>
-                <p className="mt-3 text-2xl font-semibold text-primary">Blue / white</p>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.section {...panelReveal} transition={{ ...panelReveal.transition, delay: 0.08 }}>
-            <div className="public-panel overflow-hidden">
-              <div className="border-b border-border/70 px-6 py-5 md:px-8">
-                <p className="public-pill">Coordinator Access</p>
-                <h2 className="mt-4 font-[Inter_Tight] text-3xl font-semibold text-foreground">
-                  Welcome back.
-                </h2>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Any credentials will open the demo coordinator experience.
-                </p>
-              </div>
-
-              <div className="grid gap-0 border-b border-border/70 lg:grid-cols-1">
-                <div className="px-6 py-6 md:px-8">
-                  <form onSubmit={handleCoordinatorLogin} className="space-y-4">
-                    <div>
-                      <label className="mb-1.5 block text-sm font-medium text-muted-foreground" htmlFor="coordinator-email">
-                        Email
-                      </label>
-                      <input
-                        id="coordinator-email"
-                        type="email"
-                        value={email}
-                        onChange={(event) => setEmail(event.target.value)}
-                        placeholder="coordinator@iawest.org"
-                        className="w-full rounded-2xl border border-border/70 bg-surface-container-low px-4 py-3 text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="mb-1.5 block text-sm font-medium text-muted-foreground" htmlFor="coordinator-password">
-                        Password
-                      </label>
-                      <input
-                        id="coordinator-password"
-                        type="password"
-                        value={password}
-                        onChange={(event) => setPassword(event.target.value)}
-                        placeholder="Enter password"
-                        className="w-full rounded-2xl border border-border/70 bg-surface-container-low px-4 py-3 text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                      />
-                    </div>
-
-                    <button type="submit" className="public-button-primary w-full">
-                      Sign In as Coordinator
-                    </button>
-                  </form>
+        {/* Role picker cards */}
+        <motion.div
+          {...panelReveal}
+          transition={{ ...panelReveal.transition, delay: 0.06 }}
+          className="mb-10 grid gap-4 sm:grid-cols-3"
+        >
+          {ROLES.map((role) => {
+            const Icon = role.icon;
+            const isSelected = selectedRole === role.key;
+            function selectRole() {
+              setSelectedRole(role.key);
+              setEmail(role.email);
+            }
+            return (
+              <div
+                key={role.key}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    selectRole();
+                  }
+                }}
+                onClick={selectRole}
+                className={`group flex cursor-pointer flex-col rounded-2xl border p-6 text-left transition-all ${
+                  isSelected
+                    ? "border-primary bg-primary/5 shadow-sm ring-2 ring-primary/30"
+                    : "border-border/70 bg-card hover:border-primary/40 hover:bg-primary/5"
+                }`}
+              >
+                <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-xl transition-colors ${isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary"}`}>
+                  <Icon className="h-5 w-5" />
                 </div>
+                <p className="font-semibold text-foreground">{role.label}</p>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">{role.description}</p>
+                <p className="mt-3 text-xs text-muted-foreground/70">{role.email}</p>
               </div>
+            );
+          })}
+        </motion.div>
 
-              <div className="bg-surface-container-low px-6 py-6 md:px-8">
-                <div className="flex flex-wrap items-center gap-3">
-                  <p className="font-[Inter_Tight] text-xl font-semibold text-foreground">Volunteer Access</p>
-                  <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-primary">
-                    Coming soon
-                  </span>
-                </div>
-                <p className="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground">
-                  Volunteer login will eventually use LinkedIn integration for profile enrichment.
-                  For now, coordinators own the public sign-in flow.
-                </p>
-                <button
-                  type="button"
-                  disabled
-                  className="mt-5 flex w-full cursor-not-allowed items-center justify-center gap-3 rounded-2xl border border-border/70 bg-white px-4 py-3 font-semibold text-muted-foreground opacity-60"
-                >
-                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-                  </svg>
-                  Sign In with LinkedIn
-                </button>
-              </div>
-            </div>
-          </motion.section>
+        {/* Divider */}
+        <div className="mb-8 flex items-center gap-4">
+          <div className="h-px flex-1 bg-border/70" />
+          <span className="text-xs text-muted-foreground">or sign in manually</span>
+          <div className="h-px flex-1 bg-border/70" />
         </div>
+
+        {/* Manual login form */}
+        <motion.section
+          {...panelReveal}
+          transition={{ ...panelReveal.transition, delay: 0.1 }}
+          className="mx-auto max-w-md"
+        >
+          <div className="public-panel overflow-hidden">
+            <div className="border-b border-border/70 px-6 py-5">
+              <p className="public-pill">Custom Login</p>
+              <h2 className="mt-3 font-[Inter_Tight] text-2xl font-semibold text-foreground">
+                Sign in with email
+              </h2>
+            </div>
+            <div className="px-6 py-6">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-muted-foreground" htmlFor="login-email">
+                    Email
+                  </label>
+                  <input
+                    id="login-email"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className="w-full rounded-2xl border border-border/70 bg-surface-container-low px-4 py-3 text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-muted-foreground" htmlFor="login-role">
+                    Role
+                  </label>
+                  <select
+                    id="login-role"
+                    value={selectedRole}
+                    onChange={(e) => setSelectedRole(e.target.value as "student" | "event_coordinator" | "ia_admin")}
+                    className="w-full rounded-2xl border border-border/70 bg-surface-container-low px-4 py-3 text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  >
+                    <option value="student">Student</option>
+                    <option value="event_coordinator">Event Coordinator</option>
+                    <option value="ia_admin">IA West Admin</option>
+                  </select>
+                </div>
+                {error && (
+                  <p className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-2.5 text-sm text-destructive">
+                    {error}
+                  </p>
+                )}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="public-button-primary w-full disabled:opacity-60"
+                >
+                  {loading ? "Signing in…" : "Sign In"}
+                </button>
+              </form>
+            </div>
+          </div>
+        </motion.section>
       </main>
     </div>
   );

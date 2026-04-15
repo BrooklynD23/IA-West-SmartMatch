@@ -88,7 +88,18 @@
       "Skill(gsd:debug)",
       "Bash(head -3 ./data/*.csv)",
       "Skill(gsd:new-project)",
-      "Skill(gsd:pause-work)"
+      "Skill(gsd:pause-work)",
+      "mcp__vercel__list_teams",
+      "mcp__vercel__list_projects",
+      "mcp__vercel__list_deployments",
+      "mcp__vercel__get_deployment_build_logs",
+      "mcp__vercel__get_project",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git rebase:*)",
+      "Bash(git stash:*)",
+      "Bash(grep -rn \"import streamlit\\\\|from streamlit\\\\|import st$\\\\| st\\\\.\" \"/mnt/c/Users/Danny/Documents/GitHub/HackathonForBetterFuture2026/Category 3 - IA West Smart Match CRM/src/\" --include=\"*.py\" -l)"
     ]
   },
   "outputStyle": "Explanatory",

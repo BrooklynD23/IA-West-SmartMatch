@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api.routers import calendar, crawler, data, feedback, matching, outreach, qr
+from src.api.routers import calendar, crawler, data, feedback, matching, outreach, portals, qr
 
 app = FastAPI(title="IA West SmartMatch API", version="0.1.0")
 
@@ -23,6 +23,7 @@ app.include_router(feedback.router, prefix="/api/feedback", tags=["feedback"])
 app.include_router(matching.router, prefix="/api/matching", tags=["matching"])
 app.include_router(outreach.router, prefix="/api/outreach", tags=["outreach"])
 app.include_router(crawler.router, prefix="/api/crawler", tags=["crawler"])
+app.include_router(portals.router, prefix="/api/portals", tags=["portals"])
 
 
 @app.get("/api/health")

@@ -415,6 +415,64 @@ def _seed_constant_tables(connection: sqlite3.Connection) -> None:
     )
     print("  Inserted 1 feedback_stats row from constants.")
 
+    # web_crawler_events (demo seed so UI shows URLs before first crawl)
+    crawler_seed = [
+        (
+            "https://www.cpp.edu/cba/digital-innovation/what-we-do/ai-hackathon.shtml",
+            "www.cpp.edu",
+            "Seed URL: https://www.cpp.edu/cba/digital-innovation/what-we-do/ai-hackathon.shtml",
+            "www.cpp.edu",
+            "2026-04-14T00:00:00Z",
+            "seed",
+            "found",
+        ),
+        (
+            "https://www.cpp.edu/cba/ai-hackathon/index.shtml",
+            "www.cpp.edu",
+            "Seed URL: https://www.cpp.edu/cba/ai-hackathon/index.shtml",
+            "www.cpp.edu",
+            "2026-04-14T00:00:00Z",
+            "seed",
+            "found",
+        ),
+        (
+            "https://www.insightsassociation.org/ai-hackathon",
+            "www.insightsassociation.org",
+            "Seed URL: https://www.insightsassociation.org/ai-hackathon",
+            "www.insightsassociation.org",
+            "2026-04-14T00:00:00Z",
+            "seed",
+            "found",
+        ),
+        (
+            "https://www.insightsassociation.org/itc",
+            "www.insightsassociation.org",
+            "Seed URL: https://www.insightsassociation.org/itc",
+            "www.insightsassociation.org",
+            "2026-04-14T00:00:00Z",
+            "seed",
+            "found",
+        ),
+        (
+            "https://www.insightsassociation.org/ia-west-summit",
+            "www.insightsassociation.org",
+            "Seed URL: https://www.insightsassociation.org/ia-west-summit",
+            "www.insightsassociation.org",
+            "2026-04-14T00:00:00Z",
+            "seed",
+            "found",
+        ),
+    ]
+    connection.executemany(
+        """
+        INSERT INTO web_crawler_events (
+            url, title, description, school_name, crawled_at, source, status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        """,
+        crawler_seed,
+    )
+    print(f"  Inserted {len(crawler_seed)} web_crawler_events rows from constants.")
+
 
 # ---------------------------------------------------------------------------
 # Main entry point

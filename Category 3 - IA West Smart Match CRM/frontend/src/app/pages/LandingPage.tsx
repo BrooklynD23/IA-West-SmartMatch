@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import { motion, useReducedMotion } from "motion/react";
+import { AppIcon } from "../../components/AppIcon";
 
 const introReveal = {
   initial: { opacity: 0, y: 24 },
@@ -8,54 +9,24 @@ const introReveal = {
   viewport: { once: true, amount: 0.35 },
 } as const;
 
-const cards = [
+const pipelineFeatures = [
   {
-    title: "Discover",
+    icon: "discover" as const,
+    title: "Discover Opportunities",
     description:
-      "Capture opportunity signals from across the West Coast and surface the ones that matter in one clear blue/white workspace.",
+      "Automated scraping of university career centers across the West Coast to find the perfect speaking slots.",
   },
   {
-    title: "Rank",
+    icon: "matching" as const,
+    title: "Intelligent Matching",
     description:
-      "Use matching logic, availability, and specialist context to rank the best-fit coordinator actions without visual clutter.",
+      "Advanced algorithms analyze volunteer bios and event descriptions to ensure high-impact connections.",
   },
   {
-    title: "Activate",
+    icon: "pipeline" as const,
+    title: "Pipeline Tracking",
     description:
-      "Route the public surface into a single coordinator login path so the public brand stays simple and focused.",
-  },
-];
-
-const proofRows = [
-  { label: "Discovered opportunities", value: "2,481", width: "100%" },
-  { label: "High-confidence matches", value: "842", width: "34%" },
-  { label: "Coordinator-ready", value: "114", width: "5%" },
-];
-
-const marketSignals = [
-  {
-    label: "Los Angeles",
-    tone: "bg-primary/20 text-primary",
-    schools: ["CPP", "UCLA", "USC", "Cal State LA"],
-    opportunities: 1124,
-    matches: 382,
-    strength: "100%",
-  },
-  {
-    label: "San Diego",
-    tone: "bg-secondary text-foreground",
-    schools: ["SDSU", "UCSD", "USD"],
-    opportunities: 847,
-    matches: 291,
-    strength: "75%",
-  },
-  {
-    label: "Bay Area",
-    tone: "bg-muted text-foreground",
-    schools: ["UC Davis", "Stanford", "USF", "Portland State"],
-    opportunities: 510,
-    matches: 169,
-    strength: "45%",
+      "Manage the flow from initial lead to confirmed engagement with detailed CRM-style reporting.",
   },
 ];
 
@@ -64,6 +35,7 @@ export function LandingPage() {
 
   return (
     <div className="public-shell">
+      {/* ── Header ──────────────────────────────────────────── */}
       <header className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur-xl">
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
           <Link to="/" className="flex items-center gap-3">
@@ -75,278 +47,164 @@ export function LandingPage() {
               <p className="text-xs uppercase tracking-[0.28em] text-muted-foreground">Coordinator Platform</p>
             </div>
           </Link>
-
-          <Link to="/login" className="public-button-primary">
-            Sign In
-          </Link>
+          <Link to="/login" className="public-button-primary">Sign In</Link>
         </nav>
       </header>
 
       <main>
+        {/* ── HERO ──────────────────────────────────────────── */}
         <section
           id="hero"
-          className="mx-auto grid max-w-7xl gap-12 px-6 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-8 lg:py-24"
+          className="mx-auto max-w-4xl px-6 py-24 text-center lg:px-8 lg:py-32"
         >
           <motion.div {...introReveal} className="space-y-8">
-            <span className="public-pill">IA West Chapter</span>
-            <div className="space-y-6">
-              <h1 className="max-w-3xl font-[Inter_Tight] text-5xl font-semibold tracking-tight text-foreground md:text-7xl">
-                Turn West Coast opportunities into coordinated specialist action.
-              </h1>
-              <p className="max-w-2xl text-lg leading-8 text-muted-foreground md:text-xl">
-                The public surface stays focused on one path: discover the brand, understand the
-                product story, and sign in to the coordinator workflow.
-              </p>
-            </div>
+            <span className="public-pill">AI-Driven Volunteer Coordination for IA West</span>
 
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Link to="/login" className="public-button-primary">
-                Sign In
+            <h1 className="font-[Inter_Tight] text-5xl font-bold leading-[1.08] tracking-tight text-foreground md:text-6xl lg:text-7xl">
+              Connect the right speakers with the right university opportunities
+            </h1>
+
+            <p className="mx-auto max-w-xl text-lg leading-relaxed text-muted-foreground">
+              Intelligent matching system that bridges the gap between industry expertise and
+              academic needs through high-fidelity data signals.
+            </p>
+
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Link to="/login?role=ia_admin" className="public-button-primary">
+                Start Matching
               </Link>
               <a href="#proof" className="public-button-secondary">
-                See the proof
+                View Demo
               </a>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="public-panel p-5">
-                <p className="text-3xl font-semibold text-primary">2,481</p>
-                <p className="mt-1 text-sm text-muted-foreground">opportunities surfaced</p>
-              </div>
-              <div className="public-panel p-5">
-                <p className="text-3xl font-semibold text-primary">842</p>
-                <p className="mt-1 text-sm text-muted-foreground">high-fit matches</p>
-              </div>
-              <div className="public-panel p-5">
-                <p className="text-3xl font-semibold text-primary">94%</p>
-                <p className="mt-1 text-sm text-muted-foreground">signal confidence</p>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            {...introReveal}
-            transition={{ ...introReveal.transition, delay: 0.08 }}
-            className="relative"
-          >
-            <div className="public-panel relative overflow-hidden p-6 md:p-8">
-              <motion.div
-                aria-hidden="true"
-                className="absolute -right-16 -top-12 h-48 w-48 rounded-full bg-primary/10 blur-3xl"
-                animate={
-                  reduceMotion
-                    ? undefined
-                    : { scale: [1, 1.08, 1], opacity: [0.45, 0.7, 0.45] }
-                }
-                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-              />
-              <motion.div
-                aria-hidden="true"
-                className="absolute bottom-6 left-6 h-24 w-24 rounded-full bg-secondary/70 blur-2xl"
-                animate={reduceMotion ? undefined : { y: [0, -8, 0] }}
-                transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-              />
-
-              <div className="relative space-y-6">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="public-pill">Opportunity snapshot</p>
-                    <h2 className="mt-4 font-[Inter_Tight] text-2xl font-semibold text-foreground md:text-3xl">
-                      UCLA Career Fair 2026
-                    </h2>
-                    <p className="mt-2 text-sm text-muted-foreground">Luskin Conference Center</p>
-                  </div>
-                  <span className="rounded-full bg-primary/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-primary">
-                    High priority
-                  </span>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-[1.2fr_0.8fr]">
-                  <div className="rounded-[1.5rem] border border-border/70 bg-background p-5">
-                    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-                      Specialist focus
-                    </p>
-                    <div className="mt-4 flex items-center gap-4">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-lg font-semibold text-primary-foreground">
-                        TM
-                      </div>
-                      <div>
-                        <p className="font-semibold text-foreground">Travis Miller</p>
-                        <p className="text-sm text-muted-foreground">SVP Sales, TechCorp</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="rounded-[1.5rem] border border-border/70 bg-background p-5">
-                    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-                      Match score
-                    </p>
-                    <div className="mt-3 flex items-end gap-2">
-                      <span className="font-[Inter_Tight] text-5xl font-semibold text-primary">94</span>
-                      <span className="pb-1 text-lg font-semibold text-muted-foreground">/100</span>
-                    </div>
-                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted">
-                      <div className="h-full w-[94%] rounded-full bg-primary" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid gap-3 sm:grid-cols-3">
-                  {marketSignals.map((signal) => (
-                    <div key={signal.label} className={`rounded-2xl px-4 py-3 ${signal.tone}`}>
-                      <p className="text-sm font-semibold">{signal.label}</p>
-                      <p className="mt-0.5 text-xs opacity-75">{signal.opportunities.toLocaleString()} opps</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           </motion.div>
         </section>
 
+        {/* ── STORY ────────────────────────────────────────────
+            Reference: "Complete Volunteer Engagement Pipeline"
+        ──────────────────────────────────────────────────────── */}
         <motion.section
           id="story"
           {...introReveal}
           className="mx-auto max-w-7xl px-6 py-8 lg:px-8 lg:py-16"
         >
-          <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div className="space-y-3">
-              <p className="public-pill">Product story</p>
-              <h2 className="font-[Inter_Tight] text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
-                One public journey, one coordinator handoff.
-              </h2>
-            </div>
-            <p className="max-w-2xl text-muted-foreground">
-              The public page explains the workflow without exposing dashboard chrome. The login
-              path remains the single conversion point.
+          <div className="mb-12 space-y-2">
+            <h2 className="font-[Inter_Tight] text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+              Complete Volunteer Engagement Pipeline
+            </h2>
+            <p className="text-base text-muted-foreground">
+              A unified platform to manage the entire lifecycle of university partnerships.
             </p>
           </div>
 
-          <div className="grid gap-5 lg:grid-cols-3">
-            {cards.map((card, index) => (
+          <div className="grid gap-8 border-t border-border/60 pt-10 md:grid-cols-3">
+            {pipelineFeatures.map((feature, i) => (
               <motion.div
-                key={card.title}
-                className="public-panel p-6"
-                initial={{ opacity: 0, y: 18 }}
+                key={feature.title}
+                initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.5, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
                 viewport={{ once: true, amount: 0.4 }}
+                className="flex flex-col gap-4"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                  <span className="font-[Inter_Tight] text-lg font-semibold">{index + 1}</span>
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10">
+                  <AppIcon name={feature.icon} className="h-5 w-5 text-primary" />
                 </div>
-                <h3 className="mt-5 font-[Inter_Tight] text-2xl font-semibold text-foreground">{card.title}</h3>
-                <p className="mt-3 leading-7 text-muted-foreground">{card.description}</p>
+                <div>
+                  <h3 className="font-[Inter_Tight] text-lg font-bold text-foreground">
+                    {feature.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    {feature.description}
+                  </p>
+                </div>
               </motion.div>
             ))}
           </div>
         </motion.section>
 
+        {/* ── PROOF ────────────────────────────────────────────
+            Reference: "Discovery Automation" terminal widget
+        ──────────────────────────────────────────────────────── */}
         <motion.section
           id="proof"
           {...introReveal}
           className="mx-auto max-w-7xl px-6 py-8 lg:px-8 lg:py-16"
         >
-          <div className="mb-10 space-y-3">
-            <p className="public-pill">Analytics proof</p>
-            <h2 className="font-[Inter_Tight] text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
-              Brand clarity backed by operational signal.
-            </h2>
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-            <div className="public-panel p-6 md:p-8">
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <h3 className="font-[Inter_Tight] text-2xl font-semibold text-foreground">
-                    Opportunity density
-                  </h3>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    A West Coast view of where the strongest engagements cluster.
-                  </p>
+          {/* Discovery Automation row */}
+          <div className="public-panel overflow-hidden">
+            <div className="grid md:grid-cols-2">
+              {/* Terminal widget */}
+              <div className="border-b border-border/60 bg-slate-950 p-6 md:border-b-0 md:border-r md:p-8">
+                {/* GET request line */}
+                <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+                  <span className="shrink-0 rounded-md bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
+                    GET
+                  </span>
+                  <code className="truncate text-xs text-slate-300">
+                    https://career.ucla.edu/api/events
+                  </code>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {marketSignals.flatMap((s) => s.schools).filter((v, i, arr) => arr.indexOf(v) === i).map((school) => (
+
+                {/* Parsing line */}
+                <div className="mt-4 flex items-center gap-3 px-1">
+                  <motion.span
+                    className="h-2 w-2 shrink-0 rounded-full bg-emerald-400"
+                    animate={reduceMotion ? undefined : { opacity: [1, 0.3, 1] }}
+                    transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                  <span className="text-xs font-mono font-medium text-slate-400">
+                    PARSING UCLA DATA...
+                  </span>
+                </div>
+
+                {/* Match found */}
+                <div className="mt-4 flex items-center justify-between gap-3 rounded-xl bg-primary px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20 text-[10px] font-bold text-white">
+                      ✓
+                    </span>
+                    <span className="text-xs font-semibold text-white">
+                      Match Found: UCLA Career Fair 2026
+                    </span>
+                  </div>
+                  <span className="text-white/60">›</span>
+                </div>
+
+                {/* Platform badges */}
+                <div className="mt-6 flex flex-wrap items-center gap-2">
+                  {["UCLA", "USC", "SDSU"].map((tag) => (
                     <span
-                      key={school}
-                      className="rounded-full border border-border/70 bg-background px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground"
+                      key={tag}
+                      className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[10px] font-bold text-slate-300"
                     >
-                      {school}
+                      {tag}
                     </span>
                   ))}
+                  <span className="text-[11px] text-slate-500">+42 Platforms Monitored</span>
                 </div>
               </div>
 
-              <div className="mt-6 grid gap-4 rounded-[1.5rem] border border-border/70 bg-surface-container-low p-5 md:grid-cols-3">
-                {marketSignals.map((signal, index) => (
-                  <div
-                    key={signal.label}
-                    className="group rounded-2xl border border-border/70 bg-background p-4 transition-shadow hover:shadow-md"
-                  >
-                    <div className="flex items-center justify-between">
-                      <p className="font-semibold text-foreground">{signal.label}</p>
-                      <span className="text-xs font-semibold text-primary">#{index + 1}</span>
-                    </div>
-                    {/* Opportunity strength bar */}
-                    <div className="mt-3">
-                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                        <div
-                          className="h-full rounded-full bg-primary transition-all duration-700"
-                          style={{ width: signal.strength }}
-                        />
-                      </div>
-                      <div className="mt-2 flex justify-between text-xs text-muted-foreground">
-                        <span>{signal.opportunities.toLocaleString()} opps</span>
-                        <span>{signal.matches} matches</span>
-                      </div>
-                    </div>
-                    {/* School names */}
-                    <div className="mt-3 flex flex-wrap gap-1">
-                      {signal.schools.map((school) => (
-                        <span
-                          key={school}
-                          className="rounded-full bg-primary/8 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary"
-                        >
-                          {school}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="public-panel p-6 md:p-8">
-              <h3 className="font-[Inter_Tight] text-2xl font-semibold text-foreground">Matching funnel</h3>
-              <div className="mt-6 space-y-6">
-                {proofRows.map((row) => (
-                  <div key={row.label}>
-                    <div className="flex items-center justify-between gap-4">
-                      <p className="text-sm font-medium text-foreground">{row.label}</p>
-                      <p className="text-sm font-semibold text-primary">{row.value}</p>
-                    </div>
-                    <div className="mt-3 h-3 overflow-hidden rounded-full bg-muted">
-                      <div className="h-full rounded-full bg-primary" style={{ width: row.width }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-8 rounded-[1.5rem] border border-border/70 bg-background p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-                  Public CTA
+              {/* Copy */}
+              <div className="flex flex-col justify-center gap-4 p-6 md:p-10">
+                <h3 className="font-[Inter_Tight] text-2xl font-bold text-foreground md:text-3xl">
+                  Discovery Automation
+                </h3>
+                <p className="leading-relaxed text-muted-foreground">
+                  Our proprietary web scraping pipeline monitors UCLA, USC, and dozens of other
+                  university sites in real-time. No more manual searching; opportunities are
+                  delivered directly to your dashboard.
                 </p>
-                <p className="mt-3 text-sm leading-7 text-muted-foreground">
-                  Every public interaction ends in the same place: the coordinator login flow.
-                </p>
-                <Link to="/login" className="public-button-primary mt-5">
-                  Sign In
+                <Link to="/login?role=ia_admin" className="public-button-primary self-start">
+                  Start Matching
                 </Link>
               </div>
             </div>
           </div>
+
         </motion.section>
 
+        {/* ── LOGIN CTA ────────────────────────────────────────── */}
         <motion.section
           id="login"
           {...introReveal}
@@ -355,19 +213,29 @@ export function LandingPage() {
           <div className="public-panel overflow-hidden p-8 md:p-10">
             <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
               <div className="space-y-4">
-                <p className="public-pill">Ready for coordinators</p>
+                <p className="public-pill">Ready to explore?</p>
                 <h2 className="font-[Inter_Tight] text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
-                  Sign in to move from public brand to working dashboard.
+                  Pick your portal and jump straight in.
                 </h2>
                 <p className="max-w-2xl text-muted-foreground">
-                  The landing page stays clean and informative. The login page carries the same
-                  blue/white system forward and hands coordinators directly into the app.
+                  Students track events and earn points. Event coordinators manage outreach and
+                  meetings with IA West. Both portals use pre-loaded demo data.
                 </p>
               </div>
-
-              <Link to="/login" className="public-button-primary justify-self-start lg:justify-self-end">
-                Sign In
-              </Link>
+              <div className="flex flex-col gap-3 justify-self-start lg:justify-self-end">
+                <Link to="/login?role=student" className="public-button-primary">
+                  Student Portal
+                </Link>
+                <Link to="/login?role=event_coordinator" className="public-button-secondary">
+                  Event Coordinator
+                </Link>
+                <Link
+                  to="/login"
+                  className="text-center text-sm text-muted-foreground transition hover:text-primary"
+                >
+                  Sign in with email →
+                </Link>
+              </div>
             </div>
           </div>
         </motion.section>
@@ -376,7 +244,6 @@ export function LandingPage() {
       <footer className="border-t border-border/70 bg-background/80">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-8 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between lg:px-8">
           <p className="font-medium text-foreground">IA West Smart Match</p>
-          <p>Blue/white public surface for the coordinator experience.</p>
         </div>
       </footer>
     </div>

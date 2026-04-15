@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import {
   Activity,
   ArrowRight,
   BellRing,
   Briefcase,
   CalendarDays,
+  LogOut,
   Mail,
   MapPinned,
   MessageSquareHeart,
@@ -221,6 +223,13 @@ function formatFactorName(value: string): string {
 }
 
 export function Dashboard() {
+  const navigate = useNavigate();
+
+  function handleLogout() {
+    sessionStorage.removeItem("iaw_session");
+    navigate("/login");
+  }
+
   const [specialists, setSpecialists] = useState<Specialist[]>([]);
   const [pipeline, setPipeline] = useState<PipelineRecord[]>([]);
   const [calendarEvents, setCalendarEvents] = useState<CalendarEventSummary[]>([]);
@@ -508,13 +517,24 @@ export function Dashboard() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-semibold text-gray-900">
-          Dashboard{isMockData && <DemoModeBadge />}
-        </h1>
-        <p className="mt-1 text-gray-600">
-          Live summary of the specialist roster, active opportunities, and pipeline movement.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-semibold text-gray-900">
+            Dashboard{isMockData && <DemoModeBadge />}
+          </h1>
+          <p className="mt-1 text-gray-600">
+            Live summary of the specialist roster, active opportunities, and pipeline movement.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleLogout}
+          aria-label="Log out and return to portal login"
+          className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 shadow-sm transition hover:border-gray-400 hover:bg-gray-50"
+        >
+          <LogOut className="h-4 w-4" aria-hidden />
+          Log out
+        </button>
       </div>
 
       {error ? (

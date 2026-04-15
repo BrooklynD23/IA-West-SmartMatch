@@ -10,12 +10,27 @@ interface CrawlerFeedProps {
   className?: string;
 }
 
+const SOURCE_LABELS: Record<string, string> = {
+  gemini: "Gemini",
+  tavily: "Tavily",
+  seed: "Seed",
+  search: "Search",
+};
+
+const SOURCE_COLORS: Record<string, string> = {
+  gemini: "bg-blue-50 text-blue-700",
+  tavily: "bg-purple-50 text-purple-700",
+  seed: "bg-gray-100 text-gray-600",
+  search: "bg-amber-50 text-amber-700",
+};
+
 function dbRowToEvent(row: Record<string, unknown>): CrawlerEvent {
   return {
     url: String(row["url"] ?? ""),
     title: String(row["title"] ?? ""),
     status: (row["status"] as CrawlerEvent["status"]) ?? "found",
     timestamp: String(row["crawled_at"] ?? new Date().toISOString()),
+    source: (row["source"] as CrawlerEvent["source"]) ?? undefined,
   };
 }
 
@@ -29,6 +44,11 @@ export function CrawlerFeed({ className }: CrawlerFeedProps) {
 
   const { status, refresh: refreshStatus } = useCrawlerStatus();
   const crawlRunning = status?.state === "running";
+
+  // Keep a stable ref so the SSE effect doesn't close/reopen every 3 s when the
+  // provider re-renders from its own poll and refreshStatus's identity changes.
+  const refreshStatusRef = useRef(refreshStatus);
+  useEffect(() => { refreshStatusRef.current = refreshStatus; });
 
   // Load saved results from DB (called on mount and after crawl finishes)
   const loadSavedResults = useCallback(() => {
@@ -95,7 +115,7 @@ export function CrawlerFeed({ className }: CrawlerFeedProps) {
       void (async () => {
         try {
           await startCrawl();
-          refreshStatus();
+          refreshStatusRef.current();
         } catch {
           es.close();
           setIsLive(false);
@@ -104,9 +124,9 @@ export function CrawlerFeed({ className }: CrawlerFeedProps) {
     };
 
     es.onmessage = (e: MessageEvent) => {
-      let data: Partial<CrawlerEvent> & { status?: string };
+      let data: Partial<CrawlerEvent> & { status?: string; source?: string };
       try {
-        data = JSON.parse(e.data as string) as Partial<CrawlerEvent> & { status?: string };
+        data = JSON.parse(e.data as string) as Partial<CrawlerEvent> & { status?: string; source?: string };
       } catch {
         return;
       }
@@ -115,7 +135,7 @@ export function CrawlerFeed({ className }: CrawlerFeedProps) {
         setIsDone(true);
         setIsLive(false);
         es.close();
-        refreshStatus();
+        refreshStatusRef.current();
         loadSavedResults();
         return;
       }
@@ -125,6 +145,7 @@ export function CrawlerFeed({ className }: CrawlerFeedProps) {
         title: data.title ?? "",
         status: (data.status as CrawlerEvent["status"]) ?? "crawling",
         timestamp: data.timestamp ?? new Date().toISOString(),
+        source: (data.source as CrawlerEvent["source"]) ?? undefined,
       };
 
       setEvents((prev) => [event, ...prev].slice(0, 100));
@@ -134,12 +155,16 @@ export function CrawlerFeed({ className }: CrawlerFeedProps) {
     es.onerror = () => {
       es.close();
       setIsLive(false);
+      // Status poll will still detect when the crawl completes via /api/crawler/status
+      refreshStatusRef.current();
     };
 
     return () => {
       esRef.current?.close();
     };
-  }, [isLive, refreshStatus, loadSavedResults]);
+    // refreshStatusRef is a ref — stable, intentionally omitted from deps.
+    // loadSavedResults is memoized with useCallback([]) so it's stable too.
+  }, [isLive, loadSavedResults]);
 
   function handleStartCrawl() {
     setIsLive(true);
@@ -208,7 +233,21 @@ export function CrawlerFeed({ className }: CrawlerFeedProps) {
         {/* Status indicators */}
         {isDone && (
           <div className="mb-3 rounded-md bg-green-50 px-3 py-2 text-sm text-green-700">
-            Found {foundCount} directed school pages — results saved
+            <div className="font-medium">Found {foundCount} directed school pages — results saved</div>
+            {status?.visited_count != null && status.visited_count > 0 && (
+              <div className="mt-0.5 text-green-600 text-xs">
+                Visited {status.visited_count} URLs total
+                {status.visited_urls && (() => {
+                  const bySource = status.visited_urls.reduce<Record<string, number>>((acc, v) => {
+                    acc[v.source] = (acc[v.source] ?? 0) + 1;
+                    return acc;
+                  }, {});
+                  return Object.entries(bySource).map(([src, count]) => (
+                    <span key={src} className="ml-2">· {count} via {src}</span>
+                  ));
+                })()}
+              </div>
+            )}
           </div>
         )}
         {crawlRunning && !isLive && (
@@ -253,9 +292,16 @@ export function CrawlerFeed({ className }: CrawlerFeedProps) {
                 )}
               </span>
               <div className="min-w-0 flex-1">
-                <span className="font-medium truncate block">
-                  {event.title || event.url}
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-medium truncate">
+                    {event.title || event.url}
+                  </span>
+                  {event.source && SOURCE_LABELS[event.source] && (
+                    <span className={`shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded ${SOURCE_COLORS[event.source] ?? "bg-gray-100 text-gray-600"}`}>
+                      {SOURCE_LABELS[event.source]}
+                    </span>
+                  )}
+                </div>
                 {event.url && event.title && (
                   <span className="text-xs text-muted-foreground truncate block">
                     {event.url}

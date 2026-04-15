@@ -15,6 +15,8 @@ Use this page as the entry point for Category 3 planning and implementation docs
 
 ## Category-Specific Supporting Docs
 
+- `Category 3 - IA West Smart Match CRM/docs/demo-narrative-2026-04-14.md`
+  Dated demo package for the React + FastAPI path: automated verification snapshot, six-scene judge walkthrough (landing → student portal → coordinator portal → agentic outreach → admin → QR attendance), competitor comparison, and UI follow-ups for the design pass.
 - `Category 3 - IA West Smart Match CRM/docs/gemini_provider_decision_2026-03-18.md`
   Provider decision memo documenting the Gemini Developer API runtime adoption, recommended models, and migration notes.
 - `Category 3 - IA West Smart Match CRM/docs/sprints/sprint-3-swarm-orchestration-plan.md`
@@ -62,4 +64,5 @@ These are useful for audit history, but they are not implementation authority:
 - Latest targeted Phase 3 regression set is green: `tests/test_discovery_tab.py tests/test_matches_tab.py tests/test_engine.py tests/test_app.py tests/test_acceptance.py tests/test_volunteer_dashboard.py` -> `87 passed in 6.56s`.
 - Latest preflight baseline passes with warnings only for un-warmed live caches: missing embedding artifacts plus empty or absent `cache/scrapes/`, `cache/extractions/`, `cache/explanations/`, and `cache/emails/`.
 - Sprint 5 review artifact: `Category 3 - IA West Smart Match CRM/docs/reviews/2026-03-21-sprint5-code-review.md`.
+- **2026-04-14 (fullstack demo path):** Student and event coordinator portals, `scripts/seed_demo_db.py` → `data/demo.db`, `src/api/routers/portals.py`, QR attendance routes, agentic outreach SSE, landing/login CTAs + URL-param role pre-selection, and portal UI hardening (design tokens + ARIA). Packaged verification and walkthrough: `docs/demo-narrative-2026-04-14.md`.
 - Manual demo-day steps still require a machine with `GEMINI_API_KEY` to warm live caches, a rehearsal pass using the real environment, and completion of the human-run logs under `docs/testing/`. For **Web Intelligence** crawler demos with rich search hits, add **`TAVILY_API_KEY`** (and/or ensure `GEMINI_API_KEY` is set) per `.env.example`.

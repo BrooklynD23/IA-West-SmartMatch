@@ -162,7 +162,9 @@ export function Outreach() {
       const effectiveName = isUniRecipient
         ? selectedSpeaker.replace(/^__uni__/, "").split("|")[0]
         : selectedSpeaker;
-      const generated = await generateEmail(effectiveName, selectedEvent);
+      const generated = await generateEmail(effectiveName, selectedEvent, {
+        request_source: "ia_west_admin",
+      });
       setLastGenerated(generated);
       setSubject(generated.email_data.subject_line);
       setBody(

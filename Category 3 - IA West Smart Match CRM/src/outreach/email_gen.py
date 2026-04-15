@@ -1,7 +1,8 @@
 """Outreach email generation using Gemini.
 
 Uses generate_text() from src.gemini_client to produce personalized
-outreach emails inviting board member volunteers to university events.
+outreach emails from the host school coordinator's voice inviting industry
+volunteers to campus events (IA West appears only as optional chapter context).
 Follows the caching pattern from src/matching/explanations.py.
 """
 
@@ -21,6 +22,7 @@ from src.config import (
     get_writable_dir as _get_writable_dir,
 )
 from src.gemini_client import generate_text
+from src.outreach.email_voice import EmailVoice
 
 logger = logging.getLogger(__name__)
 
@@ -81,9 +83,12 @@ def _email_cache_key(
     speaker: dict[str, Any],
     event: dict[str, Any],
     match_scores: dict[str, Any],
+    voice: EmailVoice,
 ) -> str:
-    """Generate a deterministic cache key from speaker + event + score."""
+    """Generate a deterministic cache key from voice + speaker + event + score."""
     raw = "::".join([
+        "email_voice_v1",
+        voice,
         str(speaker.get("Name", "")),
         str(event_value(event, "Event / Program", "event_name", default="")),
         f"{_match_score_value(match_scores, 'total_score'):.4f}",
@@ -95,9 +100,10 @@ def load_cached_email(
     speaker: dict[str, Any],
     event: dict[str, Any],
     match_scores: dict[str, Any],
+    voice: EmailVoice,
 ) -> dict[str, str] | None:
     """Load a previously cached email from disk."""
-    path = EMAIL_CACHE_DIR / f"{_email_cache_key(speaker, event, match_scores)}.json"
+    path = EMAIL_CACHE_DIR / f"{_email_cache_key(speaker, event, match_scores, voice)}.json"
     if not path.exists():
         return None
     try:
@@ -110,11 +116,12 @@ def save_cached_email(
     speaker: dict[str, Any],
     event: dict[str, Any],
     match_scores: dict[str, Any],
+    voice: EmailVoice,
     email: dict[str, str],
 ) -> None:
     """Save a generated email to the disk cache."""
     EMAIL_CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    path = EMAIL_CACHE_DIR / f"{_email_cache_key(speaker, event, match_scores)}.json"
+    path = EMAIL_CACHE_DIR / f"{_email_cache_key(speaker, event, match_scores, voice)}.json"
     path.write_text(json.dumps(email, ensure_ascii=True, indent=2), encoding="utf-8")
 
 
@@ -129,7 +136,102 @@ IA_WEST_URL: str = "https://www.insightsassociation.org/ia-west"
 # Prompt template
 # ---------------------------------------------------------------------------
 
-EMAIL_SYSTEM_PROMPT: str = """\
+SCHOOL_COORDINATOR_SYSTEM_PROMPT: str = """\
+You help draft outreach email copy. The sender must be a school or campus \
+event coordinator (faculty, staff, or student program lead) organizing the \
+specific program described in the user message — NOT an IA West administrator, \
+NOT "IA West chapter leadership," and NOT generic IA headquarters voice.
+
+The email should read as a personal invitation from the host school/unit to an \
+industry volunteer. IA West may appear only as optional supporting context for \
+professionals who already engage with the chapter; it must never sound like the \
+email is written *from* IA West as the primary author.
+
+MANDATORY RULES — every email MUST follow these without exception:
+
+1. OPENING PARAGRAPH: The first paragraph must establish the sender as someone \
+   coordinating this event at the listed university/host unit (use the host \
+   name from the brief). Do NOT open with "IA West is…" or present IA West as \
+   the organization writing the email.
+
+2. IA WEST LINK (secondary): Exactly once in the body (not the subject), include \
+   a natural inline HTML anchor for readers who want optional chapter context: \
+   <a href="{ia_west_url}">IA West chapter page</a> — place it in a middle or \
+   later sentence, framed as background on the professional volunteer community \
+   (e.g., many speakers also connect through the chapter), not as the sender \
+   introducing themselves.
+
+3. TONE: Professional, warm, collegiate — appropriate for email from a university \
+   coordinator to an external volunteer.
+
+4. SPECIFICITY: Reference the recipient's actual expertise and the event's \
+   actual details.
+
+5. LENGTH: 150-200 words maximum for the email body.
+
+6. CALL-TO-ACTION: End with a clear, specific ask (reply, brief call, etc.).
+
+7. CLOSING: Sign off from the school-side coordinator role (e.g., "Event \
+   Coordinator" or "Program lead, [Host]") — never "IA West Chapter Leadership" \
+   or similar IA West-admin sign-offs.
+
+You MUST return a JSON object with exactly these keys:
+{{
+  "subject_line": "<string>",
+  "greeting": "<string>",
+  "body": "<string — HTML allowed for the hyperlink>",
+  "closing": "<string>",
+  "full_email": "<string — the complete email ready to send, with the link>"
+}}\
+""".format(ia_west_url=IA_WEST_URL)
+
+SCHOOL_COORDINATOR_USER_PROMPT_TEMPLATE: str = """\
+Generate a personalized outreach email for the following volunteer-event match.
+
+VOICE: You are drafting for a school or campus event coordinator at \
+"{event_host}" — first person from their perspective inviting an industry volunteer.
+
+SPEAKER / CONTACT PROFILE:
+- Name: {speaker_name}
+- Title: {speaker_title}
+- Company: {speaker_company}
+- Board Role: {speaker_board_role}
+- Metro Region: {speaker_metro}
+- Expertise: {speaker_expertise}
+
+EVENT DETAILS:
+- Event: {event_name}
+- Category: {event_category}
+- University/Host: {event_host}
+- Volunteer Role Needed: {volunteer_role}
+- Primary Audience: {primary_audience}
+- Date: {event_date}
+
+MATCH QUALITY:
+- Overall Match Score: {match_score:.0%}
+- Topic Relevance: {topic_score:.0%}
+- Role Fit: {role_score:.0%}
+- Geographic Proximity: {geo_score:.0%}
+
+Compose the email as the school or campus event coordinator at {event_host}, \
+inviting {speaker_name} to volunteer as a {volunteer_role} for {event_name}.
+
+REMEMBER:
+- Open from the host school/program perspective (who you are at {event_host}, \
+  what the event is, why you are reaching out) — not as IA West leadership.
+- Include the IA West chapter page link once ({ia_west_url}) as optional context \
+  for professionals, not as the main sender identity.
+- Reference their specific expertise in {speaker_expertise} and why the match \
+  helps your students or audience.
+
+The value proposition should emphasize:
+- Student and campus audience impact at {event_host}
+- Why their background fits this specific session or role
+- Practical logistics and modest time commitment (typically 2-4 hours) when relevant
+"""
+
+
+IA_WEST_CHAPTER_SYSTEM_PROMPT: str = """\
 You are a professional outreach coordinator for IA West (Insights Association \
 West Chapter), a volunteer-run professional association for market research \
 and data analytics professionals in the Western United States.
@@ -168,7 +270,7 @@ You MUST return a JSON object with exactly these keys:
 }}\
 """.format(ia_west_url=IA_WEST_URL)
 
-EMAIL_USER_PROMPT_TEMPLATE: str = """\
+IA_WEST_CHAPTER_USER_PROMPT_TEMPLATE: str = """\
 Generate a personalized outreach email for the following volunteer-event match.
 
 SPEAKER / CONTACT PROFILE:
@@ -206,8 +308,14 @@ The value proposition should emphasize:
 - Impact on students (next generation of market researchers)
 - Visibility for the speaker and their company within the IA West community
 - IA West's mission of connecting industry professionals with academia
-- Low time commitment (typically 2-4 hours)\
+- Low time commitment (typically 2-4 hours)
 """
+
+
+def _prompts_for_voice(voice: EmailVoice) -> tuple[str, str]:
+    if voice == "school_coordinator":
+        return SCHOOL_COORDINATOR_SYSTEM_PROMPT, SCHOOL_COORDINATOR_USER_PROMPT_TEMPLATE
+    return IA_WEST_CHAPTER_SYSTEM_PROMPT, IA_WEST_CHAPTER_USER_PROMPT_TEMPLATE
 
 
 # ---------------------------------------------------------------------------
@@ -219,29 +327,52 @@ def _fallback_email(
     speaker_expertise: str,
     event_name: str,
     volunteer_role: str,
+    *,
+    voice: EmailVoice,
+    event_host: str = "our campus",
 ) -> dict[str, str]:
     """Return a template email when LLM generation fails."""
-    subject = f"Volunteer Opportunity: {volunteer_role} at {event_name}"
-    greeting = f"Dear {speaker_name},"
-    body = (
-        f"I hope this message finds you well. IA West (Insights Association West Chapter) "
-        f"is a volunteer-run professional association connecting market research and data "
-        f"analytics professionals across the Western United States with the next generation "
-        f"of researchers. You can learn more about our chapter at "
-        f'<a href="{IA_WEST_URL}">our IA West chapter page</a>.\n\n'
-        f"I am reaching out because your expertise in {speaker_expertise} "
-        f"makes you an excellent match for an upcoming opportunity.\n\n"
-        f"We are looking for a {volunteer_role} for {event_name}, and "
-        f"your background would bring tremendous value to the students "
-        f"and professionals attending.\n\n"
-        f"This is a great opportunity to give back to the next generation "
-        f"of market researchers while increasing your visibility in the "
-        f"IA West community. The typical time commitment is just 2-4 hours."
-    )
-    closing = (
-        "Would you be available to participate? I would be happy to share "
-        "more details.\n\nBest regards,\nIA West Chapter Leadership"
-    )
+    if voice == "ia_west_chapter":
+        subject = f"Volunteer Opportunity: {volunteer_role} at {event_name}"
+        greeting = f"Dear {speaker_name},"
+        body = (
+            f"I hope this message finds you well. IA West (Insights Association West Chapter) "
+            f"is a volunteer-run professional association connecting market research and data "
+            f"analytics professionals across the Western United States with the next generation "
+            f"of researchers. You can learn more about our chapter at "
+            f'<a href="{IA_WEST_URL}">our IA West chapter page</a>.\n\n'
+            f"I am reaching out because your expertise in {speaker_expertise} "
+            f"makes you an excellent match for an upcoming opportunity.\n\n"
+            f"We are looking for a {volunteer_role} for {event_name}, and "
+            f"your background would bring tremendous value to the students "
+            f"and professionals attending.\n\n"
+            f"This is a great opportunity to give back to the next generation "
+            f"of market researchers while increasing your visibility in the "
+            f"IA West community. The typical time commitment is just 2-4 hours."
+        )
+        closing = (
+            "Would you be available to participate? I would be happy to share "
+            "more details.\n\nBest regards,\nIA West Chapter Leadership"
+        )
+    else:
+        subject = f"Volunteer invitation: {volunteer_role} — {event_name}"
+        greeting = f"Dear {speaker_name},"
+        body = (
+            f"I am writing from {event_host} as we finalize plans for {event_name}. "
+            f"I hope you might consider volunteering as a {volunteer_role} for our students "
+            f"and attendees.\n\n"
+            f"Your background in {speaker_expertise} is an especially strong fit for what "
+            f"we are trying to offer this term. The session is designed to be high-impact "
+            f"without a heavy time burden — typically on the order of a few hours including prep.\n\n"
+            f"Many industry partners who support campus programs like ours also connect through "
+            f'the local professional community; if helpful context, see the '
+            f'<a href="{IA_WEST_URL}">IA West chapter page</a> for the wider volunteer network.'
+        )
+        closing = (
+            "If you are open to it, I would be glad to share a one-pager with timing and "
+            f"logistics.\n\nBest regards,\nEvent Coordinator\n{event_host}"
+        )
+
     full_email = f"Subject: {subject}\n\n{greeting}\n\n{body}\n\n{closing}"
 
     return {
@@ -253,6 +384,26 @@ def _fallback_email(
     }
 
 
+def fallback_outreach_email(
+    *,
+    voice: EmailVoice,
+    speaker_name: str,
+    speaker_expertise: str,
+    event_name: str,
+    volunteer_role: str,
+    event_host: str = "our campus",
+) -> dict[str, str]:
+    """Public template email when generation is skipped or fails upstream."""
+    return _fallback_email(
+        speaker_name,
+        speaker_expertise,
+        event_name,
+        volunteer_role,
+        voice=voice,
+        event_host=event_host,
+    )
+
+
 # ---------------------------------------------------------------------------
 # Email generation
 # ---------------------------------------------------------------------------
@@ -261,17 +412,22 @@ def generate_outreach_email(
     speaker: dict[str, Any],
     event: dict[str, Any],
     match_scores: dict[str, Any],
+    *,
+    voice: EmailVoice = "school_coordinator",
     model: str = EMAIL_MODEL,
     temperature: float = EMAIL_TEMPERATURE,
 ) -> dict[str, str]:
     """Generate a personalized outreach email for a speaker-event match.
+
+    *voice* selects prompts and fallbacks: ``school_coordinator`` (host campus)
+    vs ``ia_west_chapter`` (chapter leadership). Cache is partitioned by voice.
 
     Checks disk cache first. If no cached email, calls Gemini via
     generate_text(). On any API or JSON error, returns a template fallback.
 
     Returns dict with keys: subject_line, greeting, body, closing, full_email.
     """
-    cached = load_cached_email(speaker, event, match_scores)
+    cached = load_cached_email(speaker, event, match_scores, voice)
     if cached is not None:
         return cached
 
@@ -308,7 +464,8 @@ def generate_outreach_email(
     role_score = _match_score_value(match_scores, "role_fit")
     geo_score = _match_score_value(match_scores, "geographic_proximity")
 
-    user_prompt = EMAIL_USER_PROMPT_TEMPLATE.format(
+    _system_prompt, user_template = _prompts_for_voice(voice)
+    user_prompt = user_template.format(
         speaker_name=speaker_name,
         speaker_title=speaker_title,
         speaker_company=speaker_company,
@@ -331,7 +488,12 @@ def generate_outreach_email(
     messages = [{"role": "user", "content": user_prompt}]
 
     fallback = _fallback_email(
-        speaker_name, speaker_expertise, event_name, volunteer_role,
+        speaker_name,
+        speaker_expertise,
+        event_name,
+        volunteer_role,
+        voice=voice,
+        event_host=str(event_host) if event_host else "our campus",
     )
 
     try:
@@ -339,7 +501,7 @@ def generate_outreach_email(
             messages,
             api_key=GEMINI_API_KEY,
             model=model,
-            system_instruction=EMAIL_SYSTEM_PROMPT,
+            system_instruction=_system_prompt,
             max_output_tokens=EMAIL_MAX_TOKENS,
             temperature=temperature,
             timeout=15.0,
@@ -360,7 +522,7 @@ def generate_outreach_email(
                     f"{result.get('closing', '')}"
                 )
 
-        save_cached_email(speaker, event, match_scores, result)
+        save_cached_email(speaker, event, match_scores, voice, result)
         return result
 
     except (json.JSONDecodeError, TypeError, KeyError) as exc:

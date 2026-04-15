@@ -67,6 +67,7 @@ def render_email_preview(
                 event,
                 match_scores,
                 fixture_key="email_generation",
+                voice="ia_west_chapter",
             )
             email = _normalize_email_payload(payload)
         _record_email_generation(speaker, event)

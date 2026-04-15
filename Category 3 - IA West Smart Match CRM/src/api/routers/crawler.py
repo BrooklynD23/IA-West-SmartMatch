@@ -30,6 +30,15 @@ _crawl_state: dict[str, Any] = {
     "error": None,
 }
 
+# Ordered list of every URL visited during the current/last crawl run.
+# Each entry: {"url": str, "source": "seed"|"gemini"|"tavily", "title": str, "timestamp": str}
+_visited_urls: list[dict[str, Any]] = []
+
+# Per-query Gemini timeout. Shorter than the generic 30 s to keep the demo bounded.
+_GEMINI_SEARCH_TIMEOUT: float = 10.0
+# Tavily overall timeout per query (including network round-trip).
+_TAVILY_SEARCH_TIMEOUT: float = 12.0
+
 # Directed school seed URLs derived from IA West CSV data
 SEED_URLS: tuple[str, ...] = (
     "https://www.cpp.edu/cba/digital-innovation/what-we-do/ai-hackathon.shtml",
@@ -88,9 +97,15 @@ async def _search_gemini(query: str) -> list[dict[str, str]]:
         return []
     loop = asyncio.get_event_loop()
     try:
-        return await loop.run_in_executor(
-            None, lambda: web_search(query, api_key=GEMINI_API_KEY)
+        return await asyncio.wait_for(
+            loop.run_in_executor(
+                None, lambda: web_search(query, api_key=GEMINI_API_KEY, timeout=_GEMINI_SEARCH_TIMEOUT)
+            ),
+            timeout=_GEMINI_SEARCH_TIMEOUT + 2.0,
         )
+    except asyncio.TimeoutError:
+        _log.warning("Gemini search timed out for %r", query)
+        return []
     except Exception as exc:
         _log.warning("Gemini search failed for %r: %s", query, exc)
         return []
@@ -113,7 +128,13 @@ async def _search_tavily(query: str) -> list[dict[str, str]]:
                 for r in raw_results
                 if isinstance(r, dict) and r.get("url")
             ]
-        return await loop.run_in_executor(None, _do_search)
+        return await asyncio.wait_for(
+            loop.run_in_executor(None, _do_search),
+            timeout=_TAVILY_SEARCH_TIMEOUT,
+        )
+    except asyncio.TimeoutError:
+        _log.warning("Tavily search timed out for %r", query)
+        return []
     except Exception as exc:
         _log.warning("Tavily search failed for %r: %s", query, exc)
         return []
@@ -129,9 +150,12 @@ async def _push_event(event: dict[str, Any]) -> None:
 
 async def _run_crawl() -> None:
     """Crawl IA West directed school pages; push events to SSE queue and persist to DB."""
+    global _visited_urls
+
     def now() -> str:
         return datetime.now(timezone.utc).isoformat()
 
+    _visited_urls = []
     _crawl_state["state"] = "running"
     _crawl_state["started_at"] = now()
     _crawl_state["finished_at"] = None
@@ -145,6 +169,7 @@ async def _run_crawl() -> None:
     finally:
         _crawl_state["state"] = "done"
         _crawl_state["finished_at"] = now()
+        _crawl_state["visited_count"] = len(_visited_urls)
         try:
             _crawler_queue.put_nowait(None)
         except asyncio.QueueFull:
@@ -153,6 +178,7 @@ async def _run_crawl() -> None:
 
 async def _run_crawl_body(now: Any) -> None:
     """Inner crawl steps (``_run_crawl`` ``finally`` emits the SSE done sentinel)."""
+    global _visited_urls
 
     # Phase 1: Emit "crawling" for each seed URL
     for url in SEED_URLS:
@@ -160,12 +186,17 @@ async def _run_crawl_body(now: Any) -> None:
             "url": url,
             "title": "",
             "status": "crawling",
+            "source": "seed",
             "timestamp": now(),
         })
         await asyncio.sleep(0.3)  # Pacing for visual effect in UI
 
         # Simulate a basic "found" for seed URLs
         title = url.split("//")[1].split("/")[0] if "//" in url else url
+
+        # Track every seed URL visited (regardless of relevance filter)
+        _visited_urls.append({"url": url, "source": "seed", "title": title, "timestamp": now()})
+
         if _is_event_relevant(url, title):
             event_record = {
                 "url": url,
@@ -187,27 +218,42 @@ async def _run_crawl_body(now: Any) -> None:
             "url": url,
             "title": title,
             "status": "found",
+            "source": "seed",
             "timestamp": now(),
         })
 
     # Phase 2: Run search queries through Gemini then Tavily
     for query in SEARCH_QUERIES:
+        ts = now()
         await _push_event({
             "url": "",
             "title": f"Searching: {query}",
             "status": "crawling",
-            "timestamp": now(),
+            "source": "search",
+            "timestamp": ts,
         })
 
         results = await _search_gemini(query)
         search_source = "gemini"
         if not results:
+            # Emit a brief "trying Tavily fallback" event so the UI shows activity
+            await _push_event({
+                "url": "",
+                "title": f"Gemini returned no results — trying Tavily: {query}",
+                "status": "crawling",
+                "source": "tavily",
+                "timestamp": now(),
+            })
             results = await _search_tavily(query)
             search_source = "tavily"
 
         for result in results:
             url = result.get("url", "")
             title = result.get("title", "")
+
+            # Track every discovered URL (before relevance filter)
+            _visited_urls.append({"url": url, "source": search_source, "title": title, "timestamp": now()})
+
             if not _is_event_relevant(url, title):
                 _log.debug("Skipping non-event search result: %s | %s", title, url)
                 continue
@@ -229,6 +275,7 @@ async def _run_crawl_body(now: Any) -> None:
                 "url": url,
                 "title": title,
                 "status": "found",
+                "source": search_source,
                 "timestamp": now(),
             })
             await asyncio.sleep(0.2)  # Pacing
@@ -238,6 +285,7 @@ async def _run_crawl_body(now: Any) -> None:
                 "url": "",
                 "title": f"No results for: {query}",
                 "status": "error",
+                "source": "search",
                 "timestamp": now(),
             })
 
@@ -271,8 +319,16 @@ async def crawler_feed() -> StreamingResponse:
 
 @router.get("/status")
 async def crawler_status() -> dict[str, Any]:
-    """Return current crawl state: idle | running | done."""
-    return {**_crawl_state}
+    """Return current crawl state: idle | running | done.
+
+    Also includes ``visited_count`` (int) and ``visited_urls`` (list) so consumers
+    can show which sites Gemini/Tavily visited without waiting for ``/results``.
+    """
+    return {
+        **_crawl_state,
+        "visited_count": len(_visited_urls),
+        "visited_urls": list(_visited_urls),
+    }
 
 
 @router.post("/start")
@@ -293,7 +349,26 @@ async def crawler_results() -> dict[str, Any]:
     """Return stored crawl results from smartmatch.db."""
     try:
         events = load_crawler_events()
-        return {"events": events, "count": len(events), "source": "live"}
+        if events:
+            return {"events": events, "count": len(events), "source": "live"}
+
+        # Demo-friendly fallback: if nothing has been persisted yet, return a small
+        # seed set so the UI doesn't look "broken" before the first crawl runs.
+        fallback = [
+            {
+                "id": None,
+                "url": url,
+                "title": url.split("//")[1].split("/")[0] if "//" in url else url,
+                "description": f"Seed URL: {url}",
+                "school_name": url.split("//")[1].split("/")[0] if "//" in url else url,
+                "crawled_at": None,
+                "source": "seed",
+                "status": "found",
+            }
+            for url in SEED_URLS
+            if _is_event_relevant(url, url)
+        ]
+        return {"events": fallback, "count": len(fallback), "source": "seed-fallback"}
     except Exception:
         return {"events": [], "count": 0, "source": "none"}
 
@@ -304,12 +379,15 @@ async def clear_crawler_results() -> dict[str, Any]:
 
     Use this to flush non-event entries before re-running a crawl.
     """
+    global _visited_urls
     try:
         deleted = delete_all_crawler_events()
+        _visited_urls = []
         _crawl_state["state"] = "idle"
         _crawl_state["started_at"] = None
         _crawl_state["finished_at"] = None
         _crawl_state["error"] = None
+        _crawl_state.pop("visited_count", None)
         return {"deleted": deleted, "status": "cleared"}
     except Exception as exc:
         from fastapi import HTTPException

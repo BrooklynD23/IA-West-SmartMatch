@@ -311,6 +311,54 @@ def record_qr_scan(
     }
 
 
+def record_attendance_checkin(
+    event_id: str,
+    student_id: str,
+    check_in_time: str,
+    scan_duration_minutes: int | None = None,
+) -> dict[str, Any]:
+    """Record a student QR attendance check-in for an event.
+
+    Stored as a separate 'checkin' record type in a new
+    data/qr/attendance-log.jsonl append-only file.
+    Returns the written record.
+    """
+    writable = get_writable_dir("data/qr")
+    log_path = writable / "attendance-log.jsonl"
+    record = {
+        "record_type": "checkin",
+        "event_id": event_id,
+        "student_id": student_id,
+        "check_in_time": check_in_time,
+        "scan_duration_minutes": scan_duration_minutes,
+        "logged_at": _utc_now(),
+    }
+    with open(log_path, "a", encoding="utf-8") as f:
+        f.write(json.dumps(record) + "\n")
+    return record
+
+
+def get_student_attendance_history(student_id: str) -> list[dict[str, Any]]:
+    """Read attendance-log.jsonl and return check-in records for a student."""
+    writable = get_writable_dir("data/qr")
+    log_path = writable / "attendance-log.jsonl"
+    if not log_path.exists():
+        return []
+    records = []
+    with open(log_path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                rec = json.loads(line)
+                if rec.get("student_id") == student_id:
+                    records.append(rec)
+            except json.JSONDecodeError:
+                continue
+    return records
+
+
 def build_qr_stats(
     speaker_name: str | None = None,
     event_name: str | None = None,

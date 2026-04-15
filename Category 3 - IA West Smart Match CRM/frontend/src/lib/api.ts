@@ -25,6 +25,8 @@ export interface CrawlerEvent {
   title: string;
   status: "crawling" | "found" | "error" | "done";
   timestamp: string;
+  /** Which provider discovered this URL: seed URL list, Gemini grounding, or Tavily search. */
+  source?: "seed" | "gemini" | "tavily" | "search";
 }
 
 export interface CrawlerResultsResponse {
@@ -146,9 +148,13 @@ export interface OutreachEmailPayload {
   full_email: string;
 }
 
+export type OutreachEmailVoice = "school_coordinator" | "ia_west_chapter";
+
 export interface OutreachEmailResponse {
   email: string;
   email_data: OutreachEmailPayload;
+  /** Present when the API resolved sender perspective (school vs IA West chapter). */
+  voice?: OutreachEmailVoice;
 }
 
 export interface QrCodeAsset {
@@ -1073,12 +1079,15 @@ export async function scoreSpeaker(
 export async function generateEmail(
   speakerName: string,
   eventName: string,
+  options?: { voice?: OutreachEmailVoice; request_source?: string },
 ): Promise<OutreachEmailResponse> {
   return requestJson<OutreachEmailResponse>("/api/outreach/email", {
     method: "POST",
     body: JSON.stringify({
       speaker_name: speakerName,
       event_name: eventName,
+      ...(options?.voice ? { voice: options.voice } : {}),
+      ...(options?.request_source ? { request_source: options.request_source } : {}),
     }),
   });
 }
@@ -1180,11 +1189,20 @@ export async function clearCrawlerResults(): Promise<{ deleted: number; status: 
   });
 }
 
+export interface CrawlerVisitedUrl {
+  url: string;
+  source: "seed" | "gemini" | "tavily";
+  title: string;
+  timestamp: string;
+}
+
 export interface CrawlerStatusResponse {
   state: "idle" | "running" | "done";
   started_at: string | null;
   finished_at: string | null;
   error: string | null;
+  visited_count?: number;
+  visited_urls?: CrawlerVisitedUrl[];
 }
 
 export async function fetchCrawlerStatus(): Promise<CrawlerStatusResponse> {
@@ -1206,4 +1224,269 @@ export async function fetchUniversityContacts(): Promise<UniversityContact[]> {
   } catch {
     return [];
   }
+}
+
+// --- Portal types ---
+export interface StudentProfile {
+  student_id: string;
+  name: string;
+  email: string;
+  school: string;
+  major: string;
+  year: string;
+  interests: string;
+  attendance_streak: number;
+  events_attended: number;
+  churn_risk: "low" | "medium" | "high";
+  membership_interest: boolean;
+  suggested_connections: string;
+  source?: string;
+}
+
+export interface EventCoordinator {
+  coordinator_id: string;
+  name: string;
+  email: string;
+  school: string;
+  department: string;
+  hosted_events: string;
+  contact_status: "active" | "pending" | "new";
+  last_contact_date: string;
+  meeting_availability: string;
+  source?: string;
+}
+
+export interface StudentRegistration {
+  registration_id: string;
+  student_id: string;
+  event_id: string;
+  event_name: string;
+  registered_at: string;
+  /** Event date from calendar_events (YYYY-MM-DD), when available. */
+  event_date?: string | null;
+  status: "registered" | "attended" | "cancelled";
+  check_in_time: string | null;
+  check_out_time: string | null;
+  source?: string;
+}
+
+export interface AttendedEventRef {
+  event_id: string;
+  event_name: string;
+}
+
+export interface StudentConnectionSuggestion {
+  peer_student_id: string;
+  name: string;
+  school: string;
+  major: string;
+  interests: string;
+  shared_events: AttendedEventRef[];
+  shared_event_count: number;
+}
+
+export interface StudentConnectionSuggestionsResponse {
+  student_id: string;
+  attended_past_events: AttendedEventRef[];
+  suggestions: StudentConnectionSuggestion[];
+  total: number;
+  source: string;
+}
+
+export interface StudentSpeakerSuggestion {
+  speaker_name: string;
+  speaker_title: string;
+  speaker_company: string;
+  board_role: string;
+  metro_region: string;
+  expertise_tags: string;
+  shared_events: AttendedEventRef[];
+  shared_event_count: number;
+}
+
+export interface OutreachThread {
+  thread_id: string;
+  coordinator_id: string;
+  event_id: string;
+  ia_contact: string;
+  subject: string;
+  status: "confirmed" | "in_progress" | "awaiting_response" | "new";
+  last_message_at: string;
+  message_count: number;
+  next_action: string;
+  source?: string;
+}
+
+export interface MeetingBooking {
+  booking_id: string;
+  thread_id: string;
+  coordinator_id: string;
+  ia_contact: string;
+  event_id: string;
+  title: string;
+  scheduled_at: string;
+  duration_minutes: number;
+  status: "confirmed" | "pending_confirmation";
+  meeting_link: string;
+  notes: string;
+  source?: string;
+}
+
+export interface RetentionNudge {
+  student_id: string;
+  nudge_type: "next_event" | "re_engage" | "streak" | "membership";
+  message: string;
+  event_id: string | null;
+  cta_label: string;
+  points_earned: number;
+  source?: string;
+}
+
+export interface MockLoginResponse {
+  role: string;
+  user: Record<string, unknown>;
+  redirect_path: string;
+  available_roles: Array<{ role: string; email: string; name: string; id: string }>;
+}
+
+const API_BASE = "/api";
+
+export async function mockLogin(email: string, role?: string): Promise<MockLoginResponse> {
+  const res = await fetch(`${API_BASE}/portals/auth/mock-login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, role }),
+  });
+  if (!res.ok) {
+    let detail = res.statusText || String(res.status);
+    try {
+      const errBody = (await res.json()) as { detail?: unknown };
+      if (typeof errBody.detail === "string") {
+        detail = errBody.detail;
+      } else if (Array.isArray(errBody.detail)) {
+        detail = JSON.stringify(errBody.detail);
+      }
+    } catch {
+      /* ignore non-JSON error bodies */
+    }
+    throw new Error(`Login failed (${res.status}): ${detail}`);
+  }
+  return res.json();
+}
+
+export async function fetchStudentProfile(studentId: string): Promise<StudentProfile & { source: string }> {
+  const res = await fetch(`${API_BASE}/portals/students/${studentId}`);
+  if (!res.ok) throw new Error(`Student not found: ${studentId}`);
+  return res.json();
+}
+
+export async function fetchStudentRegistrations(studentId: string): Promise<{ data: StudentRegistration[]; total: number; source: string }> {
+  const res = await fetch(`${API_BASE}/portals/students/${studentId}/registrations`);
+  if (!res.ok) throw new Error(`Registrations not found`);
+  return res.json();
+}
+
+export async function fetchStudentConnectionSuggestions(
+  studentId: string,
+): Promise<StudentConnectionSuggestionsResponse> {
+  const params = new URLSearchParams({ student_id: studentId });
+  const endpoints = [
+    `${API_BASE}/portals/student-connections?${params.toString()}`,
+    `${API_BASE}/portals/students/${encodeURIComponent(studentId)}/connection-suggestions`,
+  ];
+
+  for (const endpoint of endpoints) {
+    const res = await fetch(endpoint);
+    if (res.ok) {
+      return res.json();
+    }
+
+    // During local development it is common to have a stale backend process;
+    // if one route is missing, try the compatibility endpoint before failing.
+    if (res.status === 404) {
+      continue;
+    }
+
+    throw new Error(`Connection suggestions failed: ${res.status}`);
+  }
+
+  return {
+    student_id: studentId,
+    attended_past_events: [],
+    suggestions: [],
+    total: 0,
+    source: "unavailable",
+  };
+}
+
+export async function fetchStudentRecommendations(studentId: string): Promise<{ recommendations: (CalendarEventSummary & { is_recommended: boolean })[]; source: string }> {
+  const res = await fetch(`${API_BASE}/portals/students/${studentId}/recommendations`);
+  if (!res.ok) throw new Error(`Recommendations failed`);
+  return res.json();
+}
+
+export async function fetchStudentNudge(
+  studentId: string,
+): Promise<(RetentionNudge & { source: string }) | null> {
+  const res = await fetch(`${API_BASE}/portals/students/${studentId}/nudge`);
+  if (res.status === 404) {
+    return null;
+  }
+  if (!res.ok) {
+    throw new Error(`Nudge failed: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function fetchCoordinatorProfile(coordinatorId: string): Promise<EventCoordinator & { source: string }> {
+  const res = await fetch(`${API_BASE}/portals/event-coordinators/${coordinatorId}`);
+  if (!res.ok) throw new Error(`Coordinator not found`);
+  return res.json();
+}
+
+export async function fetchCoordinatorThreads(coordinatorId: string): Promise<{ data: OutreachThread[]; total: number; source: string }> {
+  const res = await fetch(`${API_BASE}/portals/event-coordinators/${coordinatorId}/threads`);
+  if (!res.ok) throw new Error(`Threads failed`);
+  return res.json();
+}
+
+export async function fetchCoordinatorMeetings(coordinatorId: string): Promise<{ data: MeetingBooking[]; total: number; source: string }> {
+  const res = await fetch(`${API_BASE}/portals/event-coordinators/${coordinatorId}/meetings`);
+  if (!res.ok) throw new Error(`Meetings failed`);
+  return res.json();
+}
+
+export async function fetchCoordinatorEvents(coordinatorId: string): Promise<{ data: (CalendarEventSummary & { staffing_open: boolean })[]; total: number; source: string }> {
+  const res = await fetch(`${API_BASE}/portals/event-coordinators/${coordinatorId}/events`);
+  if (!res.ok) {
+    throw new Error(`Coordinator events failed: ${res.status}`);
+  }
+  const payload = (await res.json()) as {
+    data?: (CalendarEventSummary & { staffing_open?: boolean })[];
+    events?: (CalendarEventSummary & { staffing_open?: boolean })[];
+    total?: number;
+    source?: string;
+  };
+  const data = payload.data ?? payload.events ?? [];
+  return {
+    data,
+    total: typeof payload.total === "number" ? payload.total : data.length,
+    source: typeof payload.source === "string" ? payload.source : "demo",
+  };
+}
+
+export interface AgentStepEvent {
+  event: "workflow_start" | "agent_queued" | "agent_running" | "agent_done" | "workflow_complete";
+  agent_id?: string;
+  agent_name?: string;
+  role?: string;
+  step?: number;
+  output?: Record<string, unknown>;
+  duration_ms?: number;
+  speaker_name?: string;
+  event_name?: string;
+  total_agents?: number;
+  dispatch_mode?: string;
+  summary?: string;
+  human_approval_required?: boolean;
 }
