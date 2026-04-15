@@ -55,7 +55,7 @@ export function LandingPage() {
         {/* ── HERO ──────────────────────────────────────────── */}
         <section
           id="hero"
-          className="mx-auto grid max-w-7xl gap-12 px-6 py-16 text-center lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-8 lg:py-24 lg:text-left"
+          className="mx-auto max-w-5xl px-6 py-16 text-center lg:px-8 lg:py-24"
         >
           <motion.div {...introReveal} className="space-y-8">
             <span className="public-pill">AI-Driven Volunteer Coordination for IA West</span>
@@ -65,13 +65,13 @@ export function LandingPage() {
                 Connect the right speakers with the right university opportunities
               </h1>
 
-              <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">
+              <p className="mx-auto max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">
                 Intelligent matching system that bridges the gap between industry expertise and
                 academic needs through high-fidelity data signals.
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-start">
+            <div className="flex flex-wrap items-center justify-center gap-3">
               <Link to="/login?role=ia_admin" className="public-button-primary">
                 Start Matching
               </Link>
@@ -92,76 +92,6 @@ export function LandingPage() {
               <div className="public-panel p-5">
                 <p className="text-3xl font-semibold text-primary">94%</p>
                 <p className="mt-1 text-sm text-muted-foreground">signal confidence</p>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            {...introReveal}
-            transition={{ ...introReveal.transition, delay: 0.08 }}
-            className="relative"
-          >
-            <div className="public-panel relative overflow-hidden p-6 text-left md:p-8">
-              <motion.div
-                aria-hidden="true"
-                className="absolute -right-16 -top-12 h-48 w-48 rounded-full bg-primary/10 blur-3xl"
-                animate={
-                  reduceMotion
-                    ? undefined
-                    : { scale: [1, 1.08, 1], opacity: [0.45, 0.7, 0.45] }
-                }
-                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-              />
-              <motion.div
-                aria-hidden="true"
-                className="absolute bottom-6 left-6 h-24 w-24 rounded-full bg-secondary/70 blur-2xl"
-                animate={reduceMotion ? undefined : { y: [0, -8, 0] }}
-                transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-              />
-
-              <div className="relative space-y-6">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="public-pill">Opportunity snapshot</p>
-                    <h2 className="mt-4 font-[Inter_Tight] text-2xl font-semibold text-foreground md:text-3xl">
-                      UCLA Career Fair 2026
-                    </h2>
-                    <p className="mt-2 text-sm text-muted-foreground">Luskin Conference Center</p>
-                  </div>
-                  <span className="rounded-full bg-primary/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-primary">
-                    High priority
-                  </span>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-[1.2fr_0.8fr]">
-                  <div className="rounded-[1.5rem] border border-border/70 bg-background p-5">
-                    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-                      Specialist focus
-                    </p>
-                    <div className="mt-4 flex items-center gap-4">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-lg font-semibold text-primary-foreground">
-                        TM
-                      </div>
-                      <div>
-                        <p className="font-semibold text-foreground">Travis Miller</p>
-                        <p className="text-sm text-muted-foreground">SVP Sales, TechCorp</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="rounded-[1.5rem] border border-border/70 bg-background p-5">
-                    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-                      Match score
-                    </p>
-                    <div className="mt-3 flex items-end gap-2">
-                      <span className="font-[Inter_Tight] text-5xl font-semibold text-primary">94</span>
-                      <span className="pb-1 text-lg font-semibold text-muted-foreground">/100</span>
-                    </div>
-                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted">
-                      <div className="h-full w-[94%] rounded-full bg-primary" />
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </motion.div>
