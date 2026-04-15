@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router";
 import {
   Activity,
   ArrowRight,
@@ -364,7 +365,7 @@ export function Dashboard() {
           setCalendarAssignments(MOCK_CALENDAR_ASSIGNMENTS);
           setFeedbackStats(MOCK_FEEDBACK_STATS);
           setIsMockData(true);
-          setError(err instanceof Error ? err.message : "Failed to load dashboard data.");
+          setError(null); // Demo Mode badge already signals the fallback state
         }
       } finally {
         if (active) {
@@ -531,6 +532,7 @@ export function Dashboard() {
           changeType="neutral"
           icon={Briefcase}
           iconColor="bg-[#e6effb] text-[#005394]"
+          href="/opportunities"
         />
         <MetricCard
           title="Volunteer Utilization"
@@ -539,6 +541,7 @@ export function Dashboard() {
           changeType="positive"
           icon={Users}
           iconColor="bg-[#e6effb] text-[#005394]"
+          href="/volunteers"
         />
         <MetricCard
           title="Upcoming IA Windows"
@@ -547,6 +550,7 @@ export function Dashboard() {
           changeType="neutral"
           icon={CalendarDays}
           iconColor="bg-[#e6effb] text-[#005394]"
+          href="/calendar"
         />
         <MetricCard
           title="Member Inquiry Rate"
@@ -555,18 +559,24 @@ export function Dashboard() {
           changeType="positive"
           icon={TrendingUp}
           iconColor="bg-[#e6effb] text-[#005394]"
+          href="/pipeline"
         />
       </div>
 
       <div className="rounded-2xl border border-[#d5e0f7] bg-white p-6 shadow-sm">
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="h-5 w-5 text-[#005394]" />
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">Recovery and coverage summary</h3>
-            <p className="text-sm text-gray-600">
-              A compact view of the new calendar contract and volunteer recovery posture.
-            </p>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5 text-[#005394]" />
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Recovery and coverage summary</h3>
+              <p className="text-sm text-gray-600">
+                A compact view of the new calendar contract and volunteer recovery posture.
+              </p>
+            </div>
           </div>
+          <Link to="/calendar" className="shrink-0 text-xs font-medium text-[#005394] hover:underline">
+            View calendar →
+          </Link>
         </div>
 
         <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -608,8 +618,13 @@ export function Dashboard() {
               </p>
             </div>
           </div>
-          <div className="rounded-full border border-[#d5e0f7] bg-[#f7f9fc] px-3 py-1 text-xs font-medium text-[#005394]">
-            {feedbackStats.total_feedback} feedback rows
+          <div className="flex items-center gap-3">
+            <div className="rounded-full border border-[#d5e0f7] bg-[#f7f9fc] px-3 py-1 text-xs font-medium text-[#005394]">
+              {feedbackStats.total_feedback} feedback rows
+            </div>
+            <Link to="/ai-matching" className="text-xs font-medium text-[#005394] hover:underline">
+              View matches →
+            </Link>
           </div>
         </div>
 
@@ -849,7 +864,12 @@ export function Dashboard() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="rounded-2xl border border-[#d5e0f7] bg-white p-6 shadow-sm">
-          <h3 className="mb-4 text-lg font-semibold text-gray-900">Pipeline Funnel</h3>
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900">Pipeline Funnel</h3>
+            <Link to="/pipeline" className="text-xs font-medium text-[#005394] hover:underline">
+              View pipeline →
+            </Link>
+          </div>
           <ResponsiveContainer width="100%" height={300}>
             <FunnelChart>
               <Tooltip />
@@ -906,10 +926,13 @@ export function Dashboard() {
             <Sparkles className="h-5 w-5 text-[#005394]" />
             <h3 className="text-lg font-semibold text-gray-900">Top Recommended Matches</h3>
           </div>
-          <button className="flex items-center gap-1 text-sm font-medium text-[#005394] transition-colors hover:text-[#00477f]">
+          <Link
+            to="/ai-matching"
+            className="flex items-center gap-1 text-sm font-medium text-[#005394] transition-colors hover:text-[#00477f]"
+          >
             View All
             <ArrowRight className="h-4 w-4" />
-          </button>
+          </Link>
         </div>
 
         <div className="space-y-4">

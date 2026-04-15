@@ -14,16 +14,33 @@ import {
 import { useState } from "react";
 import { ScrollToTop } from "./ScrollToTop";
 import { CrawlerProvider, useCrawlerStatus } from "./CrawlerContext";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "./ui/tooltip";
 
-const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Opportunities", href: "/opportunities", icon: Briefcase },
-  { name: "Volunteers", href: "/volunteers", icon: Users },
-  { name: "AI Matching", href: "/ai-matching", icon: Sparkles },
-  { name: "Pipeline", href: "/pipeline", icon: TrendingUp },
-  { name: "Calendar", href: "/calendar", icon: CalendarDays },
-  { name: "Outreach", href: "/outreach", icon: Mail },
+const navigationSections = [
+  {
+    label: "MANAGE",
+    items: [
+      { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, tooltip: "Overview of metrics and pipeline health" },
+      { name: "Volunteers", href: "/volunteers", icon: Users, tooltip: "Specialist roster and engagement metrics" },
+      { name: "Pipeline", href: "/pipeline", icon: TrendingUp, tooltip: "Track matches through each stage" },
+      { name: "Calendar", href: "/calendar", icon: CalendarDays, tooltip: "View and manage event assignments" },
+    ],
+  },
+  {
+    label: "DISCOVER",
+    items: [
+      { name: "Opportunities", href: "/opportunities", icon: Briefcase, tooltip: "Browse and filter discovered events" },
+      { name: "AI Matching", href: "/ai-matching", icon: Sparkles, tooltip: "Rank specialists against open opportunities" },
+      { name: "Outreach", href: "/outreach", icon: Mail, tooltip: "Generate emails, QR assets, and crawler feed" },
+    ],
+  },
 ];
+
+const allNavItems = navigationSections.flatMap((s) => s.items);
 
 function CrawlBanner() {
   const { status } = useCrawlerStatus();
@@ -42,6 +59,12 @@ function CrawlBanner() {
 export function Layout() {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const currentPage = allNavItems.find(
+    (item) =>
+      location.pathname === item.href ||
+      (item.href !== "/dashboard" && location.pathname.startsWith(item.href)),
+  );
 
   return (
     <CrawlerProvider>
@@ -83,28 +106,48 @@ export function Layout() {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-            {navigation.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.href ||
-                (item.href !== "/dashboard" && location.pathname.startsWith(item.href));
+          <nav className="flex-1 px-4 py-4 space-y-4 overflow-y-auto">
+            {navigationSections.map((section, sectionIndex) => (
+              <div key={section.label}>
+                {sectionIndex > 0 && (
+                  <div className="mb-3 mt-1 border-t border-sidebar-border" />
+                )}
+                <p className="px-3 pb-1 text-[10px] font-semibold tracking-[0.2em] text-[#5a6472]">
+                  {section.label}
+                </p>
+                <div className="space-y-1">
+                  {section.items.map((item) => {
+                    const Icon = item.icon;
+                    const isActive =
+                      location.pathname === item.href ||
+                      (item.href !== "/dashboard" &&
+                        location.pathname.startsWith(item.href));
 
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
-                    isActive
-                      ? "border border-[#c9d9ee] bg-[#eef4ff] text-[#005394] shadow-sm"
-                      : "text-[#394454] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span>{item.name}</span>
-                </Link>
-              );
-            })}
+                    return (
+                      <Tooltip key={item.name}>
+                        <TooltipTrigger asChild>
+                          <Link
+                            to={item.href}
+                            onClick={() => setSidebarOpen(false)}
+                            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                              isActive
+                                ? "border border-[#c9d9ee] bg-[#eef4ff] text-[#005394] shadow-sm"
+                                : "text-[#394454] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                            }`}
+                          >
+                            <Icon className="w-5 h-5" />
+                            <span>{item.name}</span>
+                          </Link>
+                        </TooltipTrigger>
+                        <TooltipContent side="right" sideOffset={8}>
+                          {item.tooltip}
+                        </TooltipContent>
+                      </Tooltip>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </nav>
 
           {/* Footer */}
@@ -146,6 +189,14 @@ export function Layout() {
             <div className="w-6" /> {/* Spacer for centering */}
           </div>
         </header>
+
+        {/* Page title strip (desktop only) */}
+        {currentPage && (
+          <div className="hidden lg:flex items-center gap-2.5 border-b border-sidebar-border bg-white px-8 py-3">
+            <currentPage.icon className="h-4 w-4 text-[#005394]" />
+            <span className="text-sm font-medium text-[#394454]">{currentPage.name}</span>
+          </div>
+        )}
 
         {/* Page content */}
         <main className="p-6 lg:p-8">

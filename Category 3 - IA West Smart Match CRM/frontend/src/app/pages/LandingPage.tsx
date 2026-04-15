@@ -91,7 +91,7 @@ export function LandingPage() {
             <span className="public-pill">IA West Chapter</span>
             <div className="space-y-6">
               <h1 className="max-w-3xl font-[Inter_Tight] text-5xl font-semibold tracking-tight text-foreground md:text-7xl">
-                Turn West Coast opportunities into coordinated specialist action.
+                <span className="whitespace-nowrap">Insights Association.</span> See it. Staff it. Secure it.
               </h1>
               <p className="max-w-2xl text-lg leading-8 text-muted-foreground md:text-xl">
                 The public surface stays focused on one path: discover the brand, understand the
@@ -191,14 +191,6 @@ export function LandingPage() {
                   </div>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-3">
-                  {marketSignals.map((signal) => (
-                    <div key={signal.label} className={`rounded-2xl px-4 py-3 ${signal.tone}`}>
-                      <p className="text-sm font-semibold">{signal.label}</p>
-                      <p className="mt-0.5 text-xs opacity-75">{signal.opportunities.toLocaleString()} opps</p>
-                    </div>
-                  ))}
-                </div>
               </div>
             </div>
           </motion.div>
