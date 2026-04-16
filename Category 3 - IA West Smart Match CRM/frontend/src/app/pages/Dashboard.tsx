@@ -563,7 +563,7 @@ export function Dashboard() {
           href="/volunteers"
         />
         <MetricCard
-          title="Upcoming IA Windows"
+          title="Upcoming Events"
           value={calendarEvents.length}
           change="Calendar dataset"
           changeType="neutral"
@@ -589,7 +589,7 @@ export function Dashboard() {
             <div>
               <h3 className="text-lg font-semibold text-gray-900">Recovery and coverage summary</h3>
               <p className="text-sm text-gray-600">
-                A compact view of the new calendar contract and volunteer recovery posture.
+                A compact view of event coverage and volunteers needing to recover.
               </p>
             </div>
           </div>
@@ -600,7 +600,7 @@ export function Dashboard() {
 
         <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-2xl border border-[#d5e0f7] bg-[#f7f9fc] p-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Covered windows</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Covered Events</p>
             <p className="mt-2 text-3xl font-semibold text-gray-900">{coveredCalendarCount}</p>
             <p className="mt-1 text-sm text-gray-600">
               {calendarEvents.length
@@ -609,7 +609,7 @@ export function Dashboard() {
             </p>
           </div>
           <div className="rounded-2xl border border-[#d5e0f7] bg-[#f7f9fc] p-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Open windows</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Open Events</p>
             <p className="mt-2 text-3xl font-semibold text-gray-900">{openCalendarCount}</p>
             <p className="mt-1 text-sm text-gray-600">Still need volunteer coverage</p>
           </div>
@@ -631,7 +631,7 @@ export function Dashboard() {
           <div className="flex items-center gap-2">
             <MessageSquareHeart className="h-5 w-5 text-[#005394]" />
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Algorithm improvement pulse</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Matching Algorithm Feedback</h3>
               <p className="text-sm text-gray-600">
                 Coordinator feedback now drives a bounded weight snapshot and pain-score trend.
               </p>
