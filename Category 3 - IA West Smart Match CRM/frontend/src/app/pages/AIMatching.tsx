@@ -752,71 +752,6 @@ export function AIMatching() {
         </div>
       ) : null}
 
-      <div className="rounded-3xl border border-blue-100 bg-white p-6 shadow-sm">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <MessageSquareHeart className="h-5 w-5 text-blue-600" />
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-700">
-                Continuous improvement
-              </p>
-            </div>
-            <h2 className="mt-2 text-xl font-semibold text-slate-900">
-              Feedback-informed ranking is active
-            </h2>
-            <p className="mt-1 text-sm text-slate-600">
-              Current rankings use the latest effective weights from the feedback optimizer when data is available.
-            </p>
-          </div>
-          <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700">
-            {feedbackStats.total_feedback} feedback rows
-          </span>
-        </div>
-
-        <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Acceptance rate</p>
-            <p className="mt-2 text-3xl font-semibold text-slate-900">
-              {Math.round(feedbackStats.acceptance_rate * 100)}%
-            </p>
-            <p className="mt-1 text-sm text-slate-600">
-              {feedbackStats.accepted} accepted / {feedbackStats.declined} declined
-            </p>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Pain score</p>
-            <p className="mt-2 text-3xl font-semibold text-slate-900">
-              {Math.round(feedbackStats.pain_score)}
-            </p>
-            <p className="mt-1 text-sm text-slate-600">Lower is healthier for the current matcher.</p>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Membership signal</p>
-            <p className="mt-2 text-3xl font-semibold text-slate-900">
-              {Math.round(feedbackStats.membership_interest_rate * 100)}%
-            </p>
-            <p className="mt-1 text-sm text-slate-600">
-              {feedbackStats.membership_interest_count} feedback entries marked as interest.
-            </p>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Lead weight shift</p>
-            <p className="mt-2 text-lg font-semibold text-slate-900">
-              {feedbackStats.recommended_adjustments[0]
-                ? formatFactorName(feedbackStats.recommended_adjustments[0].factor)
-                : "No shift yet"}
-            </p>
-            <p className="mt-1 text-sm text-slate-600">
-              {feedbackStats.recommended_adjustments[0]
-                ? `${feedbackStats.recommended_adjustments[0].delta > 0 ? "+" : ""}${(
-                    feedbackStats.recommended_adjustments[0].delta * 100
-                  ).toFixed(1)} pts`
-                : "Needs more coordinator decisions."}
-            </p>
-          </div>
-        </div>
-      </div>
-
       {error ? (
         <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-red-700">
           {error}
@@ -1024,6 +959,71 @@ export function AIMatching() {
             })}
           </div>
         )}
+      </div>
+
+      <div className="rounded-3xl border border-blue-100 bg-white p-6 shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <MessageSquareHeart className="h-5 w-5 text-blue-600" />
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-700">
+                Continuous improvement
+              </p>
+            </div>
+            <h2 className="mt-2 text-xl font-semibold text-slate-900">
+              Feedback-informed ranking is active
+            </h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Current rankings use the latest effective weights from the feedback optimizer when data is available.
+            </p>
+          </div>
+          <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700">
+            {feedbackStats.total_feedback} feedback rows
+          </span>
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Acceptance rate</p>
+            <p className="mt-2 text-3xl font-semibold text-slate-900">
+              {Math.round(feedbackStats.acceptance_rate * 100)}%
+            </p>
+            <p className="mt-1 text-sm text-slate-600">
+              {feedbackStats.accepted} accepted / {feedbackStats.declined} declined
+            </p>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Pain score</p>
+            <p className="mt-2 text-3xl font-semibold text-slate-900">
+              {Math.round(feedbackStats.pain_score)}
+            </p>
+            <p className="mt-1 text-sm text-slate-600">Lower is healthier for the current matcher.</p>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Membership signal</p>
+            <p className="mt-2 text-3xl font-semibold text-slate-900">
+              {Math.round(feedbackStats.membership_interest_rate * 100)}%
+            </p>
+            <p className="mt-1 text-sm text-slate-600">
+              {feedbackStats.membership_interest_count} feedback entries marked as interest.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Lead weight shift</p>
+            <p className="mt-2 text-lg font-semibold text-slate-900">
+              {feedbackStats.recommended_adjustments[0]
+                ? formatFactorName(feedbackStats.recommended_adjustments[0].factor)
+                : "No shift yet"}
+            </p>
+            <p className="mt-1 text-sm text-slate-600">
+              {feedbackStats.recommended_adjustments[0]
+                ? `${feedbackStats.recommended_adjustments[0].delta > 0 ? "+" : ""}${(
+                    feedbackStats.recommended_adjustments[0].delta * 100
+                  ).toFixed(1)} pts`
+                : "Needs more coordinator decisions."}
+            </p>
+          </div>
+        </div>
       </div>
 
       {showWorkflowModal && selectedVolunteer ? (
