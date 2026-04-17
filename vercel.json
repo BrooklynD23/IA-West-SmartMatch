@@ -1,4 +1,8 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "git": {
+    "deploymentEnabled": false
+  },
   "installCommand": "cd \"Category 3 - IA West Smart Match CRM/frontend\" && npm install",
   "buildCommand": "cd \"Category 3 - IA West Smart Match CRM/frontend\" && npm run build",
   "outputDirectory": "Category 3 - IA West Smart Match CRM/frontend/dist",
